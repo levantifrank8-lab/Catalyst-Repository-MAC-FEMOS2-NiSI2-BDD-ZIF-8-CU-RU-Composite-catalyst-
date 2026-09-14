@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>CataLab-X Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,255,136,.15);}
+:root{
+  --bg:#030c07;--bg2:#060f0a;--bg3:#0a1a12;
+  --b1:#0f2d1a;--b2:#1a4a28;
+  --g:#00ff88;--g3:#44ffaa;
+  --or:#ff6b35;--yl:#ffcc00;--bl:#44aaff;--pu:#aa44ff;
+  --m:#2a5a3a;--m2:#1a3a24;--m3:#3a6a4a;
+  --tx:#c0ffcc;--tx2:#8abba8;--tx3:#4a7a5a;
+}
+html{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'Share Tech Mono',monospace;
+  height:100dvh;height:100vh;
+  overflow:hidden;width:100vw;
+  display:flex;flex-direction:column;
+}
+input[type=range]{accent-color:var(--g);width:100%;touch-action:none;}
+select{font-family:'Share Tech Mono',monospace;background:var(--bg3);color:var(--tx);border:1px solid var(--b2);border-radius:6px;padding:7px 8px;font-size:10px;width:100%;}
+::-webkit-scrollbar{width:0;height:0;}
+
+/* HEADER */
+#hdr{flex-shrink:0;height:50px;background:#040e08;border-bottom:1px solid var(--b2);padding:0 12px;display:flex;justify-content:space-between;align-items:center;}
+.logo{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--g);letter-spacing:2px;}
+.lsub{font-size:7px;color:var(--m);margin-top:1px;}
+.hrev{color:var(--g);font-size:14px;font-weight:bold;}
+.hbnk{color:var(--m3);font-size:8px;text-align:right;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--m2);border:1px solid var(--b2);transition:.3s;margin-left:6px;}
+.dot.on{background:var(--g);box-shadow:0 0 8px var(--g);}
+
+/* CONTENT */
+#page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:10px 11px 10px;}
+
+/* NAV - 2x3 grid, no overflow, always fits */
+#nav{flex-shrink:0;height:96px;background:#040e08;border-top:1px solid var(--b2);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);}
+.nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;border-top:2px solid transparent;background:transparent;cursor:pointer;font-family:'Share Tech Mono',monospace;-webkit-tap-highlight-color:rgba(0,255,136,.2);}
+.nb:active{background:rgba(0,255,136,.08);}
+.nb.act{border-top-color:var(--g);}
+.ni{font-size:16px;line-height:1;}
+.nl{font-size:7px;color:var(--m);letter-spacing:.3px;}
+.nb.act .nl{color:var(--g);}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:11px;margin-bottom:9px;}
+.ct{font-size:8px;letter-spacing:2px;color:var(--m3);margin-bottom:9px;text-transform:uppercase;display:block;}
+
+/* BUTTONS — all real <button> elements, no divs for interactive items */
+button{font-family:'Share Tech Mono',monospace;cursor:pointer;-webkit-tap-highlight-color:rgba(0,255,136,.15);}
+.btn{display:block;width:100%;padding:11px;border-radius:8px;font-size:10px;letter-spacing:1px;font-weight:bold;text-align:center;border:none;}
+.btn:active{opacity:.75;}
+.g{border:1px solid var(--g) !important;background:rgba(0,255,136,.1);color:var(--g);}
+.r{border:1px solid #ff4444 !important;background:rgba(255,68,68,.1);color:#ff4444;}
+.y{border:1px solid var(--yl) !important;background:rgba(255,204,0,.1);color:var(--yl);}
+.b{border:1px solid var(--bl) !important;background:rgba(68,170,255,.1);color:var(--bl);}
+.p{border:1px solid var(--pu) !important;background:rgba(170,68,255,.1);color:var(--pu);}
+.o{border:1px solid var(--or) !important;background:rgba(255,107,53,.1);color:var(--or);}
+.mute{border:1px solid var(--m2) !important;background:transparent;color:var(--m3);}
+.sm{display:inline-block;padding:6px 10px;border-radius:5px;font-size:9px;border:none;}
+.sm:active{opacity:.75;}
+
+/* ELEMENT GRID */
+.elgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+button.eb{padding:7px 2px;border:1px solid var(--b1);background:var(--bg3);border-radius:5px;text-align:center;width:100%;display:block;}
+button.eb:active{opacity:.7;}
+button.eb.on{border-color:var(--g);background:rgba(0,255,136,.09);}
+.en{font-size:9px;font-weight:bold;color:var(--tx3);display:block;}
+.er{font-size:6px;color:var(--m);margin-top:1px;display:block;}
+button.eb.on .en{color:var(--g);}
+
+/* LIST BUTTONS */
+.col2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+button.lb{padding:7px 8px;border:1px solid var(--b1);background:var(--bg3);border-radius:5px;text-align:left;margin-bottom:4px;width:100%;display:block;}
+button.lb:active{opacity:.7;}
+button.lb.on{border-color:var(--bl);background:rgba(68,170,255,.07);}
+button.lb.onp{border-color:var(--yl);background:rgba(255,204,0,.07);}
+.ln{font-size:9px;font-weight:bold;color:var(--tx3);display:block;}
+.ls{font-size:7px;color:var(--m);display:block;}
+button.lb.on .ln{color:var(--bl);}
+button.lb.onp .ln{color:var(--yl);}
+
+/* BARS */
+.bw{height:4px;background:#0a2a12;border-radius:2px;overflow:hidden;}
+.bf{height:100%;border-radius:2px;transition:width .8s;}
+
+/* STAT BOXES */
+.s3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px;}
+.sb{background:var(--bg3);border-radius:5px;padding:7px 3px;text-align:center;}
+.sv{font-size:11px;font-weight:bold;}
+.sl{font-size:6px;color:var(--m3);margin-top:2px;}
+
+/* DASHBOARD */
+.dm{background:var(--bg3);border:1px solid var(--b1);border-radius:7px;padding:10px;text-align:center;}
+.db{font-size:20px;font-weight:bold;font-family:'Orbitron',sans-serif;}
+.dl{font-size:7px;color:var(--m3);letter-spacing:1px;margin-top:2px;}
+
+/* ELEC TANK */
+.etank{height:88px;background:var(--bg);border:1.5px solid var(--b2);border-radius:10px;position:relative;overflow:hidden;}
+.efill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(103,232,249,.6),rgba(34,211,238,.2));transition:height .6s;pointer-events:none;}
+.ebbl{position:absolute;inset:0;pointer-events:none;}
+@keyframes rise{0%{transform:translateY(0);opacity:.7;}100%{transform:translateY(-120px);opacity:0;}}
+
+/* REACTOR */
+.ru{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:11px;margin-bottom:9px;}
+.ru.run{border-color:rgba(0,255,136,.5);box-shadow:0 0 8px rgba(0,255,136,.08);}
+.ru canvas{display:block;width:100%;border-radius:6px;border:1px solid var(--b2);margin:7px 0;}
+.rum{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;}
+.rumb{background:var(--bg3);border-radius:5px;padding:5px 7px;}
+.rumk{font-size:7px;color:var(--m3);}
+.rumv{font-size:9px;font-weight:bold;}
+
+/* STORAGE */
+.trow{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;}
+.tu{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.tv{width:46px;height:80px;border:1.5px solid;border-radius:4px 4px 8px 8px;background:var(--bg);position:relative;overflow:hidden;pointer-events:none;}
+.tf{position:absolute;bottom:0;left:0;right:0;transition:height 1s;pointer-events:none;}
+.tn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;z-index:1;text-shadow:0 1px 3px #000;pointer-events:none;}
+.tl{font-size:7px;text-align:center;color:inherit;display:block;}
+.tc{font-size:7px;color:var(--m3);display:block;}
+button.ts{width:46px;padding:4px 0;border-radius:4px;font-size:7px;text-align:center;display:block;}
+button.ts:active{opacity:.7;}
+button.ts:disabled{opacity:.35;cursor:default;}
+
+/* MISC */
+.drow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0a2012;font-size:9px;}
+.dk{color:var(--m3);}.dv{color:var(--tx2);}
+.grade{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;}
+.ci{background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:10px;margin-bottom:7px;}
+.ci.on{background:var(--bg3);}
+.empty{text-align:center;padding:40px 20px;color:var(--m2);}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:999;}
+.mbox{background:var(--bg2);border:1px solid rgba(0,255,136,.4);border-radius:14px;padding:22px 18px;width:85%;max-width:340px;text-align:center;}
+.ctag{display:inline-flex;align-items:center;gap:3px;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:2px 5px;font-size:7px;margin:2px;}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div><div class="logo">&#11042; CATALAB-X</div><div class="lsub">H&#8322; PRODUCTION LAB</div></div>
+  <div style="display:flex;align-items:center;">
+    <div style="text-align:right;"><div class="hrev" id="hrev">$0.00</div><div class="hbnk" id="hbnk">Bank: $0</div></div>
+    <div class="dot" id="sdot"></div>
+  </div>
+</div>
+
+<div id="page"></div>
+
+<!-- NAV: 2 rows x 3 cols — all tabs always visible, NO overflow scroll -->
+<div id="nav">
+  <button class="nb act" id="nb0" onclick="go(0)"><span class="ni">&#127968;</span><span class="nl">HOME</span></button>
+  <button class="nb" id="nb1" onclick="go(1)"><span class="ni">&#9879;</span><span class="nl">GEN</span></button>
+  <button class="nb" id="nb2" onclick="go(2)"><span class="ni">&#128300;</span><span class="nl">COMP</span></button>
+  <button class="nb" id="nb3" onclick="go(3)"><span class="ni">&#9889;</span><span class="nl">REACTORS</span></button>
+  <button class="nb" id="nb4" onclick="go(4)"><span class="ni">&#129514;</span><span class="nl">STORAGE</span></button>
+  <button class="nb" id="nb5" onclick="go(5)"><span class="ni">&#128202;</span><span class="nl">LIST</span></button>
+</div>
+
+<div id="modal">
+  <div class="mbox">
+    <div style="font-size:2.2rem;margin-bottom:10px;">&#128176;</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:12px;color:var(--g);letter-spacing:2px;">TRANSFER COMPLETE</div>
+    <div id="modal-amt" style="font-size:1.8rem;color:var(--g3);margin:12px 0;font-family:'Orbitron',sans-serif;"></div>
+    <div style="font-size:8px;color:var(--m3);margin-bottom:14px;">&#8594; Pen-Air FCU Acct #2618716</div>
+    <button class="btn g" onclick="closeModal()">OK</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// THE RULE: all onclick use ONLY integers or
+// no args — never strings. String lookups
+// happen inside the function using arrays.
+// ═══════════════════════════════════════════
+
+// ── DATA ──────────────────────────────────
+var EL = [
+  {k:"Pt", n:"Platinum",   ac:"#C0C0C0", ro:"Noble",    a:.95},
+  {k:"Ir", n:"Iridium",    ac:"#2ECC71", ro:"Noble",    a:.92},
+  {k:"Ru", n:"Ruthenium",  ac:"#16A085", ro:"Noble",    a:.88},
+  {k:"Pd", n:"Palladium",  ac:"#A3C4BC", ro:"Noble",    a:.85},
+  {k:"Ni", n:"Nickel",     ac:"#95A5A6", ro:"Transit",  a:.65},
+  {k:"Co", n:"Cobalt",     ac:"#3498DB", ro:"Transit",  a:.70},
+  {k:"Fe", n:"Iron",       ac:"#E74C3C", ro:"Transit",  a:.60},
+  {k:"Mo", n:"Molybdenum", ac:"#9B59B6", ro:"Transit",  a:.75},
+  {k:"W",  n:"Tungsten",   ac:"#E67E22", ro:"Transit",  a:.72},
+  {k:"Cu", n:"Copper",     ac:"#E8A020", ro:"Transit",  a:.55},
+  {k:"Mn", n:"Manganese",  ac:"#884EA0", ro:"Transit",  a:.58},
+  {k:"V",  n:"Vanadium",   ac:"#1F618D", ro:"Transit",  a:.63},
+  {k:"MoS2",n:"MoS\u2082", ac:"#2ECC71", ro:"Chalcog",  a:.78},
+  {k:"WS2", n:"WS\u2082",  ac:"#F0B27A", ro:"Chalcog",  a:.74},
+  {k:"NiP", n:"Ni\u2082P", ac:"#8E44AD", ro:"Phosph",   a:.80},
+  {k:"CoP", n:"CoP",       ac:"#2471A3", ro:"Phosph",   a:.82},
+  {k:"FeP", n:"FeP",       ac:"#CB4335", ro:"Phosph",   a:.76},
+  {k:"gCN", n:"g-C\u2083N\u2084",ac:"#F39C12",ro:"Nitride",a:.68},
+  {k:"FeN", n:"Fe-N-C",    ac:"#E74C3C", ro:"Nitride",  a:.76},
+  {k:"RuO2",n:"RuO\u2082", ac:"#1ABC9C", ro:"Oxide",    a:.91},
+  {k:"IrO2",n:"IrO\u2082", ac:"#27AE60", ro:"Oxide",    a:.93},
+  {k:"NiFe",n:"NiFeO\u2093",ac:"#A04000",ro:"LDH-Ox",   a:.83},
+  {k:"LDH", n:"NiFe-LDH",  ac:"#28B463", ro:"LDH",      a:.81},
+  {k:"MOF", n:"Cu-MOF",    ac:"#F1948A", ro:"MOF",       a:.70}
+];
+var SUP = [
+  {k:"carbon",  n:"Carbon Black", c:.95, s:.80},
+  {k:"graphene",n:"Graphene",     c:.99, s:.90},
+  {k:"CNT",     n:"CNT",          c:.97, s:.88},
+  {k:"rGO",     n:"rGO",          c:.96, s:.87},
+  {k:"TiO2",    n:"TiO\u2082",   c:.30, s:.98},
+  {k:"ZrO2",    n:"ZrO\u2082",   c:.25, s:.99},
+  {k:"SiC",     n:"SiC",          c:.60, s:.97},
+  {k:"NiF",     n:"Ni Foam",      c:.85, s:.92}
+];
+var PRO = [
+  {k:"none",n:"None",m:1.00},
+  {k:"S",   n:"S",   m:1.12},
+  {k:"P",   n:"P",   m:1.18},
+  {k:"N",   n:"N",   m:1.15},
+  {k:"B",   n:"B",   m:1.10},
+  {k:"F",   n:"F",   m:1.08},
+  {k:"Se",  n:"Se",  m:1.14}
+];
+var GC = {"A+":"#00ff88","A":"#44ff88","B+":"#aaff44","B":"#ffcc00","C":"#ff8844"};
+
+// ── STATE ─────────────────────────────────
+var TAB = 0;
+var S = {
+  pri:0, sec:-1, sup:0, pro:0, load:20,    // indices into EL/SUP/PRO arrays
+  cs:[{ei:4,pct:50},{ei:6,pct:30},{ei:7,pct:20}], // composite slots: ei=EL index
+  cSup:0, cPro:0, cLoad:25, cBusy:false,
+  cats:[], sel:null, busy:false,
+  reactors:[{id:1,nm:"Reactor #1",run:false,t:0,cid:null}],
+  stg:{H2:[{id:1,cap:100,amt:0}],O2:[{id:1,cap:100,amt:0}],H2O2:[{id:1,cap:10,amt:0}]},
+  rev:0, bank:0, spd:1.0, sell:1.0, kg:0
+};
+var rTmr={}, rAnim={}, rPts={}, bubOk=false, nextRId=2, nextTId={H2:2,O2:2,H2O2:2};
+var PROD = ["H2","O2","H2O2"];
+
+// ── CATALYST MATH ──────────────────────────
+function calcStats(her,oer,stab,supIdx,priIdx) {
+  var eH=Math.round((1-her)*450+20), eO=Math.round((1-oer)*600+200);
+  var EC=Math.round(50+her*250+Math.random()*50);
+  var h2=+(her*15+Math.random()*3).toFixed(2);
+  var o2=+(h2/2*.95).toFixed(2), h2o2=+((1-her*.95)*2.5).toFixed(3);
+  var hp=+(h2*3.5).toFixed(2), op=+(o2*.15).toFixed(2), h2p=+(h2o2*1400).toFixed(2);
+  return {
+    her:+(her*100).toFixed(1), oer:+(oer*100).toFixed(1), stab:+(stab*100).toFixed(1),
+    eH:eH, eO:eO, tfH:Math.round(30+(1-her)*90), tfO:Math.round(40+(1-oer)*80),
+    EC:EC, TOF:(her*8.5+Math.random()*1.5).toFixed(2),
+    h2:h2, o2:o2, h2o2:h2o2, hp:hp, op:op, h2p:h2p, tot:+(hp+op+h2p).toFixed(2),
+    grade:her>.88?"A+":her>.80?"A":her>.72?"B+":her>.65?"B":"C",
+    ac:EL[priIdx].ac, sup:supIdx, pri:priIdx,
+    time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})
+  };
+}
+function makeCat() {
+  var p=EL[S.pri], su=SUP[S.sup], pr=PRO[S.pro];
+  var s=S.sec>=0?EL[S.sec]:null;
+  var base=p.a*(s?(0.7+0.3*s.a):1.0);
+  var her=Math.min(.99,base*(su.c*.15+.85)*pr.m*(.7+S.load/100*.6)*(1+Math.random()*.05));
+  var oer=Math.min(.99,her*.93*(1+Math.random()*.03));
+  var stab=(su.s*.4+p.a*.6)*(.85+Math.random()*.15);
+  var sn=su.n.split(" ")[0], ps=pr.k!=="none"?"-"+pr.k:"";
+  var nm=s?(p.k+"-"+s.k+"/"+sn+ps):(p.k+"/"+sn+ps);
+  var stats=calcStats(her,oer,stab,S.sup,S.pri);
+  return Object.assign({id:Date.now(),nm:nm,type:"simple",load:S.load,sec:S.sec},stats);
+}
+function makeComp() {
+  var su=SUP[S.cSup], pr=PRO[S.cPro], load=S.cLoad;
+  var total=0; S.cs.forEach(function(s){total+=s.pct;});
+  var her=0; S.cs.forEach(function(sl){her+=EL[sl.ei].a*(sl.pct/total);});
+  her=Math.min(.99,her*(1+(S.cs.length-1)*.03)*(su.c*.15+.85)*pr.m*(.7+load/100*.6)*(1+Math.random()*.05));
+  var oer=Math.min(.99,her*.93*(1+Math.random()*.03));
+  var stab=(su.s*.4+her*.6)*(.85+Math.random()*.15);
+  var sn=su.n.split(" ")[0], ps=pr.k!=="none"?"-"+pr.k:"";
+  var formula=S.cs.map(function(sl){return EL[sl.ei].k+sl.pct;}).join("-");
+  var nm=formula+"/"+sn+ps;
+  var dom=S.cs[0]; S.cs.forEach(function(sl){if(sl.pct>dom.pct)dom=sl;});
+  var stats=calcStats(her,oer,stab,S.cSup,dom.ei);
+  return Object.assign({id:Date.now(),nm:nm,type:"composite",load:load,sec:-1,
+    slots:JSON.parse(JSON.stringify(S.cs))},stats);
+}
+
+// ── CANVAS ────────────────────────────────
+function startCanvas(rid) {
+  var cv=document.getElementById("rc"+rid); if(!cv)return;
+  var ctx=cv.getContext("2d"), W=cv.offsetWidth||280;
+  cv.width=W; cv.height=110; rPts[rid]=[];
+  for(var i=0;i<28;i++) rPts[rid].push({x:28+Math.random()*(W-56),y:95+Math.random()*10,vy:-(Math.random()*1.5+.4),r:Math.random()*2.5+.6,c:Math.random()>.5?"#00ff88":"#4488ff",lf:Math.random()});
+  (function draw(){
+    if(!rPts[rid])return;
+    ctx.clearRect(0,0,W,110);
+    ctx.fillStyle="#060f0a"; ctx.fillRect(0,0,W,110);
+    ctx.fillStyle="#0d2a18"; ctx.fillRect(12,6,14,96); ctx.fillRect(W-26,6,14,96);
+    ctx.fillStyle="rgba(0,80,200,.05)"; ctx.fillRect(26,6,W-52,96);
+    rPts[rid].forEach(function(p){
+      p.y+=p.vy; p.lf+=.008;
+      if(p.y<4||p.lf>1){p.y=100;p.x=26+Math.random()*(W-52);p.lf=0;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.c+Math.floor((1-p.lf)*200).toString(16).padStart(2,"0"); ctx.fill();
+    });
+    ctx.fillStyle="#00ff88"; ctx.font="bold 8px monospace"; ctx.fillText("(\u2212)",13,107);
+    ctx.fillStyle="#ff6b35"; ctx.fillText("(+)",W-24,107);
+    rAnim[rid]=requestAnimationFrame(draw);
+  })();
+}
+function stopCanvas(rid) {
+  if(rAnim[rid]){cancelAnimationFrame(rAnim[rid]);delete rAnim[rid];}
+  delete rPts[rid];
+  var cv=document.getElementById("rc"+rid);
+  if(cv){var ctx=cv.getContext("2d");ctx.fillStyle="#060f0a";ctx.fillRect(0,0,cv.width,110);}
+}
+
+// ── HELPERS ───────────────────────────────
+function bar(v,m,col){var p=Math.min((v/m)*100,100);return '<div class="bw"><div class="bf" style="width:'+p+'%;background:'+col+';"></div></div>';}
+function polSVG(c,t){
+  var h=t==="HER",act=h?c.her/100:c.oer/100,eta=h?c.eH:c.eO,col=h?"#00ff88":"#ff6b35",w=136,ht=70,pts=[];
+  for(var i=0;i<20;i++){var e=(i/19)*(eta+250),j=Math.min(act*10*Math.exp(.5*96485*e*.001/(8.314*298)),120);pts.push((18+(e/(eta+250))*(w-22)).toFixed(1)+","+(ht-7-(j/120)*(ht-16)).toFixed(1));}
+  return '<svg width="'+w+'" height="'+ht+'" style="display:block"><polyline points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="1.5"/><line x1="18" y1="4" x2="18" y2="'+(ht-7)+'" stroke="#1a3a2a"/><line x1="18" y1="'+(ht-7)+'" x2="'+(w-3)+'" y2="'+(ht-7)+'" stroke="#1a3a2a"/><text x="'+(w-4)+'" y="10" font-size="8" fill="'+col+'" text-anchor="end">'+t+'</text></svg>';
+}
+function getCat(id){id=+id;for(var i=0;i<S.cats.length;i++){if(S.cats[i].id===id)return S.cats[i];}return null;}
+function anyRun(){return S.reactors.some(function(r){return r.run;});}
+
+// ── RENDER: HOME ──────────────────────────
+function rHome(){
+  var fp=Math.min(100,(S.kg*10)/S.sell);
+  var nRun=0; S.reactors.forEach(function(r){if(r.run)nRun++;});
+  var gc=S.sel?(GC[S.sel.grade]||"var(--g)"):"var(--m2)", gv=S.sel?S.sel.grade:"&mdash;";
+  var h2t=0; S.stg.H2.forEach(function(t){h2t+=t.amt;});
+  var tTanks=S.stg.H2.length+S.stg.O2.length+S.stg.H2O2.length;
+  return (
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">'+
+    '<div class="dm"><div class="db" style="color:var(--g);">'+Math.round(142*S.spd*Math.max(nRun,1))+'</div><div class="dl">mL/h TOTAL</div></div>'+
+    '<div class="dm"><div class="db" style="color:var(--g3);">'+S.kg.toFixed(2)+'</div><div class="dl">KG PRODUCED</div></div></div>'+
+    '<div class="card">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span class="ct" style="margin-bottom:0;">ELECTROLYZER</span><span style="font-size:8px;color:'+(nRun?"var(--g)":"#ff4444")+';letter-spacing:1px;">'+nRun+"/"+S.reactors.length+" ACTIVE</span></div>"+
+    '<div class="etank"><div class="efill" id="efill" style="height:'+fp+'%;"></div><div class="ebbl" id="ebbl"></div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">'+
+    '<button class="btn '+(nRun?"r":"g")+'" onclick="'+(nRun?"stopAll()":"go(3)")+'">'+(nRun?"&#9632; STOP ALL":"&#9654; START REACTORS")+'</button>'+
+    '<button class="btn b" onclick="go(3)">&#9889; REACTORS</button>'+
+    '</div></div>'+
+    '<div class="card"><div class="ct">PRODUCTION REVENUE</div>'+
+    '<div id="home-rev" style="font-size:26px;font-weight:bold;color:var(--g3);text-align:center;font-family:\'Orbitron\',sans-serif;">$'+Math.round(S.rev)+'</div>'+
+    '<div style="text-align:center;font-size:8px;color:var(--m3);margin-top:3px;">&times;'+S.spd.toFixed(1)+' speed &middot; &times;'+S.sell.toFixed(1)+' sell</div>'+
+    '<button class="btn y" style="margin-top:9px;" onclick="doBank()">&#128176; TRANSFER TO BANK</button></div>'+
+    '<div class="card"><div class="ct">FACILITY STATUS</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">'+
+    '<div class="dm"><div class="db" style="color:var(--g);font-size:16px;">'+S.reactors.length+'</div><div class="dl">REACTORS</div></div>'+
+    '<div class="dm"><div class="db" style="color:var(--bl);font-size:16px;">'+tTanks+'</div><div class="dl">TANKS</div></div>'+
+    '<div class="dm"><div class="db" style="color:'+gc+';font-size:16px;">'+gv+'</div><div class="dl">GRADE</div></div>'+
+    '<div class="dm"><div class="db" style="color:var(--g3);font-size:14px;">'+h2t.toFixed(0)+'</div><div class="dl">H&#8322; mmol</div></div>'+
+    '</div></div>'+
+    '<div class="card" style="border-color:rgba(255,204,0,.3);"><div class="ct" style="color:var(--yl);">BANK &mdash; Pen-Air FCU #2618716</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+    '<div><div style="font-size:20px;font-weight:bold;color:var(--yl);font-family:\'Orbitron\',sans-serif;" id="home-bank">$'+Math.round(S.bank)+'</div><div style="font-size:7px;color:var(--m3);">BALANCE</div></div>'+
+    '<div style="text-align:right;"><div style="font-size:7px;color:var(--m3);">TOTAL EARNED</div><div style="font-size:14px;color:var(--tx2);font-weight:bold;">$'+Math.round(S.rev+S.bank)+'</div></div>'+
+    '</div></div>'+
+    '<button class="btn mute" onclick="doReset()">&#8635; RESET PRODUCTION</button>'
+  );
+}
+
+// ── RENDER: GEN ───────────────────────────
+function rGen(){
+  var out = [];
+  // Primary
+  out.push('<div class="card"><div class="ct" style="color:var(--g);">PRIMARY ELEMENT</div><div class="elgrid">');
+  for(var i=0;i<EL.length;i++){
+    var el=EL[i], sel=(S.pri===i);
+    var st=sel?('border-color:'+el.ac+';background:'+el.ac+'18;'):'';
+    out.push('<button class="eb'+(sel?' on':'')+'" style="'+st+'" onclick="setPri('+i+')">'+
+      '<span class="en" style="'+(sel?'color:'+el.ac+';':'')+'">'+(el.k.length>4?el.k.substring(0,4):el.k)+'</span>'+
+      '<span class="er">'+el.ro+'</span></button>');
+  }
+  out.push('</div></div>');
+  // Secondary
+  out.push('<div class="card"><div class="ct" style="color:var(--g);">SECONDARY ELEMENT</div><div class="elgrid">');
+  var ns=(S.sec<0);
+  out.push('<button class="eb'+(ns?' on':'')+'" style="'+(ns?'border-color:var(--g);background:rgba(0,255,136,.09);':'')+'" onclick="setSec(-1)">'+
+    '<span class="en" style="'+(ns?'color:var(--g);':'')+'">None</span></button>');
+  for(var i=0;i<EL.length;i++){
+    if(i===S.pri)continue;
+    var el=EL[i], sel=(S.sec===i);
+    var st=sel?('border-color:'+el.ac+';background:'+el.ac+'18;'):'';
+    out.push('<button class="eb'+(sel?' on':'')+'" style="'+st+'" onclick="setSec('+i+')">'+
+      '<span class="en" style="'+(sel?'color:'+el.ac+';':'')+'">'+(el.k.length>4?el.k.substring(0,4):el.k)+'</span>'+
+      '<span class="er">'+el.ro+'</span></button>');
+  }
+  out.push('</div></div>');
+  // Support + Promoter
+  out.push('<div class="col2" style="margin-bottom:9px;"><div class="card" style="margin-bottom:0;"><div class="ct" style="color:var(--bl);">SUPPORT</div>');
+  for(var i=0;i<SUP.length;i++){
+    var s=SUP[i], sel=(S.sup===i);
+    out.push('<button class="lb'+(sel?' on':'')+'" onclick="setSup('+i+')">'+
+      '<span class="ln">'+s.k+'</span><span class="ls">&#963;'+(s.c*100).toFixed(0)+'%</span></button>');
+  }
+  out.push('</div><div class="card" style="margin-bottom:0;"><div class="ct" style="color:var(--yl);">PROMOTER</div>');
+  for(var i=0;i<PRO.length;i++){
+    var p=PRO[i], sel=(S.pro===i);
+    out.push('<button class="lb'+(sel?' onp':'')+'" onclick="setPro('+i+')">'+
+      '<span class="ln">'+p.n+'</span><span class="ls">&times;'+p.m+'</span></button>');
+  }
+  out.push('</div></div>');
+  // Loading
+  out.push('<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:7px;">'+
+    '<span class="ct" style="color:var(--g);margin-bottom:0;">METAL LOADING</span>'+
+    '<span style="color:var(--g);font-size:10px;font-weight:bold;" id="lv">'+S.load+' wt%</span></div>'+
+    '<input type="range" min="5" max="60" value="'+S.load+'" oninput="S.load=+this.value;document.getElementById(\'lv\').textContent=this.value+\' wt%\'"/></div>');
+  // Preview
+  var su=SUP[S.sup], pr=PRO[S.pro], p=EL[S.pri], s=S.sec>=0?EL[S.sec]:null;
+  var sn=su.n.split(" ")[0], ps=pr.k!=="none"?"-"+pr.k:"";
+  var pn=s?(p.k+"-"+s.k+"/"+sn+ps):(p.k+"/"+sn+ps);
+  out.push('<div class="card"><div style="font-size:7px;color:var(--m3);margin-bottom:4px;">PREVIEW</div>'+
+    '<div style="color:var(--g);font-size:11px;font-weight:bold;">'+pn+'</div>'+
+    '<div style="font-size:8px;color:var(--m);margin-top:3px;">'+p.n+(s?" + "+s.n:"")+" on "+su.n+'</div></div>');
+  out.push('<button class="btn g" style="padding:14px;font-size:11px;letter-spacing:2px;" onclick="doGen()" '+(S.busy?"disabled":"")+'>'+
+    (S.busy?"&#8987; SYNTHESIZING...":"&#11042; GENERATE CATALYST")+'</button>');
+  return out.join('');
+}
+
+// ── RENDER: COMPOSITE ─────────────────────
+function rComp(){
+  var out=[];
+  out.push('<div class="card" style="border-color:rgba(170,68,255,.4);">'+
+    '<div class="ct" style="color:var(--pu);">&#128300; COMPOSITE CATALYST BUILDER</div>'+
+    '<div style="font-size:9px;color:var(--m3);margin-bottom:10px;">Blend up to 6 elements. Percentages must sum to ~100%.</div>');
+  for(var i=0;i<S.cs.length;i++){
+    var slot=S.cs[i], el=EL[slot.ei];
+    out.push('<div style="background:var(--bg3);border:1px solid var(--b2);border-radius:7px;padding:8px;margin-bottom:6px;">'+
+      '<div style="font-size:8px;color:var(--m3);margin-bottom:6px;">COMPONENT '+(i+1)+' &mdash; '+el.n+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;">'+
+      '<select onchange="setCompEl('+i+',+this.value)">');
+    for(var j=0;j<EL.length;j++) out.push('<option value="'+j+'"'+(slot.ei===j?" selected":"")+'>'+EL[j].k+' &mdash; '+EL[j].n+'</option>');
+    out.push('</select>');
+    if(S.cs.length>1) out.push('<button class="sm r" onclick="rmCompSlot('+i+')">&#10005;</button>');
+    else out.push('<span></span>');
+    out.push('</div>'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">'+
+      '<span style="font-size:8px;color:var(--m3);width:34px;text-align:right;" id="cpv'+i+'">'+slot.pct+'%</span>'+
+      '<input type="range" min="5" max="90" value="'+slot.pct+'" style="flex:1;" oninput="setCompPct('+i+',+this.value)"/></div></div>');
+  }
+  if(S.cs.length<6) out.push('<button class="btn p" style="margin-bottom:0;" onclick="addCompSlot()">+ ADD ELEMENT COMPONENT</button>');
+  out.push('</div>');
+  // Comp support + promoter
+  out.push('<div class="col2" style="margin-bottom:9px;"><div class="card" style="margin-bottom:0;"><div class="ct" style="color:var(--bl);">SUPPORT MATRIX</div>');
+  for(var i=0;i<SUP.length;i++){var s=SUP[i],sel=(S.cSup===i);out.push('<button class="lb'+(sel?' on':'')+'" onclick="S.cSup='+i+';render()"><span class="ln">'+s.k+'</span><span class="ls">&#963;'+(s.c*100).toFixed(0)+'%</span></button>');}
+  out.push('</div><div class="card" style="margin-bottom:0;"><div class="ct" style="color:var(--yl);">PROMOTER</div>');
+  for(var i=0;i<PRO.length;i++){var p=PRO[i],sel=(S.cPro===i);out.push('<button class="lb'+(sel?' onp':'')+'" onclick="S.cPro='+i+';render()"><span class="ln">'+p.n+'</span><span class="ls">&times;'+p.m+'</span></button>');}
+  out.push('</div></div>');
+  // Loading
+  out.push('<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:7px;">'+
+    '<span class="ct" style="color:var(--pu);margin-bottom:0;">TOTAL LOADING</span>'+
+    '<span style="color:var(--pu);font-size:10px;font-weight:bold;" id="clv">'+S.cLoad+' wt%</span></div>'+
+    '<input type="range" min="5" max="60" value="'+S.cLoad+'" oninput="S.cLoad=+this.value;document.getElementById(\'clv\').textContent=this.value+\' wt%\'"/></div>');
+  // Preview
+  var total=0; S.cs.forEach(function(s){total+=s.pct;});
+  var pctCol=Math.abs(total-100)<2?"var(--g)":total>100?"#ff4444":"var(--yl)";
+  var formula=S.cs.map(function(sl){return EL[sl.ei].k+"("+sl.pct+"%)";}).join("+");
+  var sn=SUP[S.cSup].n.split(" ")[0], ps=PRO[S.cPro].k!=="none"?"-"+PRO[S.cPro].k:"";
+  out.push('<div class="card" style="border-color:rgba(170,68,255,.3);">'+
+    '<div style="font-size:7px;color:var(--m3);margin-bottom:4px;">FORMULA PREVIEW</div>'+
+    '<div style="font-family:\'Orbitron\',sans-serif;font-size:10px;color:var(--pu);word-break:break-all;">'+formula+'</div>'+
+    '<div style="font-family:\'Orbitron\',sans-serif;font-size:8px;color:var(--m3);margin-top:2px;">on '+sn+ps+'</div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:5px;">'+
+    '<span style="font-size:8px;color:var(--m3);">Total:</span>'+
+    '<span style="font-size:10px;font-weight:bold;color:'+pctCol+';">'+total+'% '+(Math.abs(total-100)<2?"&#10003;":(total>100?"&#9888;OVER":"&#9888;LOW"))+'</span></div></div>');
+  var canGen=!S.cBusy&&Math.abs(total-100)<2;
+  out.push('<button class="btn p" style="padding:14px;font-size:11px;letter-spacing:2px;" onclick="doGenComp()" '+(canGen?"":"disabled")+'>'+
+    (S.cBusy?"&#8987; SYNTHESIZING...":"&#128300; GENERATE COMPOSITE")+'</button>');
+  return out.join('');
+}
+
+// ── RENDER: REACTORS ──────────────────────
+function rReactors(){
+  var out=[];
+  out.push('<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">'+
+    '<button class="btn g" onclick="addReactor()">&#10010; ADD REACTOR<br><span style="font-size:8px;opacity:.7;">+10% speed</span></button>'+
+    '<button class="btn o" onclick="stopAll()">&#9632; STOP ALL<br><span style="font-size:8px;opacity:.7;">halt all</span></button></div>');
+  for(var ri=0;ri<S.reactors.length;ri++){
+    var reactor=S.reactors[ri], run=reactor.run, rid=reactor.id;
+    var cat=reactor.cid?getCat(reactor.cid):null;
+    out.push('<div class="ru'+(run?' run':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
+      '<div><div style="font-size:10px;color:var(--g);font-weight:bold;">'+reactor.nm+'</div>'+
+      '<div style="font-size:7px;color:var(--m3);">'+(cat?cat.nm:"No catalyst assigned")+'</div></div>'+
+      '<div style="display:flex;gap:5px;align-items:center;">'+
+      '<span style="font-size:8px;color:'+(run?"var(--g)":"#ff4444")+'">'+(run?"&#9679;ON":"&#9675;OFF")+'</span>'+
+      '<button class="sm '+(run?"r":"g")+'" onclick="toggleR('+rid+')">'+(run?"STOP":"START")+'</button>');
+    if(S.reactors.length>1) out.push('<button class="sm mute" onclick="removeR('+rid+')">&#10005;</button>');
+    out.push('</div></div><canvas id="rc'+rid+'" width="280" height="110"></canvas>');
+    if(cat){
+      var rv=run?[(cat.h2*.6*S.spd).toFixed(2)+" mmol/s",(cat.o2*.6).toFixed(2)+" mmol/s",(cat.h2o2*.6).toFixed(4)+" mmol/s",(cat.her*.96).toFixed(1)+"%",(1.23+(cat.eH+cat.eO)*.001).toFixed(2)+" V",Math.floor(reactor.t/120)+"h "+Math.floor((reactor.t%120)/2)+"m"]:["—","—","—","—","—","0h 0m"];
+      var labs=["H&#8322; Gen","O&#8322; Gen","H&#8322;O&#8322;","Faradaic","Voltage","Runtime"];
+      var cols=["#00ff88","#ff6b35","#ffcc00","#44aaff","#aaaaff","#888"];
+      out.push('<div class="rum">');
+      for(var mi=0;mi<6;mi++) out.push('<div class="rumb"><div class="rumk">'+labs[mi]+'</div><div class="rumv" id="rv'+rid+'x'+mi+'" style="color:'+(run?cols[mi]:"var(--m2)")+';">'+rv[mi]+'</div></div>');
+      out.push('</div>');
+    } else {
+      out.push('<div style="text-align:center;padding:8px 0;font-size:9px;color:var(--m2);">Select catalyst below</div>');
+    }
+    out.push('<div style="margin-top:7px;">');
+    if(S.cats.length){
+      out.push('<select onchange="assignCat('+rid+',+this.value)">'+
+        '<option value="0">-- Assign Catalyst --</option>');
+      for(var ci=0;ci<S.cats.length;ci++) out.push('<option value="'+S.cats[ci].id+'"'+(reactor.cid===S.cats[ci].id?" selected":"")+'>'+S.cats[ci].nm+' ['+S.cats[ci].grade+']</option>');
+      out.push('</select>');
+    } else {
+      out.push('<button class="btn g" style="padding:8px;" onclick="go(1)">GENERATE A CATALYST FIRST</button>');
+    }
+    out.push('</div></div>');
+  }
+  return out.join('');
+}
+
+// ── RENDER: STORAGE ───────────────────────
+function rStorage(){
+  var prods=[
+    {pi:0,lb:"H&#8322; GAS",    col:"#00ff88",price:3.5,  key:"H2"},
+    {pi:1,lb:"O&#8322; GAS",    col:"#ff6b35",price:0.15, key:"O2"},
+    {pi:2,lb:"H&#8322;O&#8322;",col:"#ffcc00",price:1400, key:"H2O2"}
+  ];
+  var out=[];
+  for(var pi=0;pi<prods.length;pi++){
+    var prod=prods[pi], tanks=S.stg[prod.key];
+    var totAmt=0,totCap=0;
+    tanks.forEach(function(t){totAmt+=t.amt;totCap+=t.cap;});
+    out.push('<div class="card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+      '<span class="ct" style="color:'+prod.col+';margin-bottom:0;">'+prod.lb+' TANKS</span>'+
+      '<div style="display:flex;gap:6px;align-items:center;">'+
+      '<span style="font-size:8px;color:var(--m3);">'+totAmt.toFixed(1)+'/'+totCap+'mmol</span>'+
+      '<button class="sm g" style="border-color:'+prod.col+';color:'+prod.col+';background:'+prod.col+'18;font-size:8px;" onclick="addTank('+pi+')">&#10010; ADD TANK</button>'+
+      '</div></div><div class="trow">');
+    for(var ti=0;ti<tanks.length;ti++){
+      var t=tanks[ti], pct=Math.min((t.amt/t.cap)*100,100), ok=t.amt>=.01;
+      out.push('<div class="tu">'+
+        '<span class="tl" style="color:'+prod.col+';">#'+t.id+'</span>'+
+        '<div class="tv" style="border-color:'+prod.col+';">'+
+        '<div class="tf" style="height:'+pct+'%;background:linear-gradient(to top,'+prod.col+'99,'+prod.col+'33);"></div>'+
+        '<div class="tn">'+t.amt.toFixed(1)+'</div></div>'+
+        '<span class="tc">'+t.cap+'cap</span>'+
+        '<button class="ts" style="border:1px solid '+(ok?prod.col:"var(--b1)")+';background:'+(ok?prod.col+'22':"transparent")+';color:'+(ok?prod.col:"var(--m2)")+'" onclick="sellTank('+pi+','+ti+')" '+(ok?'':'disabled')+'>SELL</button>');
+      if(tanks.length>1) out.push('<button class="ts mute" style="border:1px solid var(--m2);color:var(--m3);" onclick="rmTank('+pi+','+ti+')">&#10005;</button>');
+      out.push('</div>');
+    }
+    out.push('</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:7px;margin-top:6px;border-top:1px solid var(--b1);">'+
+      '<span style="font-size:8px;color:var(--m3);">$'+prod.price+'/mmol &middot; Est. $'+(totAmt*prod.price).toFixed(2)+'</span>'+
+      '<button class="sm" style="border:1px solid '+prod.col+';background:'+prod.col+'18;color:'+prod.col+';" onclick="sellAll('+pi+')">SELL ALL</button>'+
+      '</div></div>');
+  }
+  var nRun=0; S.reactors.forEach(function(r){if(r.run)nRun++;});
+  var h2t=0; S.stg.H2.forEach(function(t){h2t+=t.amt;});
+  out.push('<div class="card" style="border-color:rgba(0,255,136,.3);"><div class="ct">REVENUE SUMMARY</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">');
+  [["&#128176; Revenue","$"+S.rev.toFixed(2),"var(--g)"],["&#127974; Bank","$"+S.bank.toFixed(2),"var(--yl)"],
+   ["&#9889; Running",nRun+" reactor"+(nRun!==1?"s":""),"var(--g)"],["H&#8322; Total",h2t.toFixed(1)+" mmol","var(--g)"]].forEach(function(r){
+    out.push('<div style="background:var(--bg3);border-radius:5px;padding:9px 7px;text-align:center;">'+
+      '<div style="color:'+r[2]+';font-size:11px;font-weight:bold;">'+r[1]+'</div>'+
+      '<div style="color:var(--m2);font-size:7px;margin-top:2px;">'+r[0]+'</div></div>');
+  });
+  out.push('</div></div>'+
+    '<button class="btn g" onclick="sellAllProds()">&#128176; SELL ALL PRODUCTS</button>');
+  return out.join('');
+}
+
+// ── RENDER: LIST ──────────────────────────
+function rList(){
+  if(!S.cats.length) return '<div class="empty"><div style="font-size:32px;">&#11042;</div><br>No catalysts yet<br><br>'+
+    '<button class="btn g" style="max-width:200px;margin:8px auto;" onclick="go(1)">SIMPLE GEN &#8594;</button><br>'+
+    '<button class="btn p" style="max-width:200px;margin:4px auto;" onclick="go(2)">COMPOSITE &#8594;</button></div>';
+  var bH=Math.max.apply(null,S.cats.map(function(c){return c.her;})).toFixed(1);
+  var bR=Math.max.apply(null,S.cats.map(function(c){return c.tot;})).toFixed(2);
+  var nC=S.cats.filter(function(c){return c.type==="composite";}).length;
+  var out=['<div class="card"><div class="ct">PORTFOLIO STATS</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">'];
+  [["Total",S.cats.length,"var(--g)"],["Comp",nC,"var(--pu)"],["BestHER",bH+"%","#00ff88"],["$/h","$"+bR,"var(--g3)"]].forEach(function(r){
+    out.push('<div style="background:var(--bg3);border-radius:5px;padding:6px 3px;text-align:center;"><div style="color:'+r[2]+';font-size:11px;font-weight:bold;">'+r[1]+'</div><div style="color:var(--m2);font-size:6px;">'+r[0]+'</div></div>');
+  });
+  out.push('</div></div>');
+  for(var ci=0;ci<S.cats.length;ci++){
+    var c=S.cats[ci], sel=S.sel&&S.sel.id===c.id;
+    out.push('<div class="ci'+(sel?' on':'')+'" style="'+(sel?'border-color:'+c.ac+'55;':'')+'" onclick="selCat('+c.id+')">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+      '<div style="flex:1;min-width:0;">'+
+      (c.type==="composite"?'<div style="font-size:7px;color:var(--pu);margin-bottom:2px;">COMPOSITE</div>':'')+
+      '<div style="color:'+c.ac+';font-size:10px;font-weight:bold;word-break:break-all;">'+c.nm+'</div>'+
+      '<div style="font-size:7px;color:var(--m3);margin-top:2px;">'+c.time+'</div></div>'+
+      '<div style="text-align:right;flex-shrink:0;margin-left:8px;"><div class="grade" style="font-size:15px;color:'+GC[c.grade]+';">'+c.grade+'</div>'+
+      '<div style="color:var(--g3);font-size:8px;">$'+c.tot+'/h</div></div></div>'+
+      '<div style="display:flex;gap:6px;margin-top:5px;">'+
+      '<div style="flex:1;"><div style="font-size:7px;color:var(--m2);margin-bottom:2px;">HER '+c.her+'%</div>'+bar(c.her,100,"#00ff88")+'</div>'+
+      '<div style="flex:1;"><div style="font-size:7px;color:var(--m2);margin-bottom:2px;">OER '+c.oer+'%</div>'+bar(c.oer,100,"#ff6b35")+'</div></div>');
+    if(sel){
+      out.push('<div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap;">'+
+        '<button class="sm g" onclick="event.stopPropagation();go(6)">INFO</button>'+
+        '<button class="sm b" onclick="event.stopPropagation();go(3)">LOAD REACTOR</button>'+
+        '<button class="sm r" onclick="event.stopPropagation();rmCat('+c.id+')">DELETE</button></div>');
+    }
+    out.push('</div>');
+  }
+  return out.join('');
+}
+
+// ── RENDER: DETAIL ────────────────────────
+function rDetail(){
+  var c=S.sel; if(!c) return '<div class="empty">Select a catalyst from LIST tab</div>';
+  var gc=GC[c.grade], out=[];
+  out.push('<div class="card" style="border-color:'+c.ac+'44;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+    '<div style="flex:1;margin-right:9px;">'+
+    (c.type==="composite"?'<div style="font-size:7px;color:var(--pu);margin-bottom:2px;">COMPOSITE</div>':'')+
+    '<div style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:'+c.ac+';font-weight:700;word-break:break-all;">'+c.nm+'</div>'+
+    '<div style="font-size:7px;color:var(--m3);margin-top:3px;">'+c.load+'wt% &middot; '+c.time+'</div>');
+  if(c.type==="composite"&&c.slots){
+    out.push('<div style="margin-top:4px;">');
+    c.slots.forEach(function(sl){var el=EL[sl.ei];out.push('<span class="ctag"><span style="color:'+el.ac+';">'+el.k+'</span> '+sl.pct+'%</span>');});
+    out.push('</div>');
+  }
+  out.push('</div><div style="text-align:center;flex-shrink:0;"><div class="grade" style="color:'+gc+';">'+c.grade+'</div><div style="font-size:7px;color:var(--m3);">GRADE</div></div></div>');
+  out.push('<div class="s3">');
+  [["HER",c.her+"%","#00ff88"],["OER",c.oer+"%","#ff6b35"],["Stab",c.stab+"%","#44aaff"],["ECSA",c.EC,"#ffcc00"],["TOF",c.TOF+"s","#ff44aa"],["$/h","$"+c.tot,"#44ffaa"]].forEach(function(r){
+    out.push('<div class="sb" style="border:1px solid '+r[2]+'18;"><div class="sv" style="color:'+r[2]+';">'+r[1]+'</div><div class="sl">'+r[0]+'</div></div>');
+  });
+  out.push('</div></div>');
+  out.push('<div class="card"><div class="ct">PERFORMANCE BARS</div>');
+  [["HER Activity",c.her,100,"#00ff88"],["OER Activity",c.oer,100,"#ff6b35"],["Stability",c.stab,100,"#44aaff"],["ECSA (m&#178;/g)",c.EC,350,"#ffcc00"]].forEach(function(r){
+    out.push('<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="font-size:8px;color:var(--m3);">'+r[0]+'</span><span style="font-size:8px;color:'+r[3]+';">'+r[1]+'</span></div>'+bar(r[1],r[2],r[3])+'</div>');
+  });
+  out.push('</div><div class="card"><div class="ct">POLARIZATION CURVES</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">'+
+    '<div>'+polSVG(c,"HER")+'<div style="font-size:7px;color:var(--m3);margin-top:3px;">&eta;: <span style="color:#00ff88;">-'+c.eH+'mV</span> Tafel:'+c.tfH+'mV</div></div>'+
+    '<div>'+polSVG(c,"OER")+'<div style="font-size:7px;color:var(--m3);margin-top:3px;">&eta;: <span style="color:#ff6b35;">+'+c.eO+'mV</span> Tafel:'+c.tfO+'mV</div></div>'+
+    '</div></div>');
+  var su=SUP[c.sup]||SUP[0];
+  out.push('<div class="card"><div class="ct">MATERIAL PROPERTIES</div>');
+  [["Particle Size",(2+(100-c.her)*.3).toFixed(1)+" nm"],["BET Surface",Math.round(c.EC*1.8)+" m&#178;/g"],["Metal Disp.",Math.round(c.her*.9)+"%"],["Thermal Stab.",(su.s>.9?">800":">500")+" &#176;C"],["Structure",c.type==="composite"?"Multi-phase":"FCC/Mixed"],["Support &#963;",(su.c*100).toFixed(0)+" S/m"]].forEach(function(r){
+    out.push('<div class="drow"><span class="dk">'+r[0]+'</span><span class="dv">'+r[1]+'</span></div>');
+  });
+  out.push('</div><div class="card"><div class="ct" style="color:var(--yl);">PRODUCTION ECONOMICS</div>');
+  [["H&#8322; Rate",c.h2+" mmol/h/mg","#00ff88"],["O&#8322; Rate",c.o2+" mmol/h/mg","#ff6b35"],["H&#8322;O&#8322;",c.h2o2+" mmol/h/mg","#ffcc00"],["H&#8322; Rev/h","$"+c.hp,"#00ff88"],["O&#8322; Rev/h","$"+c.op,"#ff6b35"],["H&#8322;O&#8322; Rev/h","$"+c.h2p,"#ffcc00"],["TOTAL/h","$"+c.tot,"#44ffaa"]].forEach(function(r){
+    out.push('<div class="drow"><span class="dk">'+r[0]+'</span><span style="color:'+r[2]+';font-weight:'+(r[0].indexOf("TOTAL")>=0?"bold":"normal")+';">'+r[1]+'</span></div>');
+  });
+  out.push('</div><div class="card"><div class="ct" style="color:var(--g);">ASSIGN TO REACTOR</div>');
+  for(var ri=0;ri<S.reactors.length;ri++){
+    var reactor=S.reactors[ri], active=(reactor.cid===c.id);
+    out.push('<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--b1);">'+
+      '<span style="font-size:9px;color:'+(reactor.run?"var(--g)":"var(--m3)")+';">'+reactor.nm+'</span>'+
+      '<button class="sm '+(active?"r":"g")+'" onclick="assignCat('+reactor.id+','+c.id+')">'+(active?"LOADED &#10003;":"LOAD")+'</button></div>');
+  }
+  out.push('</div><div class="card"><div class="ct" style="color:var(--g);">UPGRADE FACILITY</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">'+
+    '<button class="btn g" onclick="addReactor()">+ REACTOR<br><span style="font-size:8px;opacity:.7;">+10% speed</span></button>'+
+    '<button class="btn b" onclick="addTank(0)">+ H&#8322; TANK<br><span style="font-size:8px;opacity:.7;">+100 mmol</span></button>'+
+    '</div></div>');
+  return out.join('');
+}
+
+// ── MASTER RENDER ─────────────────────────
+function render(){
+  var pg=document.getElementById("page");
+  if(TAB===0)      pg.innerHTML=rHome();
+  else if(TAB===1) pg.innerHTML=rGen();
+  else if(TAB===2) pg.innerHTML=rComp();
+  else if(TAB===3) pg.innerHTML=rReactors();
+  else if(TAB===4) pg.innerHTML=rStorage();
+  else if(TAB===5) pg.innerHTML=rList();
+  else if(TAB===6) pg.innerHTML=rDetail();
+  for(var i=0;i<=5;i++){var nb=document.getElementById("nb"+i);if(nb)nb.className="nb"+(TAB===i||(TAB===6&&i===5)?" act":"");}
+  document.getElementById("hrev").textContent="$"+S.rev.toFixed(2);
+  document.getElementById("hbnk").textContent="Bank: $"+Math.round(S.bank);
+  document.getElementById("sdot").className="dot"+(anyRun()?" on":"");
+  if(TAB===3) setTimeout(function(){S.reactors.forEach(function(r){if(r.run)startCanvas(r.id);else{var cv=document.getElementById("rc"+r.id);if(cv){var ctx=cv.getContext("2d");ctx.fillStyle="#060f0a";ctx.fillRect(0,0,cv.width,110);}}});},60);
+  if(TAB===0&&anyRun()) setTimeout(startBubbles,50);
+}
+
+// ── BUBBLES ───────────────────────────────
+function startBubbles(){
+  if(!anyRun()||bubOk)return; bubOk=true;
+  (function sp(){
+    if(!anyRun()||TAB!==0){bubOk=false;return;}
+    var c=document.getElementById("ebbl"); if(!c){bubOk=false;return;}
+    var b=document.createElement("div"), sz=Math.random()*9+4;
+    b.style.cssText="position:absolute;bottom:-12px;left:"+Math.random()*88+"%;width:"+sz+"px;height:"+sz+"px;background:rgba(103,232,249,.5);border-radius:50%;animation:rise "+(Math.random()*1.8+1.2)+"s linear forwards;pointer-events:none;";
+    c.appendChild(b); setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b);},2500); setTimeout(sp,320);
+  })();
+}
+
+// ── TICK ──────────────────────────────────
+function tick(rid){
+  var reactor=null; for(var i=0;i<S.reactors.length;i++){if(S.reactors[i].id===rid){reactor=S.reactors[i];break;}}
+  if(!reactor||!reactor.run)return;
+  reactor.t++;
+  var cat=reactor.cid?getCat(reactor.cid):null;
+  var nRun=0; S.reactors.forEach(function(r){if(r.run)nRun++;});
+  S.kg+=(142*S.spd)*0.00038/Math.max(nRun,1);
+  S.rev=S.kg*4.2*S.sell;
+  if(cat){
+    S.stg.H2.forEach(function(t){t.amt=Math.min(t.amt+cat.h2*.008*S.spd/S.stg.H2.length,t.cap);});
+    S.stg.O2.forEach(function(t){t.amt=Math.min(t.amt+cat.o2*.008/S.stg.O2.length,t.cap);});
+    S.stg.H2O2.forEach(function(t){t.amt=Math.min(t.amt+cat.h2o2*.008/S.stg.H2O2.length,t.cap);});
+  }
+  document.getElementById("hrev").textContent="$"+S.rev.toFixed(2);
+  if(TAB===0){var f=document.getElementById("efill");if(f)f.style.height=Math.min(100,(S.kg*10)/S.sell)+"%";var rv=document.getElementById("home-rev");if(rv)rv.textContent="$"+Math.round(S.rev);}
+  if(TAB===3) liveMetrics(rid);
+  if(TAB===4) render();
+}
+function liveMetrics(rid){
+  var reactor=null; for(var i=0;i<S.reactors.length;i++){if(S.reactors[i].id===rid){reactor=S.reactors[i];break;}}
+  var cat=reactor&&reactor.cid?getCat(reactor.cid):null; if(!cat)return;
+  var vals=[(cat.h2*.6*S.spd).toFixed(2)+" mmol/s",(cat.o2*.6).toFixed(2)+" mmol/s",(cat.h2o2*.6).toFixed(4)+" mmol/s",(cat.her*.96).toFixed(1)+"%",(1.23+(cat.eH+cat.eO)*.001).toFixed(2)+" V",Math.floor(reactor.t/120)+"h "+Math.floor((reactor.t%120)/2)+"m"];
+  for(var mi=0;mi<6;mi++){var el=document.getElementById("rv"+rid+"x"+mi);if(el)el.textContent=vals[mi];}
+}
+
+// ── ALL ACTIONS ───────────────────────────
+function go(t){
+  if(TAB===3&&t!==3) S.reactors.forEach(function(r){if(rAnim[r.id]){cancelAnimationFrame(rAnim[r.id]);delete rAnim[r.id];}});
+  bubOk=false; TAB=+t; render(); document.getElementById("page").scrollTop=0;
+}
+function closeModal(){document.getElementById("modal").style.display="none";}
+function setPri(i){S.pri=+i;if(S.sec===S.pri)S.sec=-1;render();}
+function setSec(i){S.sec=+i;render();}
+function setSup(i){S.sup=+i;render();}
+function setPro(i){S.pro=+i;render();}
+function setCompEl(i,v){S.cs[+i].ei=+v;render();}
+function setCompPct(i,v){S.cs[+i].pct=+v;var el=document.getElementById("cpv"+i);if(el)el.textContent=v+"%";}
+function addCompSlot(){if(S.cs.length>=6)return;var used=S.cs.map(function(s){return s.ei;});var ei=0;for(var i=0;i<EL.length;i++){if(used.indexOf(i)<0){ei=i;break;}}S.cs.push({ei:ei,pct:15});render();}
+function rmCompSlot(i){if(S.cs.length<=1)return;S.cs.splice(+i,1);render();}
+function doGen(){if(S.busy)return;S.busy=true;render();setTimeout(function(){S.cats.unshift(makeCat());S.sel=S.cats[0];S.busy=false;TAB=6;render();},900);}
+function doGenComp(){var total=0;S.cs.forEach(function(s){total+=s.pct;});if(Math.abs(total-100)>=2){alert("Percentages must sum to ~100%. Current: "+total+"%");return;}if(S.cBusy)return;S.cBusy=true;render();setTimeout(function(){S.cats.unshift(makeComp());S.sel=S.cats[0];S.cBusy=false;TAB=6;render();},1200);}
+function toggleR(rid){rid=+rid;var reactor=null;for(var i=0;i<S.reactors.length;i++){if(S.reactors[i].id===rid){reactor=S.reactors[i];break;}}if(!reactor)return;reactor.run=!reactor.run;if(reactor.run){rTmr[rid]=setInterval(function(){tick(rid);},450);if(TAB===3)setTimeout(function(){startCanvas(rid);},80);}else{clearInterval(rTmr[rid]);delete rTmr[rid];if(TAB===3)stopCanvas(rid);}render();}
+function stopAll(){S.reactors.forEach(function(r){if(r.run){r.run=false;clearInterval(rTmr[r.id]);delete rTmr[r.id];if(rAnim[r.id]){cancelAnimationFrame(rAnim[r.id]);delete rAnim[r.id];}}});bubOk=false;render();}
+function addReactor(){var id=nextRId++;S.reactors.push({id:id,nm:"Reactor #"+id,run:false,t:0,cid:null});S.spd=+(S.spd+.1).toFixed(1);render();}
+function removeR(rid){rid=+rid;if(S.reactors.length<=1){alert("Need at least one reactor.");return;}if(rTmr[rid]){clearInterval(rTmr[rid]);delete rTmr[rid];}if(rAnim[rid]){cancelAnimationFrame(rAnim[rid]);delete rAnim[rid];}delete rPts[rid];S.reactors=S.reactors.filter(function(r){return r.id!==rid;});render();}
+function assignCat(rid,cid){rid=+rid;cid=+cid;for(var i=0;i<S.reactors.length;i++){if(S.reactors[i].id===rid){S.reactors[i].cid=cid||null;break;}}render();}
+function addTank(pi){var prod=PROD[+pi];var id=nextTId[prod]++;S.stg[prod].push({id:id,cap:(prod==="H2O2"?10:100),amt:0});S.sell=+(S.sell+.1).toFixed(1);render();}
+function rmTank(pi,ti){var prod=PROD[+pi];ti=+ti;if(S.stg[prod].length<=1){alert("Need at least one tank.");return;}S.stg[prod].splice(ti,1);render();}
+function sellTank(pi,ti){var prod=PROD[+pi];ti=+ti;var prices={H2:3.5,O2:.15,H2O2:1400};S.rev+=S.stg[prod][ti].amt*prices[prod];S.stg[prod][ti].amt=0;render();}
+function sellAll(pi){var prod=PROD[+pi];var prices={H2:3.5,O2:.15,H2O2:1400};S.stg[prod].forEach(function(t){S.rev+=t.amt*prices[prod];t.amt=0;});render();}
+function sellAllProds(){sellAll(0);sellAll(1);sellAll(2);}
+function doBank(){if(S.rev<1){alert("No revenue to transfer!");return;}var amt=Math.round(S.rev);S.bank+=amt;S.rev=0;S.kg=0;document.getElementById("modal-amt").textContent="$"+amt;document.getElementById("modal").style.display="flex";render();}
+function doReset(){if(confirm("Reset all production? Bank kept.")){stopAll();S.rev=0;S.kg=0;S.reactors.forEach(function(r){r.t=0;});Object.keys(S.stg).forEach(function(k){S.stg[k].forEach(function(t){t.amt=0;});});S.spd=1.0;S.sell=1.0;render();}}
+function selCat(id){S.sel=getCat(+id);TAB=6;render();}
+function rmCat(id){id=+id;if(!confirm("Delete this catalyst?"))return;S.cats=S.cats.filter(function(c){return c.id!==id;});if(S.sel&&S.sel.id===id)S.sel=S.cats[0]||null;render();}
+
+render();
+</script>
+</body>
+</html>

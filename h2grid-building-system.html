@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>H2-GRID Building System // MAC-FeMoS2 Composite Deployment Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080c; --panel:#0a141f; --panel-2:#0d1a28; --line:#16283a;
+  --cyan:#00e5ff; --cyan-dim:#0a5f6e; --amber:#ffb300; --amber-dim:#7a5200;
+  --violet:#b98cff; --green:#39ff9d; --ghost:#1c2c3c; --text:#d7e6ef; --text-dim:#7590a3;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{background:var(--bg); color:var(--text); font-family:'Space Mono',monospace;}
+body{background-image:radial-gradient(circle at 12% 8%, rgba(0,229,255,.06), transparent 40%), radial-gradient(circle at 88% 92%, rgba(255,179,0,.05), transparent 45%);}
+.particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+.particles span{position:absolute; width:2px; height:2px; background:var(--cyan); border-radius:50%; animation:float 14s linear infinite; opacity:.4;}
+@keyframes float{0%{transform:translateY(110vh); opacity:0;} 10%{opacity:.6;} 100%{transform:translateY(-10vh) translateX(30px); opacity:0;}}
+.wrap{position:relative; z-index:1; max-width:1440px; margin:0 auto; padding:28px 20px 90px;}
+header{text-align:center; margin-bottom:30px;}
+.eyebrow{font-family:'Orbitron',sans-serif; font-size:11px; letter-spacing:.35em; color:var(--cyan); text-transform:uppercase; margin-bottom:10px; opacity:.85;}
+h1{font-family:'Orbitron',sans-serif; font-weight:900; font-size:clamp(22px,4.2vw,38px); letter-spacing:.02em; line-height:1.15;
+  background:linear-gradient(90deg,#fff 0%, var(--cyan) 55%, var(--amber) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.sub{color:var(--text-dim); font-size:12.5px; margin-top:10px;}
+.sub b{color:var(--text);}
+
+nav.tabs{display:flex; justify-content:center; gap:8px; margin:28px 0 22px; flex-wrap:wrap;}
+nav.tabs button{font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  background:var(--panel); color:var(--text-dim); border:1px solid var(--line); padding:10px 15px; cursor:pointer; transition:.2s;}
+nav.tabs button.active{color:#02121a; background:linear-gradient(90deg,var(--cyan),#7fe9ff); border-color:var(--cyan); box-shadow:0 0 18px rgba(0,229,255,.35);}
+nav.tabs button:hover:not(.active){border-color:var(--cyan); color:var(--cyan);}
+
+.view{display:none;} .view.active{display:block; animation:reveal .5s ease;}
+@keyframes reveal{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:22px 18px; position:relative; overflow:hidden;}
+.panel::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 0%, rgba(0,229,255,.05), transparent 60%); pointer-events:none;}
+.section-title{font-family:'Orbitron',sans-serif; font-size:14px; letter-spacing:.08em; color:#eaf6ff; margin-bottom:14px; text-transform:uppercase;}
+.section-title span{color:var(--cyan);}
+
+/* ===== component role cards ===== */
+.role-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-bottom:26px;}
+.role-card{background:var(--panel-2); border:1px solid var(--line); border-left:3px solid var(--cyan); border-radius:5px; padding:14px 16px;}
+.role-card.oer{border-left-color:var(--amber);} .role-card.sub{border-left-color:#eaf6ff;}
+.role-card.cap{border-left-color:var(--green);} .role-card.conv{border-left-color:var(--violet);}
+.role-card .rc-name{font-family:'Orbitron',sans-serif; font-size:13px; color:#eaf6ff; margin-bottom:4px;}
+.role-card .rc-mat{font-size:10px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px;}
+.role-card.her .rc-mat{color:var(--cyan);} .role-card.oer .rc-mat{color:var(--amber);}
+.role-card.sub .rc-mat{color:#eaf6ff;} .role-card.cap .rc-mat{color:var(--green);} .role-card.conv .rc-mat{color:var(--violet);}
+.role-card .rc-desc{font-size:11px; color:var(--text-dim); line-height:1.55;}
+
+/* ===== diagram controls ===== */
+.sc-controls{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:18px;}
+.src-btn{font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  background:var(--panel); border:1px solid var(--line); color:var(--text-dim); padding:9px 16px; cursor:pointer; border-radius:4px; transition:.2s;}
+.src-btn.active{color:#02121a; background:linear-gradient(90deg,var(--amber),#ffd77a); border-color:var(--amber);}
+.svgwrap{overflow-x:auto;}
+.svgwrap svg{width:100%; min-width:980px; height:auto; display:block;}
+.flow{stroke-dasharray:6 7; animation:flowmove 1s linear infinite;}
+.flow.rev{animation-direction:reverse;} .flow.slow{animation-duration:2.4s;}
+@keyframes flowmove{to{stroke-dashoffset:-130;}}
+.svglabel{font-family:'Orbitron',sans-serif; font-size:11px; letter-spacing:.03em;}
+.svgsub{font-family:'Space Mono',monospace; font-size:9.5px;}
+
+/* ===== BOM table ===== */
+.bom-wrap{overflow-x:auto;}
+table.bom{width:100%; border-collapse:collapse; font-size:11.5px; min-width:900px;}
+table.bom th{font-family:'Orbitron',sans-serif; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--text-dim); text-align:left; padding:10px 12px; border-bottom:1px solid var(--line);}
+table.bom td{padding:11px 12px; border-bottom:1px solid #101d29; vertical-align:top; color:var(--text);}
+table.bom tr:hover td{background:rgba(0,229,255,.03);}
+.tag{display:inline-block; font-size:9px; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:3px; border:1px solid currentColor;}
+.tag.her{color:var(--cyan);} .tag.oer{color:var(--amber);} .tag.sub{color:#eaf6ff;} .tag.cap{color:var(--green);} .tag.conv{color:var(--violet);}
+.mono-small{font-size:10.5px; color:var(--text-dim);}
+
+/* ===== spec cards residential/commercial ===== */
+.spec-cols{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media(max-width:820px){.spec-cols{grid-template-columns:1fr;}}
+.spec-col{background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:18px;}
+.spec-col h3{font-family:'Orbitron',sans-serif; font-size:14px; margin-bottom:14px; letter-spacing:.05em;}
+.spec-col.res h3{color:var(--cyan);} .spec-col.com h3{color:var(--amber);}
+.spec-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #101d29; font-size:11.5px;}
+.spec-row .k{color:var(--text-dim);} .spec-row .v{color:var(--text); font-family:'Orbitron',sans-serif; font-size:11.5px;}
+
+/* ===== calculator ===== */
+.calc-grid{display:grid; grid-template-columns:340px 1fr; gap:22px;}
+@media(max-width:900px){.calc-grid{grid-template-columns:1fr;}}
+.calc-inputs{background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:18px;}
+.calc-inputs label{display:block; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim); margin:14px 0 8px;}
+.calc-inputs label:first-child{margin-top:0;}
+.calc-inputs input[type=range]{width:100%; accent-color:var(--cyan);}
+.calc-inputs .rangeval{font-family:'Orbitron',sans-serif; color:var(--cyan); font-size:15px; margin-top:4px;}
+.seg{display:flex; gap:6px;}
+.seg button{flex:1; font-family:'Orbitron',sans-serif; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+  background:var(--panel); border:1px solid var(--line); color:var(--text-dim); padding:9px 6px; cursor:pointer; border-radius:4px;}
+.seg button.active{color:#02121a; background:linear-gradient(90deg,var(--cyan),#7fe9ff); border-color:var(--cyan);}
+.calc-out{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; align-content:start;}
+.ro{background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px;}
+.ro .label{font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px;}
+.ro .val{font-family:'Orbitron',sans-serif; font-size:18px; font-weight:700;}
+.ro .val span{font-size:10px; color:var(--text-dim); font-weight:400; margin-left:3px;}
+.c-cyan{color:var(--cyan);} .c-amber{color:var(--amber);} .c-green{color:var(--green);} .c-violet{color:var(--violet);}
+
+.notes{margin-top:20px; font-size:11px; color:var(--text-dim); line-height:1.7; border-left:2px solid var(--cyan-dim); padding-left:14px;}
+.notes b{color:var(--text);}
+footer{text-align:center; margin-top:50px; font-size:10px; color:#4a5c68; letter-spacing:.08em;}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">H2-GRID // BUILDING-SCALE DEPLOYMENT PLATFORM</div>
+    <h1>Residential &amp; Commercial System Integration</h1>
+    <div class="sub">All six components of MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru assembled into one deployable water-splitting unit &middot; <b>Frank Levanti</b></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-view="ov">System Overview</button>
+    <button data-view="dg">Installation Diagram</button>
+    <button data-view="bom">Materials &amp; BOM</button>
+    <button data-view="spec">Residential vs Commercial</button>
+    <button data-view="calc">Sizing Calculator</button>
+  </nav>
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="view active" id="view-ov">
+    <div class="panel">
+      <div class="section-title">Six components, <span>one building-scale unit</span></div>
+      <div class="role-grid">
+        <div class="role-card her"><div class="rc-name">MAC-FeMoS2@C</div><div class="rc-mat">Cathode &middot; HER</div><div class="rc-desc">Iron-doped MoS2 encapsulated in carbon. Drives hydrogen evolution at the electrolyzer cathode; carbon shell resists active-site poisoning over multi-year service life.</div></div>
+        <div class="role-card oer"><div class="rc-name">NiSe2</div><div class="rc-mat">Anode &middot; OER</div><div class="rc-desc">Nickel diselenide anode catalyst. Drives oxygen evolution opposite the cathode, completing the water-splitting half-reactions.</div></div>
+        <div class="role-card sub"><div class="rc-name">Boron-Doped Diamond</div><div class="rc-mat">Current Collector / Substrate</div><div class="rc-desc">Conductive, corrosion-resistant electrode backbone. Carries current to both electrodes and tolerates seawater or brackish feed without degrading.</div></div>
+        <div class="role-card cap"><div class="rc-name">ZIF-8</div><div class="rc-mat">CO2 Capture Framework</div><div class="rc-desc">Zeolitic imidazolate framework (Zn + imidazolate). Selectively adsorbs CO2 from indoor air, flue gas, or HVAC exhaust for the parallel valorization loop.</div></div>
+        <div class="role-card conv"><div class="rc-name">Cu + Ru</div><div class="rc-mat">CO2 Reduction &amp; Hydrogenation</div><div class="rc-desc">Copper initiates CO2 reduction and C&ndash;C coupling; ruthenium hydrogenates intermediates toward methanol and short hydrocarbons using a share of the on-site H2.</div></div>
+      </div>
+
+      <div class="section-title">What the unit actually does <span>on site</span></div>
+      <p style="font-size:12px; color:var(--text-dim); line-height:1.8; max-width:900px;">
+      A building-scale H2-GRID unit is a sealed utility cabinet (residential) or rack row (commercial) containing the electrolyzer stack, hydrogen buffer storage, a fuel cell, and an optional CO2-valorization train. Renewable DC &mdash; rooftop solar, a small wind input, or grid off-peak power &mdash; drives the electrolyzer to split water into H2 and O2. The H2 is buffered in on-site storage and run through a fuel cell on demand, exporting AC power to the building panel; captured waste heat is routed to the domestic or facility hot-water loop. In parallel, a slipstream of H2 can feed the CO2 loop, converting captured CO2 into methanol for on-site use or collection, rather than treating carbon capture as a pure cost center.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== INSTALLATION DIAGRAM ===================== -->
+  <section class="view" id="view-dg">
+    <div class="sc-controls">
+      <button class="src-btn active" data-scale="res">Residential Unit</button>
+      <button class="src-btn" data-scale="com">Commercial Array</button>
+    </div>
+    <div class="panel">
+      <div class="svgwrap">
+        <svg id="dgSvg" viewBox="0 0 1400 780" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00e5ff"/></marker>
+            <marker id="aA" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffb300"/></marker>
+            <marker id="aG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#39ff9d"/></marker>
+            <marker id="aV" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#b98cff"/></marker>
+          </defs>
+
+          <!-- roof / renewable input -->
+          <text x="150" y="34" text-anchor="middle" class="svglabel" fill="#eaf6ff">ROOFTOP RENEWABLE INPUT</text>
+          <rect x="70" y="46" width="160" height="46" fill="#0d1a28" stroke="#2a4256"/>
+          <g stroke="#2a4256"><line x1="105" y1="46" x2="105" y2="92"/><line x1="140" y1="46" x2="140" y2="92"/><line x1="175" y1="46" x2="175" y2="92"/><line x1="70" y1="69" x2="230" y2="69"/></g>
+          <text x="150" y="106" text-anchor="middle" class="svgsub" fill="#7590a3" id="pvLabel">PV ARRAY &middot; 6 kWp</text>
+
+          <rect x="70" y="130" width="160" height="34" rx="4" fill="#0d1a28" stroke="#00e5ff"/>
+          <text x="150" y="151" text-anchor="middle" class="svgsub" fill="#00e5ff">DC/DC RECTIFIER + MPPT</text>
+          <path class="flow" d="M150,92 L150,130" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#aC)"/>
+
+          <!-- water intake -->
+          <text x="150" y="205" text-anchor="middle" class="svglabel" fill="#eaf6ff">WATER INTAKE</text>
+          <rect x="70" y="215" width="160" height="56" rx="6" fill="#0d1a28" stroke="#2a4256"/>
+          <text x="150" y="238" text-anchor="middle" class="svgsub" fill="#7fd7ff" id="wSrcLabel">MAINS / RAIN CISTERN</text>
+          <text x="150" y="255" text-anchor="middle" class="svgsub" fill="#7590a3" id="wUseLabel">&mdash; L/day feed</text>
+          <path class="flow" d="M150,164 L150,215" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#aC)"/>
+          <path class="flow" d="M230,243 L280,243" stroke="#7fd7ff" stroke-width="2" fill="none" marker-end="url(#aC)"/>
+
+          <!-- electrolyzer stack -->
+          <rect x="280" y="180" width="320" height="200" rx="6" fill="rgba(0,229,255,.05)" stroke="#3a5468" stroke-width="1.5"/>
+          <text x="440" y="165" text-anchor="middle" class="svglabel" fill="#eaf6ff" id="stackLabel">ELECTROLYZER STACK &middot; &times;1 MODULE</text>
+
+          <rect x="295" y="198" width="115" height="165" fill="#04212a" stroke="#00e5ff"/>
+          <text x="352" y="218" text-anchor="middle" class="svgsub" fill="#00e5ff">CATHODE HER</text>
+          <text x="352" y="233" text-anchor="middle" class="svgsub" fill="#7fd7ff">MAC-FeMoS2@C</text>
+
+          <rect x="282" y="198" width="9" height="165" fill="#eaf6ff" opacity=".85"/>
+          <rect x="580" y="198" width="9" height="165" fill="#eaf6ff" opacity=".85"/>
+          <text x="286" y="192" text-anchor="middle" class="svgsub" fill="#eaf6ff">BDD</text>
+          <text x="584" y="192" text-anchor="middle" class="svgsub" fill="#eaf6ff">BDD</text>
+
+          <rect x="415" y="198" width="26" height="165" fill="#12222f" stroke="#3a5468" stroke-dasharray="3 3"/>
+
+          <rect x="446" y="198" width="130" height="165" fill="#2a1c04" stroke="#ffb300"/>
+          <text x="511" y="218" text-anchor="middle" class="svgsub" fill="#ffb300">ANODE OER</text>
+          <text x="511" y="233" text-anchor="middle" class="svgsub" fill="#ffd77a">NiSe2</text>
+
+          <path class="flow" d="M230,151 L230,110 L660,110 L660,198" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#aC)"/>
+          <text x="440" y="105" text-anchor="middle" class="svgsub" fill="#00e5ff">rectified DC to stack</text>
+
+          <!-- gases -->
+          <path class="flow" d="M352,198 L352,150 L720,150 L720,215" stroke="#00e5ff" stroke-width="2.5" fill="none" marker-end="url(#aC)"/>
+          <text x="620" y="145" text-anchor="middle" class="svgsub" fill="#00e5ff">H2</text>
+          <path class="flow rev" d="M511,198 L511,175 L770,175 L770,215" stroke="#ffb300" stroke-width="2.5" fill="none" marker-end="url(#aA)"/>
+          <text x="680" y="192" text-anchor="middle" class="svgsub" fill="#ffb300">O2</text>
+
+          <!-- H2 storage -->
+          <rect x="695" y="215" width="55" height="110" rx="16" fill="#0d1a28" stroke="#00e5ff" stroke-width="1.5"/>
+          <text x="722" y="270" text-anchor="middle" class="svgsub" fill="#00e5ff">H2</text>
+          <text x="722" y="284" text-anchor="middle" class="svgsub" fill="#00e5ff" id="h2StoreLabel">6 kg</text>
+          <rect x="755" y="215" width="45" height="110" rx="14" fill="#241a04" stroke="#ffb300" stroke-width="1.5"/>
+          <text x="777" y="270" text-anchor="middle" class="svgsub" fill="#ffb300">O2</text>
+          <text x="777" y="284" text-anchor="middle" class="svgsub" fill="#ffb300">vent</text>
+
+          <!-- fuel cell -->
+          <path class="flow" d="M722,325 L722,440 L900,440" stroke="#00e5ff" stroke-width="2.2" fill="none" marker-end="url(#aC)"/>
+          <rect x="900" y="405" width="150" height="100" rx="6" fill="#0d1a28" stroke="#39ff9d" stroke-width="1.5"/>
+          <text x="975" y="428" text-anchor="middle" class="svglabel" fill="#39ff9d">FUEL CELL / CHP</text>
+          <text x="975" y="444" text-anchor="middle" class="svgsub" fill="#7590a3">H2 + O2 &#8594; power + heat</text>
+          <text x="975" y="465" text-anchor="middle" class="svgsub" fill="#39ff9d" id="fcOut">&mdash; kWe</text>
+          <text x="975" y="482" text-anchor="middle" class="svgsub" fill="#ffb300" id="heatOut">&mdash; heat recovered</text>
+
+          <!-- heat to water loop -->
+          <path class="flow" d="M900,485 L840,485 L840,560" stroke="#ffb300" stroke-width="2" fill="none" stroke-dasharray="3 5" marker-end="url(#aA)"/>
+          <rect x="780" y="560" width="120" height="46" rx="6" fill="#0d1a28" stroke="#ffb300"/>
+          <text x="840" y="582" text-anchor="middle" class="svgsub" fill="#ffb300">DHW / SPACE</text>
+          <text x="840" y="596" text-anchor="middle" class="svgsub" fill="#ffb300">HEAT LOOP</text>
+
+          <!-- inverter -->
+          <path class="flow" d="M1050,440 L1090,440" stroke="#39ff9d" stroke-width="2.2" fill="none" marker-end="url(#aG)"/>
+          <rect x="1090" y="410" width="110" height="60" rx="5" fill="#0d1a28" stroke="#2a4256"/>
+          <text x="1145" y="435" text-anchor="middle" class="svgsub" fill="#eaf6ff">GRID-TIE</text>
+          <text x="1145" y="450" text-anchor="middle" class="svgsub" fill="#eaf6ff">INVERTER</text>
+
+          <!-- panel -->
+          <path class="flow" d="M1200,440 L1250,440 L1250,400" stroke="#39ff9d" stroke-width="2.2" fill="none" marker-end="url(#aG)"/>
+          <polygon points="1250,300 1310,335 1310,395 1190,395 1190,335" fill="#0d1a28" stroke="#39ff9d" stroke-width="1.5"/>
+          <text x="1250" y="290" text-anchor="middle" class="svglabel" fill="#39ff9d" id="bldgLabel">BUILDING PANEL</text>
+          <text x="1250" y="415" text-anchor="middle" class="svgsub" fill="#7590a3" id="bldgSub">&mdash;</text>
+
+          <!-- product water recycle -->
+          <path class="flow rev" d="M900,460 L860,460 L860,650 L150,650 L150,271" stroke="#7fd7ff" stroke-width="1.5" fill="none" stroke-dasharray="4 6" marker-end="url(#aC)"/>
+          <text x="500" y="666" text-anchor="middle" class="svgsub" fill="#5f7a8c">condensed product water recycled to intake</text>
+
+          <!-- CO2 loop -->
+          <rect x="280" y="440" width="450" height="180" rx="6" fill="rgba(185,140,255,.05)" stroke="#b98cff" stroke-dasharray="4 4"/>
+          <text x="505" y="465" text-anchor="middle" class="svglabel" fill="#b98cff">CO2 CAPTURE &amp; VALORIZATION TRAIN</text>
+
+          <rect x="300" y="480" width="120" height="110" fill="#160f24" stroke="#39ff9d"/>
+          <text x="360" y="505" text-anchor="middle" class="svgsub" fill="#39ff9d">ZIF-8 CANISTER</text>
+          <text x="360" y="520" text-anchor="middle" class="svgsub" fill="#7590a3">indoor air / flue intake</text>
+          <text x="360" y="540" text-anchor="middle" class="svgsub" fill="#39ff9d" id="co2CapLabel">&mdash; kg CO2/day</text>
+
+          <path class="flow" d="M420,535 L460,535" stroke="#b98cff" stroke-width="2" fill="none" marker-end="url(#aV)"/>
+
+          <rect x="460" y="480" width="150" height="110" fill="#160f24" stroke="#b98cff"/>
+          <text x="535" y="505" text-anchor="middle" class="svgsub" fill="#b98cff">Cu / Ru REACTOR</text>
+          <text x="535" y="522" text-anchor="middle" class="svgsub" fill="#7590a3">reduction + hydrogenation</text>
+          <text x="535" y="540" text-anchor="middle" class="svgsub" fill="#c9b3ff">shares H2 slipstream</text>
+          <path class="flow" d="M535,325 L535,363 L535,363" stroke="#00e5ff" stroke-width="0" fill="none"/>
+          <path class="flow" d="M700,300 L700,480" stroke="#00e5ff" stroke-width="1.8" fill="none" stroke-dasharray="3 5" marker-end="url(#aC)" transform="translate(-165,0)"/>
+
+          <path class="flow" d="M610,535 L650,535" stroke="#b98cff" stroke-width="2" fill="none" marker-end="url(#aV)"/>
+          <rect x="650" y="490" width="70" height="90" rx="8" fill="#160f24" stroke="#b98cff"/>
+          <text x="685" y="530" text-anchor="middle" class="svgsub" fill="#c9b3ff">CH3OH</text>
+          <text x="685" y="544" text-anchor="middle" class="svgsub" fill="#c9b3ff" id="methLabel">&mdash; kg/day</text>
+
+        </svg>
+      </div>
+      <div class="notes"><b>Reading the diagram:</b> the electrolyzer stack, storage, fuel cell, and heat-recovery loop are the power-generation core shared by both installation scales. The CO2 train underneath is optional and draws a slipstream of the same H2 rather than competing with the export path. Switching to <b>Commercial Array</b> above multiplies the stack count and storage rather than changing the underlying chemistry &mdash; it's the same six materials, replicated.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MATERIALS & BOM ===================== -->
+  <section class="view" id="view-bom">
+    <div class="panel">
+      <div class="section-title">Component-level <span>bill of materials</span></div>
+      <div class="bom-wrap">
+        <table class="bom">
+          <thead><tr><th>Component</th><th>Role</th><th>Material</th><th>Function in the stack</th><th>Scales with</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag her">HER</span></td><td>Cathode catalyst</td><td>Iron-doped MoS2, carbon-encapsulated (MAC-FeMoS2@C)</td><td class="mono-small">Reduces water to H2 at the cathode; carbon shell resists fouling and extends catalyst life between service intervals.</td><td class="mono-small">Electrode active area (cm&sup2; per module)</td></tr>
+            <tr><td><span class="tag oer">OER</span></td><td>Anode catalyst</td><td>Nickel diselenide (NiSe2)</td><td class="mono-small">Oxidizes hydroxide to O2 at the anode, completing the cell reaction opposite the cathode.</td><td class="mono-small">Electrode active area (cm&sup2; per module)</td></tr>
+            <tr><td><span class="tag sub">SUB</span></td><td>Current collector / structural electrode</td><td>Boron-doped diamond (BDD)</td><td class="mono-small">Conducts current to both electrodes; corrosion-resistant enough for seawater or brackish feed without a protective coating.</td><td class="mono-small">Electrode footprint + feed water chemistry</td></tr>
+            <tr><td><span class="tag sub">SUB</span></td><td>Ion transport</td><td>Ion-exchange membrane (cell separator)</td><td class="mono-small">Separates H2/O2 product streams while allowing hydroxide/proton transport between electrodes.</td><td class="mono-small">Cell count per stack</td></tr>
+            <tr><td><span class="tag cap">CAP</span></td><td>CO2 capture</td><td>ZIF-8 (zinc + 2-methylimidazole framework)</td><td class="mono-small">Selectively adsorbs CO2 from indoor air, flue gas, or HVAC exhaust ahead of the conversion reactor.</td><td class="mono-small">Canister volume, sized to CO2 loop capacity</td></tr>
+            <tr><td><span class="tag conv">CONV</span></td><td>CO2 reduction</td><td>Copper (Cu) reactor bed</td><td class="mono-small">Initiates electrochemical CO2 reduction and C&ndash;C coupling toward reduced carbon intermediates.</td><td class="mono-small">H2 slipstream allocation</td></tr>
+            <tr><td><span class="tag conv">CONV</span></td><td>Hydrogenation</td><td>Ruthenium (Ru) reactor bed</td><td class="mono-small">Hydrogenates CO2-reduction intermediates toward methanol / short-chain hydrocarbons.</td><td class="mono-small">H2 slipstream allocation</td></tr>
+            <tr><td>&mdash;</td><td>Energy storage</td><td>Composite H2 cylinder (350&ndash;700 bar) or metal hydride buffer</td><td class="mono-small">Buffers H2 between production and dispatch, decoupling electrolyzer runtime from fuel-cell demand.</td><td class="mono-small">Hours of autonomy required</td></tr>
+            <tr><td>&mdash;</td><td>Power conversion</td><td>DC/DC rectifier + MPPT, PEM fuel cell, grid-tie inverter</td><td class="mono-small">Conditions renewable DC into the stack, and converts stored H2 back to grid-synchronous AC on demand.</td><td class="mono-small">Module electrical rating (kWe)</td></tr>
+            <tr><td>&mdash;</td><td>Heat recovery</td><td>Fuel-cell coolant loop &#8594; heat exchanger</td><td class="mono-small">Captures fuel-cell waste heat for domestic hot water or space heating, improving whole-system utilization.</td><td class="mono-small">Building hot-water demand</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notes"><b>Note:</b> figures throughout this platform are thesis-planning estimates for illustrating how the six components integrate into a deployable unit &mdash; not a certified equipment spec or vendor quote.</div>
+    </div>
+  </section>
+
+  <!-- ===================== RESIDENTIAL VS COMMERCIAL ===================== -->
+  <section class="view" id="view-spec">
+    <div class="panel">
+      <div class="section-title">Deployment <span>scale comparison</span></div>
+      <div class="spec-cols">
+        <div class="spec-col res">
+          <h3>RESIDENTIAL UNIT</h3>
+          <div class="spec-row"><span class="k">Configuration</span><span class="v">1 stack module</span></div>
+          <div class="spec-row"><span class="k">Electrolyzer input</span><span class="v">7 kW DC</span></div>
+          <div class="spec-row"><span class="k">Fuel cell output</span><span class="v">5 kWe</span></div>
+          <div class="spec-row"><span class="k">H2 storage buffer</span><span class="v">~6 kg</span></div>
+          <div class="spec-row"><span class="k">Water intake</span><span class="v">~90 L/day</span></div>
+          <div class="spec-row"><span class="k">Footprint</span><span class="v">0.9 &times; 1.8 m cabinet</span></div>
+          <div class="spec-row"><span class="k">Placement</span><span class="v">Utility closet / garage</span></div>
+          <div class="spec-row"><span class="k">Primary role</span><span class="v">Backup + peak shaving</span></div>
+          <div class="spec-row"><span class="k">CO2 loop</span><span class="v">Optional add-on canister</span></div>
+        </div>
+        <div class="spec-col com">
+          <h3>COMMERCIAL ARRAY</h3>
+          <div class="spec-row"><span class="k">Configuration</span><span class="v">6&ndash;24 stack modules (racked)</span></div>
+          <div class="spec-row"><span class="k">Electrolyzer input</span><span class="v">42&ndash;170 kW DC</span></div>
+          <div class="spec-row"><span class="k">Fuel cell output</span><span class="v">30&ndash;120 kWe</span></div>
+          <div class="spec-row"><span class="k">H2 storage buffer</span><span class="v">36&ndash;145 kg tank farm</span></div>
+          <div class="spec-row"><span class="k">Water intake</span><span class="v">540 &ndash; 2,160 L/day</span></div>
+          <div class="spec-row"><span class="k">Footprint</span><span class="v">Rooftop mechanical yard, ~1 parking-bay per 4 modules</span></div>
+          <div class="spec-row"><span class="k">Placement</span><span class="v">Rooftop or dedicated mechanical room</span></div>
+          <div class="spec-row"><span class="k">Primary role</span><span class="v">Dispatchable load-shifting + CHP</span></div>
+          <div class="spec-row"><span class="k">CO2 loop</span><span class="v">Sized to HVAC exhaust / flue stream</span></div>
+        </div>
+      </div>
+      <div class="notes"><b>Why fuel-cell dispatch instead of grid injection of H2 gas:</b> round-trip electrolyzer&rarr;storage&rarr;fuel-cell efficiency is inherently lower than direct solar-to-grid (typically ~35&ndash;50%). The building-scale case for this unit is dispatchability and resilience &mdash; shifting renewable production into evening peaks, riding through outages, and recovering waste heat &mdash; not competing with direct PV on a pure kWh-in/kWh-out basis.</div>
+    </div>
+  </section>
+
+  <!-- ===================== SIZING CALCULATOR ===================== -->
+  <section class="view" id="view-calc">
+    <div class="panel">
+      <div class="section-title">Interactive <span>sizing calculator</span></div>
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <label>Building type</label>
+          <div class="seg">
+            <button class="active" data-type="res">Residential</button>
+            <button data-type="com">Commercial</button>
+          </div>
+
+          <label>Target daily electrical demand to cover</label>
+          <input type="range" id="demandSlider" min="10" max="1000" value="30" step="5">
+          <div class="rangeval" id="demandVal">30 kWh/day</div>
+
+          <label>Hours of H2 autonomy desired</label>
+          <input type="range" id="hoursSlider" min="4" max="48" value="24" step="2">
+          <div class="rangeval" id="hoursVal">24 h</div>
+
+          <label>Allocate H2 to CO2 valorization loop</label>
+          <input type="range" id="co2Slider" min="0" max="40" value="15" step="5">
+          <div class="rangeval" id="co2Val">15% of H2</div>
+        </div>
+
+        <div class="calc-out" id="calcOut"></div>
+      </div>
+      <div class="notes"><b>Model assumptions:</b> 1 module = 7 kWe electrolyzer input, ~4.8 kg H2/day at full run, ~90 L water/day, PEM fuel cell round-trip to ~5 kWe continuous. Methanol yield assumes 3 mol H2 per mol CH3OH via the Cu/Ru pathway. These are planning-level figures for sizing intuition, not a substitute for a full techno-economic model.</div>
+    </div>
+  </section>
+
+  <footer>MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru &middot; building deployment reference &middot; illustrative planning figures, not a certified engineering design</footer>
+</div>
+
+<script>
+const pf=document.getElementById('particles');
+for(let i=0;i<40;i++){const s=document.createElement('span'); s.style.left=Math.random()*100+'%'; s.style.animationDelay=(Math.random()*14)+'s'; s.style.animationDuration=(10+Math.random()*10)+'s'; pf.appendChild(s);}
+
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---- installation diagram scale toggle ---- */
+const dgData = {
+  res:{pv:'PV ARRAY \u00b7 6 kWp', wSrc:'MAINS / RAIN CISTERN', wUse:'~90 L/day feed', stack:'ELECTROLYZER STACK \u00b7 \u00d71 MODULE',
+       h2:'6 kg', fc:'5 kWe', heat:'~4 kWth recovered', bldg:'RESIDENTIAL PANEL', bldgSub:'1 home \u00b7 backup + peak shave',
+       co2:'~0.6 kg CO2/day', meth:'~0.3 kg/day'},
+  com:{pv:'PV ARRAY \u00b7 90 kWp', wSrc:'MAINS + RECLAIMED WATER', wUse:'~1,350 L/day feed', stack:'ELECTROLYZER RACK \u00b7 \u00d715 MODULES',
+       h2:'90 kg', fc:'75 kWe', heat:'~55 kWth recovered', bldg:'COMMERCIAL SWITCHGEAR', bldgSub:'multi-tenant \u00b7 dispatchable CHP',
+       co2:'~9 kg CO2/day', meth:'~4.5 kg/day'}
+};
+document.querySelectorAll('#view-dg .src-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#view-dg .src-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = dgData[btn.dataset.scale];
+    document.getElementById('pvLabel').textContent=d.pv;
+    document.getElementById('wSrcLabel').textContent=d.wSrc;
+    document.getElementById('wUseLabel').textContent=d.wUse;
+    document.getElementById('stackLabel').textContent=d.stack;
+    document.getElementById('h2StoreLabel').textContent=d.h2;
+    document.getElementById('fcOut').textContent=d.fc;
+    document.getElementById('heatOut').textContent=d.heat;
+    document.getElementById('bldgLabel').textContent=d.bldg;
+    document.getElementById('bldgSub').textContent=d.bldgSub;
+    document.getElementById('co2CapLabel').textContent=d.co2;
+    document.getElementById('methLabel').textContent=d.meth;
+  });
+});
+
+/* ---- calculator ---- */
+const demandSlider=document.getElementById('demandSlider');
+const hoursSlider=document.getElementById('hoursSlider');
+const co2Slider=document.getElementById('co2Slider');
+const calcOut=document.getElementById('calcOut');
+let buildingType='res';
+document.querySelectorAll('.seg button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    buildingType=btn.dataset.type;
+    if(buildingType==='res'){ demandSlider.min=10; demandSlider.max=120; if(demandSlider.value>120) demandSlider.value=30; }
+    else { demandSlider.min=200; demandSlider.max=3000; if(demandSlider.value<200) demandSlider.value=800; }
+    runCalc();
+  });
+});
+
+function runCalc(){
+  const demand = +demandSlider.value;
+  const hours = +hoursSlider.value;
+  const co2Pct = +co2Slider.value;
+  document.getElementById('demandVal').textContent = demand+' kWh/day';
+  document.getElementById('hoursVal').textContent = hours+' h';
+  document.getElementById('co2Val').textContent = co2Pct+'% of H2';
+
+  // module assumptions
+  const kgH2PerModulePerDay = 4.8;
+  const kWhPerKgH2Electrical = 18; // fuel cell electrical output per kg H2
+  const literPerKgH2 = 18;
+  const footprintPerModule = 0.9*1.8; // m^2
+
+  const moduleDailyKWh = kgH2PerModulePerDay * kWhPerKgH2Electrical * (1-co2Pct/100);
+  const modulesNeeded = Math.max(1, Math.ceil(demand / moduleDailyKWh));
+  const totalH2Day = modulesNeeded * kgH2PerModulePerDay;
+  const h2ForPower = totalH2Day * (1-co2Pct/100);
+  const h2ForCO2 = totalH2Day * (co2Pct/100);
+  const storageKg = (totalH2Day/24) * hours;
+  const waterLday = totalH2Day * literPerKgH2;
+  const footprint = modulesNeeded * footprintPerModule;
+  const fcRatedKWe = modulesNeeded * 5;
+  // CO2 loop: 3 mol H2 per mol CH3OH; H2 molar mass 2, CH3OH 32, CO2 44
+  const molH2 = (h2ForCO2*1000)/2;
+  const molMeOH = molH2/3;
+  const kgMeOH = (molMeOH*32)/1000;
+  const kgCO2 = (molMeOH*44)/1000;
+
+  const cards = [
+    {label:'Stack Modules Needed', val:modulesNeeded, unit:'units', cls:'c-cyan'},
+    {label:'Total H2 Production', val:totalH2Day.toFixed(1), unit:'kg/day', cls:'c-cyan'},
+    {label:'H2 Storage Buffer', val:storageKg.toFixed(1), unit:'kg', cls:'c-cyan'},
+    {label:'Water Intake', val:waterLday.toFixed(0), unit:'L/day', cls:'c-amber'},
+    {label:'Footprint', val:footprint.toFixed(1), unit:'m\u00b2', cls:'c-amber'},
+    {label:'Fuel Cell Rating', val:fcRatedKWe.toFixed(0), unit:'kWe', cls:'c-green'},
+    {label:'CO2 Processed', val:kgCO2.toFixed(2), unit:'kg/day', cls:'c-violet'},
+    {label:'Methanol Yield', val:kgMeOH.toFixed(2), unit:'kg/day', cls:'c-violet'}
+  ];
+  calcOut.innerHTML = cards.map(c=>`<div class="ro"><div class="label">${c.label}</div><div class="val ${c.cls}">${c.val}<span>${c.unit}</span></div></div>`).join('');
+}
+[demandSlider,hoursSlider,co2Slider].forEach(el=>el.addEventListener('input',runCalc));
+runCalc();
+</script>
+</body>
+</html>

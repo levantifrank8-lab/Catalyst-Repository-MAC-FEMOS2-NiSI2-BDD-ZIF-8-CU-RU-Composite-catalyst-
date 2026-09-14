@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVANTI PROTOCOL — Catalyst Exchange</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#05070a; --bg1:#0a0f16; --panel:#0d131c; --panel2:#101927;
+    --line:#1b2635; --line-lit:#28405a;
+    --cyan:#00e5ff; --amber:#ffb300; --violet:#b388ff; --green:#00e676; --silver:#dfe8ef;
+    --red:#ff5470; --text:#c9d6e3; --textdim:#6d7f92;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg0);color:var(--text);font-family:'Rajdhani',sans-serif;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 15% -10%, rgba(0,229,255,0.06), transparent 60%),
+      radial-gradient(1000px 600px at 90% 0%, rgba(179,136,255,0.05), transparent 55%),
+      radial-gradient(1400px 900px at 50% 120%, rgba(0,230,118,0.04), transparent 60%),
+      var(--bg0);
+    min-height:100vh;
+  }
+  #particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;}
+  .app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:14px 16px 60px;}
+
+  h1,h2,h3,.mono,.num{font-family:'Space Mono',monospace;}
+  .h-font{font-family:'Orbitron',sans-serif;}
+
+  /* ===== HEADER ===== */
+  header{
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;
+    padding:14px 18px;border:1px solid var(--line);border-radius:10px;
+    background:linear-gradient(180deg, rgba(16,25,39,.9), rgba(10,15,22,.9));
+    box-shadow: 0 0 40px rgba(0,229,255,0.03) inset;
+    margin-bottom:12px;
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand .title{font-family:'Orbitron';font-weight:900;font-size:1.35rem;letter-spacing:.5px;color:var(--silver);}
+  .brand .title span{color:var(--cyan);}
+  .brand .subtitle{font-size:.72rem;color:var(--textdim);letter-spacing:.4px;}
+  .headstats{display:flex;gap:22px;flex-wrap:wrap;}
+  .hstat{display:flex;flex-direction:column;align-items:flex-end;min-width:90px;}
+  .hstat .lbl{font-size:.62rem;color:var(--textdim);letter-spacing:.6px;}
+  .hstat .val{font-family:'Space Mono';font-size:1.02rem;font-weight:700;color:var(--silver);}
+  .up{color:var(--green);} .down{color:var(--red);}
+  .speedbar{display:flex;gap:6px;align-items:center;}
+  .speedbtn{background:var(--panel2);border:1px solid var(--line);color:var(--textdim);
+    padding:6px 10px;border-radius:6px;font-family:'Space Mono';font-size:.75rem;cursor:pointer;transition:.15s;}
+  .speedbtn.active{color:var(--bg0);background:var(--cyan);border-color:var(--cyan);font-weight:700;}
+  .speedbtn:hover{border-color:var(--line-lit);}
+
+  /* ===== TABS ===== */
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .tab{
+    padding:9px 16px;border-radius:8px 8px 0 0;background:var(--panel);border:1px solid var(--line);
+    border-bottom:none;color:var(--textdim);font-family:'Orbitron';font-size:.68rem;letter-spacing:1px;
+    cursor:pointer;transition:.15s;
+  }
+  .tab.active{color:var(--cyan);background:var(--panel2);box-shadow:0 -2px 0 var(--cyan) inset;}
+  .tab:hover{color:var(--silver);}
+
+  .view{display:none;animation:fadein .35s ease;}
+  .view.active{display:block;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .grid{display:grid;gap:12px;}
+  .g2{grid-template-columns:1.15fr .85fr;}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:920px){.g2,.g3{grid-template-columns:1fr;}}
+
+  .panel{
+    background:linear-gradient(180deg, rgba(16,25,39,.65), rgba(9,13,19,.75));
+    border:1px solid var(--line);border-radius:10px;padding:16px;
+  }
+  .panel h3{margin:0 0 12px;font-size:.82rem;letter-spacing:1.2px;color:var(--silver);
+    display:flex;align-items:center;gap:8px;text-transform:uppercase;font-family:'Orbitron';}
+  .panel h3 .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+  .subtle{color:var(--textdim);font-size:.78rem;line-height:1.5;}
+
+  /* ===== REACTOR VISUAL ===== */
+  .reactor-wrap{display:flex;align-items:center;justify-content:center;position:relative;padding:10px 0;}
+  #reactorSvg{width:100%;max-width:520px;height:auto;}
+  .node-label{font-family:'Space Mono';font-size:9px;fill:var(--textdim);}
+  .node-val{font-family:'Space Mono';font-size:10px;font-weight:700;}
+
+  .sliderRow{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .sliderRow label{font-size:.75rem;color:var(--textdim);display:flex;justify-content:space-between;}
+  .sliderRow label b{color:var(--silver);font-family:'Space Mono';}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--line);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 8px var(--cyan);cursor:pointer;}
+
+  .envtabs{display:flex;gap:8px;margin-bottom:14px;}
+  .envbtn{flex:1;text-align:center;padding:9px 4px;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--textdim);font-size:.72rem;cursor:pointer;transition:.15s;font-family:'Orbitron';letter-spacing:.4px;}
+  .envbtn.active{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.15) inset;}
+  .envbtn.locked{opacity:.4;cursor:not-allowed;}
+
+  .metricRow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;}
+  .metric .m-lbl{font-size:.62rem;color:var(--textdim);letter-spacing:.5px;text-transform:uppercase;}
+  .metric .m-val{font-family:'Space Mono';font-size:1.05rem;font-weight:700;margin-top:3px;}
+  .metric .m-sub{font-size:.6rem;color:var(--textdim);margin-top:2px;}
+
+  .barTrack{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px;}
+  .barFill{height:100%;border-radius:4px;transition:width .4s ease;}
+
+  /* ===== MARKET ===== */
+  .tickerWrap{overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--panel2);
+    padding:8px 0;margin-bottom:14px;white-space:nowrap;}
+  .tickerTrack{display:inline-block;animation:scroll 32s linear infinite;font-family:'Space Mono';font-size:.78rem;}
+  .tickerTrack span{margin:0 26px;color:var(--textdim);}
+  .tickerTrack b{color:var(--silver);}
+  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+  .priceCard{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;}
+  .priceCard .pname{font-size:.72rem;color:var(--textdim);text-transform:uppercase;letter-spacing:.5px;}
+  .priceCard .pval{font-family:'Space Mono';font-size:1.3rem;font-weight:700;color:var(--silver);margin:3px 0;}
+  .priceCard canvas{width:100%;height:44px;display:block;}
+
+  canvas#stockCanvas, canvas#sectorCanvas2{width:100%;height:220px;display:block;}
+
+  table.ledger{width:100%;border-collapse:collapse;font-size:.78rem;}
+  table.ledger th{text-align:left;color:var(--textdim);font-weight:500;padding:6px 4px;border-bottom:1px solid var(--line);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;}
+  table.ledger td{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.03);font-family:'Space Mono';}
+
+  /* ===== CATALYST LAB / UPGRADES ===== */
+  .compCard{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel2);position:relative;overflow:hidden;}
+  .compCard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+  .compHead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .compHead .cname{font-family:'Orbitron';font-size:.85rem;color:var(--silver);}
+  .compHead .crole{font-size:.68rem;color:var(--textdim);}
+  .lvlDots{display:flex;gap:4px;margin:8px 0;}
+  .lvlDot{width:16px;height:6px;border-radius:3px;background:var(--line);}
+  .lvlDot.filled{background:currentColor;}
+  .compStats{font-size:.7rem;color:var(--textdim);line-height:1.6;margin-bottom:10px;}
+  .upBtn{width:100%;padding:9px;border-radius:7px;border:1px solid var(--line-lit);background:transparent;
+    color:var(--silver);font-family:'Space Mono';font-size:.76rem;cursor:pointer;transition:.15s;}
+  .upBtn:hover:not(:disabled){background:rgba(255,255,255,.05);}
+  .upBtn:disabled{opacity:.35;cursor:not-allowed;}
+  .stabilityBar{margin-top:8px;}
+  .refurbBtn{margin-top:6px;width:100%;padding:7px;border-radius:6px;border:1px dashed var(--red);
+    background:transparent;color:var(--red);font-size:.68rem;font-family:'Space Mono';cursor:pointer;}
+  .refurbBtn:disabled{opacity:.3;cursor:not-allowed;border-color:var(--line);color:var(--textdim);}
+
+  /* ===== DEPLOYMENT ===== */
+  .siteCard{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel2);}
+  .siteCard.locked{opacity:.45;}
+  .siteCard .sTitle{font-family:'Orbitron';font-size:.8rem;color:var(--silver);margin-bottom:4px;}
+  .siteCard .sDesc{font-size:.72rem;color:var(--textdim);line-height:1.5;margin-bottom:8px;}
+  .progWrap{margin-top:6px;}
+  .progLbl{display:flex;justify-content:space-between;font-size:.65rem;color:var(--textdim);margin-bottom:3px;}
+  .badge{display:inline-block;font-size:.62rem;padding:2px 8px;border-radius:20px;font-family:'Space Mono';}
+  .badge.on{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.3);}
+  .badge.off{background:rgba(255,255,255,.03);color:var(--textdim);border:1px solid var(--line);}
+
+  /* ===== IMPACT ===== */
+  .sdgCard{border:1px solid var(--line);border-radius:10px;padding:16px;background:var(--panel2);}
+  .sdgCard .sdgNum{font-family:'Orbitron';font-size:1.6rem;font-weight:900;}
+  .sdgCard .sdgName{font-size:.72rem;color:var(--textdim);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;}
+  .achieveList{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .ach{padding:9px 12px;border-radius:8px;border:1px solid var(--line);font-size:.75rem;display:flex;justify-content:space-between;}
+  .ach.done{border-color:rgba(0,230,118,.35);background:rgba(0,230,118,.05);color:var(--green);}
+  .ach.locked{color:var(--textdim);}
+
+  /* toast */
+  #toastWrap{position:fixed;top:16px;right:16px;z-index:50;display:flex;flex-direction:column;gap:8px;max-width:320px;}
+  .toast{background:var(--panel2);border:1px solid var(--line-lit);border-left:3px solid var(--cyan);
+    border-radius:8px;padding:10px 14px;font-size:.76rem;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:slidein .3s ease;}
+  .toast.warn{border-left-color:var(--red);}
+  .toast.gain{border-left-color:var(--green);}
+  @keyframes slidein{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+  .toast .tt{font-family:'Orbitron';font-size:.65rem;color:var(--textdim);letter-spacing:.4px;margin-bottom:2px;}
+
+  footer{margin-top:22px;text-align:center;font-size:.66rem;color:var(--textdim);line-height:1.6;}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="toastWrap"></div>
+
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="title">LEVANTI <span>PROTOCOL</span></div>
+      <div class="subtitle">MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru CATALYST EXCHANGE — coastal aqueous refinery ops</div>
+    </div>
+    <div class="headstats">
+      <div class="hstat"><span class="lbl">REACTOR HOURS</span><span class="val" id="hrHours">0h</span></div>
+      <div class="hstat"><span class="lbl">CASH</span><span class="val" id="hrCash">$50,000</span></div>
+      <div class="hstat"><span class="lbl">LVTI (NASDAQ)</span><span class="val" id="hrStock">$10.00</span></div>
+      <div class="hstat"><span class="lbl">SECTOR (HYDR-X)</span><span class="val" id="hrSector">100.0</span></div>
+    </div>
+    <div class="speedbar">
+      <button class="speedbtn" data-speed="0">II Pause</button>
+      <button class="speedbtn active" data-speed="1">1×</button>
+      <button class="speedbtn" data-speed="4">4×</button>
+      <button class="speedbtn" data-speed="12">12×</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-view="reactor">01 · REACTOR CORE</div>
+    <div class="tab" data-view="market">02 · MARKET EXCHANGE</div>
+    <div class="tab" data-view="lab">03 · CATALYST LAB</div>
+    <div class="tab" data-view="deploy">04 · DEPLOYMENT NETWORK</div>
+    <div class="tab" data-view="impact">05 · IMPACT LEDGER</div>
+  </div>
+
+  <!-- ============ VIEW 1: REACTOR ============ -->
+  <div class="view active" id="view-reactor">
+    <div class="grid g2">
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--cyan)"></span>MAIN REACTOR — LIVE PROCESS</h3>
+        <div class="envtabs" id="envTabs">
+          <div class="envbtn active" data-env="fresh">FRESHWATER</div>
+          <div class="envbtn" data-env="sea">SEAWATER</div>
+          <div class="envbtn" data-env="atmo">ATMOSPHERIC MOISTURE</div>
+        </div>
+        <div class="reactor-wrap"><svg id="reactorSvg" viewBox="0 0 520 400"></svg></div>
+        <div class="sliderRow">
+          <label>Cell Voltage / Current Density <b id="voltVal">1.80 V</b></label>
+          <input type="range" id="voltSlider" min="1.2" max="2.6" step="0.05" value="1.8">
+        </div>
+        <div class="metricRow" id="metricRow"></div>
+      </div>
+
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--amber)"></span>REACTOR STATUS</h3>
+        <div class="subtle" style="margin-bottom:10px">Thesis benchmark: <b style="color:var(--silver)">&gt;1000 hours</b> continuous operation with minimal degradation confirms industrial stability. Track combined catalyst health below — unmaintained active-site poisoning and corrosion will erode output.</div>
+        <div id="stabilityList"></div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="subtle">Cumulative output</div>
+          <div class="metricRow" style="grid-template-columns:repeat(2,1fr)" id="cumRow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 2: MARKET ============ -->
+  <div class="view" id="view-market">
+    <div class="tickerWrap"><div class="tickerTrack" id="tickerTrack"></div></div>
+    <div class="grid g3" id="priceCards"></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--cyan)"></span>LVTI SHARE PRICE</h3>
+        <canvas id="stockCanvas"></canvas>
+        <div class="subtle" style="margin-top:6px">Blend of realized revenue, uptime toward the 1000-hour benchmark, and 60% correlation to the fuel-cell/electrolyzer sector index.</div>
+      </div>
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--violet)"></span>REVENUE LEDGER</h3>
+        <table class="ledger"><thead><tr><th>Hour</th><th>Event</th><th>Δ Cash</th></tr></thead><tbody id="ledgerBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 3: CATALYST LAB ============ -->
+  <div class="view" id="view-lab">
+    <div class="panel" style="margin-bottom:12px">
+      <h3><span class="dot" style="background:var(--green)"></span>SIX-COMPONENT ARCHITECTURE</h3>
+      <div class="subtle">Each functional layer of the composite can be upgraded independently. Upgrades raise output and slow degradation; BDD upgrades specifically buy down corrosion loss in seawater mode, and ZIF-8 upgrades unlock atmospheric-moisture capture.</div>
+    </div>
+    <div class="grid g3" id="labGrid"></div>
+  </div>
+
+  <!-- ============ VIEW 4: DEPLOYMENT ============ -->
+  <div class="view" id="view-deploy">
+    <div class="panel" style="margin-bottom:12px">
+      <h3><span class="dot" style="background:var(--amber)"></span>OUTPUT DEPLOYMENT NETWORK</h3>
+      <div class="subtle">Cumulative production unlocks downstream sites for each output stream — matching the refinery's four real-world offtake points. Unlocked sites add a standing revenue premium on top of spot market sales.</div>
+    </div>
+    <div class="grid g2" id="deployGrid"></div>
+  </div>
+
+  <!-- ============ VIEW 5: IMPACT ============ -->
+  <div class="view" id="view-impact">
+    <div class="grid g3" id="sdgGrid" style="margin-bottom:12px"></div>
+    <div class="panel">
+      <h3><span class="dot" style="background:var(--violet)"></span>MILESTONES</h3>
+      <div class="achieveList" id="achList"></div>
+    </div>
+  </div>
+
+  <footer>
+    LEVANTI PROTOCOL is a simulation game inspired by Frank Levanti's MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru thesis.<br>
+    Starting market baselines (green H₂ ≈ $2.50–$12/kg, EU ETS ≈ €84–93/t, voluntary carbon credits ≈ $4–500/t depending on quality tier, and 2026 fuel-cell/electrolyzer sector momentum) are drawn from public 2026 market reporting and then driven by an in-game random walk — not live financial data. Nothing here is investment advice.
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   LEVANTI PROTOCOL — game state & simulation
+============================================================ */
+const state = {
+  hour: 0, speed: 1, cash: 50000, voltage: 1.8, env: 'fresh',
+  shares: 1_000_000, stock: 10.00, sector: 100.0,
+  stockHist: [10], sectorHist: [100],
+  totalH2:0, totalO2:0, totalCO2:0, totalHC:0,
+  revenue7d: 0, revenueTick: 0,
+  reputation: 0, // ESG premium multiplier driver
+  cycles: 0, // refurb cycles
+  achievements: {},
+  sites: { fuel:false, aqua:false, gen:false, water:false },
+  prices: { h2: 6.20, o2: 0.11, carbonAvoid: 14, carbonDAC: 310, methanol: 640 },
+  priceHist: { h2:[6.20], o2:[0.11], carbonAvoid:[14], carbonDAC:[310], methanol:[640] },
+  ledger: [],
+};
+
+const components = {
+  macfemos2: { name:'MAC-FeMoS₂', role:'HER Engine', color:'var(--cyan)', hex:'#00e5ff', level:1, max:5, base:800, mult:1.9, degrade:0, stat:'HER output' },
+  nise2:     { name:'NiSe₂', role:'OER Generator', color:'var(--amber)', hex:'#ffb300', level:1, max:5, base:800, mult:1.9, degrade:0, stat:'OER output' },
+  bdd:       { name:'BDD', role:'Foundation & Wire', color:'var(--silver)', hex:'#e8eef2', level:1, max:5, base:1000, mult:2.0, degrade:0, stat:'Corrosion resistance / stability' },
+  zif8:      { name:'ZIF-8', role:'CO₂ Manager', color:'var(--green)', hex:'#00e676', level:1, max:5, base:700, mult:1.85, degrade:0, stat:'CO₂ capture rate' },
+  cu:        { name:'Cu', role:'C–C Coupler', color:'#ff8a50', hex:'#ff8a50', level:1, max:5, base:900, mult:1.9, degrade:0, stat:'CO₂ reduction initiation' },
+  ru:        { name:'Ru', role:'Hydrogenation Finisher', color:'var(--violet)', hex:'#b388ff', level:1, max:5, base:900, mult:1.9, degrade:0, stat:'Hydrocarbon selectivity' },
+};
+
+const envFactors = {
+  fresh: { her:1.00, oer:1.00, cap:0.90, label:'Freshwater', req:null },
+  sea:   { her:0.85, oer:0.80, cap:1.00, label:'Seawater', req:{c:'bdd', lvl:2, msg:'Requires BDD level 2 to suppress chlorine evolution & corrosion'} },
+  atmo:  { her:0.55, oer:0.55, cap:1.35, label:'Atmospheric Moisture', req:{c:'zif8', lvl:3, msg:'Requires ZIF-8 level 3 for direct-air pre-concentration'} },
+};
+
+const events = [
+  {msg:'DOE reaffirms its Hydrogen Shot cost target — sector sentiment firms', sector:+3, h2:+0.03},
+  {msg:'EU CBAM definitive regime tightens import scrutiny — durable carbon credits bid up', carbonDAC:+0.12},
+  {msg:'10-year Treasury yields spike, pressuring long-duration clean-energy names', sector:-6},
+  {msg:'Electrolyzer CAPEX falls another notch as Chinese alkaline stacks scale', upgradeDiscount:0.08},
+  {msg:'Iridium supply constraints raise PEM component costs sector-wide', upgradeDiscount:-0.12},
+  {msg:'AI data-center power demand lifts fuel-cell and distributed-generation names', sector:+8},
+  {msg:'A large green-ammonia offtake facility begins commissioning, adding H₂ price volatility', h2vol:true},
+  {msg:'Voluntary carbon market bifurcates further — low-quality avoidance credits get repriced down', carbonAvoid:-0.15},
+  {msg:'A fuel-cell peer posts a short-covering rally, dragging the whole sector index higher', sector:+5},
+  {msg:'Rising natural-gas prices make grey hydrogen less competitive, lifting green H₂ demand', h2:+0.05},
+];
+
+/* ---------- helpers ---------- */
+function fmt(n, d=0){ return n.toLocaleString(undefined,{minimumFractionDigits:d, maximumFractionDigits:d}); }
+function money(n){ return (n<0?'-$':'$') + fmt(Math.abs(n),0); }
+function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+function rand(a,b){ return a + Math.random()*(b-a); }
+function toast(title, msg, type=''){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<div class="tt">${title}</div>${msg}`;
+  wrap.prepend(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(()=>el.remove(),500); }, 6000);
+  while(wrap.children.length>4) wrap.removeChild(wrap.lastChild);
+}
+
+/* ---------- reactor svg ---------- */
+function buildReactorSvg(){
+  const svg = document.getElementById('reactorSvg');
+  const positions = [
+    {id:'macfemos2', x:80,  y:110, lbl:'MAC-FeMoS₂ · HER'},
+    {id:'nise2',     x:440, y:110, lbl:'NiSe₂ · OER'},
+    {id:'bdd',       x:260, y:60,  lbl:'BDD · Wire'},
+    {id:'zif8',      x:80,  y:300, lbl:'ZIF-8 · CO₂'},
+    {id:'cu',        x:440, y:300, lbl:'Cu · C–C'},
+    {id:'ru',        x:260, y:355, lbl:'Ru · H₂ finish'},
+  ];
+  let html = '';
+  // connecting lines to center
+  positions.forEach(p=>{
+    html += `<line x1="${p.x}" y1="${p.y}" x2="260" y2="205" stroke="${components[p.id].hex}" stroke-width="1.4" opacity="0.35" class="conn-${p.id}"/>`;
+  });
+  // central cube (simple isometric-ish square)
+  html += `<g>
+    <rect x="205" y="150" width="110" height="110" fill="none" stroke="#3a4a5c" stroke-width="1.5"/>
+    <rect x="222" y="133" width="110" height="110" fill="none" stroke="#3a4a5c" stroke-width="1"/>
+    <line x1="205" y1="150" x2="222" y2="133" stroke="#3a4a5c" stroke-width="1"/>
+    <line x1="315" y1="150" x2="332" y2="133" stroke="#3a4a5c" stroke-width="1"/>
+    <line x1="205" y1="260" x2="222" y2="243" stroke="#3a4a5c" stroke-width="1"/>
+    <line x1="315" y1="260" x2="332" y2="243" stroke="#3a4a5c" stroke-width="1"/>
+    <circle id="coreGlow" cx="260" cy="205" r="34" fill="url(#coreGrad)"/>
+  </g>
+  <defs>
+    <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="45%" stop-color="#00e5ff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>`;
+  positions.forEach(p=>{
+    const c = components[p.id];
+    html += `<g class="node-${p.id}">
+      <circle cx="${p.x}" cy="${p.y}" r="26" fill="#0d131c" stroke="${c.hex}" stroke-width="2"/>
+      <circle cx="${p.x}" cy="${p.y}" r="26" fill="${c.hex}" opacity="0.12"/>
+      <text x="${p.x}" y="${p.y-2}" text-anchor="middle" class="node-val" fill="${c.hex}">Lv${c.level}</text>
+      <text x="${p.x}" y="${p.y+10}" text-anchor="middle" class="node-val" fill="#6d7f92" font-size="8">${(c.degrade*100).toFixed(0)}%</text>
+      <text x="${p.x}" y="${p.y+44}" text-anchor="middle" class="node-label">${p.lbl}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+}
+function updateReactorSvg(){
+  Object.keys(components).forEach(id=>{
+    const c = components[id];
+    const g = document.querySelector(`.node-${id}`);
+    if(!g) return;
+    g.querySelectorAll('.node-val')[0].textContent = 'Lv'+c.level;
+    g.querySelectorAll('.node-val')[1].textContent = (c.degrade*100).toFixed(0)+'%';
+    g.querySelectorAll('.node-val')[1].setAttribute('fill', c.degrade>0.6?'#ff5470':'#6d7f92');
+  });
+  const glow = document.getElementById('coreGlow');
+  if(glow){ const pulse = 30 + Math.sin(Date.now()/400)*4; glow.setAttribute('r', pulse); }
+}
+
+/* ---------- simulation tick ---------- */
+function computeOutputs(){
+  const env = envFactors[state.env];
+  const vFactor = clamp((state.voltage-1.2)/(2.6-1.2), 0.15, 1) * 1.15; // voltage efficiency curve
+  const overV = state.voltage > 2.3 ? (1 - (state.voltage-2.3)*0.4) : 1; // too much voltage -> parasitic loss
+
+  const her = components.macfemos2.level * (1-components.macfemos2.degrade) * 0.9 * env.her * vFactor * overV;
+  const oer = components.nise2.level * (1-components.nise2.degrade) * 0.85 * env.oer * vFactor * overV;
+  const capRate = components.zif8.level * (1-components.zif8.degrade) * 1.0 * env.cap;
+  const convCapacity = Math.min(capRate, components.cu.level*(1-components.cu.degrade)*components.ru.level*(1-components.ru.degrade)*0.42);
+  const hydrocarbons = convCapacity * 0.82;
+
+  return { h2: Math.max(0,her), o2: Math.max(0,oer), co2: Math.max(0,capRate), hc: Math.max(0,hydrocarbons) };
+}
+
+function degradeComponents(hoursAdvanced){
+  const bddFactor = 1 / (1 + components.bdd.level*0.35); // higher BDD = slower degradation
+  Object.values(components).forEach(c=>{
+    const rate = 0.00028 * bddFactor; // per hour baseline
+    c.degrade = clamp(c.degrade + rate*hoursAdvanced, 0, 0.9);
+  });
+}
+
+function walkPrice(key, lo, hi, vol=0.02){
+  const p = state.prices[key];
+  let np = p * (1 + rand(-vol,vol)) + rand(-1,1)*(hi-lo)*0.002;
+  np = clamp(np, lo, hi);
+  state.prices[key] = np;
+  state.priceHist[key].push(np);
+  if(state.priceHist[key].length>60) state.priceHist[key].shift();
+}
+
+function tickMarket(){
+  walkPrice('h2', 2.5, 12, 0.018);
+  walkPrice('o2', 0.06, 0.20, 0.02);
+  walkPrice('carbonAvoid', 4, 30, 0.03);
+  walkPrice('carbonDAC', 150, 520, 0.025);
+  walkPrice('methanol', 420, 900, 0.02);
+
+  // sector index random walk w/ occasional events
+  let sectorDrift = rand(-1.2,1.4);
+  state.sector = clamp(state.sector + sectorDrift, 30, 400);
+  if(Math.random() < 0.05){
+    const ev = events[Math.floor(Math.random()*events.length)];
+    if(ev.sector) state.sector = clamp(state.sector + ev.sector, 30, 400);
+    if(ev.h2) state.prices.h2 = clamp(state.prices.h2*(1+ev.h2), 2.5, 12);
+    if(ev.carbonDAC) state.prices.carbonDAC = clamp(state.prices.carbonDAC*(1+ev.carbonDAC), 150, 520);
+    if(ev.carbonAvoid) state.prices.carbonAvoid = clamp(state.prices.carbonAvoid*(1+ev.carbonAvoid), 4, 30);
+    toast('MARKET WIRE', ev.msg, ev.sector<0?'warn':'gain');
+  }
+  state.sectorHist.push(state.sector);
+  if(state.sectorHist.length>80) state.sectorHist.shift();
+}
+
+function tickStock(hoursAdvanced){
+  const revenueSignal = clamp(state.revenueTick/400, -1, 2);
+  const uptimeSignal = clamp(state.hour/1000, 0, 1) * 0.4;
+  const repSignal = state.reputation * 0.3;
+  const sectorReturn = (state.sectorHist.length>1) ? (state.sector/state.sectorHist[state.sectorHist.length-2]-1) : 0;
+  const beta = 0.6;
+  const idiosyncratic = (revenueSignal*0.015 + uptimeSignal*0.01 + repSignal*0.01) + rand(-0.01,0.01);
+  const ret = beta*sectorReturn + (1-beta)*idiosyncratic;
+  state.stock = clamp(state.stock * (1+ret), 0.5, 5000);
+  state.stockHist.push(state.stock);
+  if(state.stockHist.length>80) state.stockHist.shift();
+  state.revenueTick *= 0.7; // decay signal
+}
+
+function addLedger(evtName, delta){
+  state.ledger.unshift({hour: Math.floor(state.hour), name: evtName, delta});
+  if(state.ledger.length>40) state.ledger.pop();
+}
+
+function sellOutputs(out, hoursAdvanced){
+  const h2kg = out.h2 * hoursAdvanced * 8; // scale factor kg/hr equivalent
+  const o2kg = out.o2 * hoursAdvanced * 9;
+  const co2kg = out.co2 * hoursAdvanced * 10;
+  const hckg = out.hc * hoursAdvanced * 6;
+
+  state.totalH2 += h2kg; state.totalO2 += o2kg; state.totalCO2 += co2kg; state.totalHC += hckg;
+
+  const siteBonusH2 = state.sites.fuel ? 1.15 : 1;
+  const siteBonusO2 = state.sites.aqua ? 1.20 : 1;
+  const siteBonusHC = state.sites.gen ? 1.18 : 1;
+
+  const carbonRate = (state.prices.carbonAvoid*0.4 + state.prices.carbonDAC*0.6)/1000; // $/kg blended
+  const revH2 = h2kg/1000 * state.prices.h2 * 1000 * siteBonusH2 / 1000; // kg*($/kg)
+  // simplify: price per kg already, h2kg is in kg
+  const rH2 = h2kg * state.prices.h2 * siteBonusH2;
+  const rO2 = o2kg * state.prices.o2 * siteBonusO2;
+  const rCO2 = co2kg * carbonRate;
+  const rHC = (hckg/1000) * state.prices.methanol * siteBonusHC;
+
+  const opCost = (state.voltage*state.voltage) * hoursAdvanced * 3.2; // electricity opex
+
+  const revenue = rH2 + rO2 + rCO2 + rHC - opCost;
+  state.cash += revenue;
+  state.revenueTick += revenue;
+  if(Math.abs(revenue) > 5){
+    addLedger(`H₂/O₂/CO₂ sales @ ${envFactors[state.env].label}`, revenue);
+  }
+  checkSiteUnlocks();
+}
+
+function checkSiteUnlocks(){
+  if(!state.sites.fuel && state.totalH2 > 3000){ state.sites.fuel = true; state.reputation+=1; toast('SITE ONLINE','Local Coastal Vessel Hydrogen Fueling Station connected','gain'); }
+  if(!state.sites.aqua && state.totalO2 > 3500){ state.sites.aqua = true; state.reputation+=1; toast('SITE ONLINE','Aqua-farm Aeration System connected','gain'); }
+  if(!state.sites.gen && state.totalHC > 800){ state.sites.gen = true; state.reputation+=1; toast('SITE ONLINE','Sustainable Community Generator Fuel loop connected','gain'); }
+  if(!state.sites.water && state.totalCO2 > 4000){ state.sites.water = true; state.reputation+=1; toast('SITE ONLINE','Desalinated Process Water community tap opened','gain'); }
+}
+
+function checkAchievements(){
+  const a = state.achievements;
+  if(!a.h1000 && state.hour >= 1000){
+    a.h1000 = true; state.reputation += 3; state.stock *= 1.1;
+    toast('MILESTONE','1,000-hour continuous operation reached — techno-economic validation achieved. Stock re-rated.','gain');
+  }
+  if(!a.million && state.cash >= 1_000_000){
+    a.million = true; toast('MILESTONE','Treasury crosses $1,000,000','gain');
+  }
+  if(!a.tonCO2 && state.totalCO2 >= 10000){
+    a.tonCO2 = true; state.reputation += 2;
+    toast('MILESTONE','10 metric tons of CO₂ captured and routed to valorization','gain');
+  }
+  if(!a.fullLab && Object.values(components).every(c=>c.level>=3)){
+    a.fullLab = true; toast('MILESTONE','All six catalyst components reach level 3','gain');
+  }
+}
+
+/* ---------- main loop ---------- */
+let lastTime = performance.now();
+function loop(now){
+  const dt = now - lastTime;
+  if(dt > 900 && state.speed>0){
+    lastTime = now;
+    const hoursAdvanced = state.speed;
+    state.hour += hoursAdvanced;
+    degradeComponents(hoursAdvanced);
+    const out = computeOutputs();
+    sellOutputs(out, hoursAdvanced);
+    tickMarket();
+    tickStock(hoursAdvanced);
+    checkAchievements();
+    renderAll();
+  } else if(state.speed===0){
+    lastTime = now;
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- rendering ---------- */
+function renderHeader(){
+  document.getElementById('hrHours').textContent = fmt(state.hour)+'h';
+  document.getElementById('hrCash').textContent = money(state.cash);
+  const stockEl = document.getElementById('hrStock');
+  stockEl.textContent = '$'+state.stock.toFixed(2);
+  const prevStock = state.stockHist.length>1?state.stockHist[state.stockHist.length-2]:state.stock;
+  stockEl.className = 'val ' + (state.stock>=prevStock?'up':'down');
+  const secEl = document.getElementById('hrSector');
+  secEl.textContent = state.sector.toFixed(1);
+  const prevSec = state.sectorHist.length>1?state.sectorHist[state.sectorHist.length-2]:state.sector;
+  secEl.className = 'val ' + (state.sector>=prevSec?'up':'down');
+}
+
+function renderReactorView(){
+  updateReactorSvg();
+  document.getElementById('voltVal').textContent = state.voltage.toFixed(2)+' V';
+  const out = computeOutputs();
+  const metricRow = document.getElementById('metricRow');
+  const items = [
+    {lbl:'H₂ output', val: (out.h2*8).toFixed(2)+' kg/hr', color:'var(--cyan)'},
+    {lbl:'O₂ output', val: (out.o2*9).toFixed(2)+' kg/hr', color:'var(--amber)'},
+    {lbl:'CO₂ captured', val: (out.co2*10).toFixed(2)+' kg/hr', color:'var(--green)'},
+    {lbl:'Hydrocarbons', val: (out.hc*6).toFixed(2)+' kg/hr', color:'var(--violet)'},
+  ];
+  metricRow.innerHTML = items.map(i=>`<div class="metric"><div class="m-lbl">${i.lbl}</div><div class="m-val" style="color:${i.color}">${i.val}</div></div>`).join('');
+
+  const stabList = document.getElementById('stabilityList');
+  stabList.innerHTML = Object.entries(components).map(([id,c])=>{
+    const health = (1-c.degrade)*100;
+    const col = health>60?'var(--green)':health>30?'var(--amber)':'var(--red)';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:.74rem;">
+        <span style="color:var(--silver)">${c.name}</span><span class="mono" style="color:${col}">${health.toFixed(0)}%</span>
+      </div>
+      <div class="barTrack"><div class="barFill" style="width:${health}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+
+  const cumRow = document.getElementById('cumRow');
+  cumRow.innerHTML = `
+    <div class="metric"><div class="m-lbl">Total H₂ produced</div><div class="m-val" style="color:var(--cyan)">${fmt(state.totalH2)} kg</div></div>
+    <div class="metric"><div class="m-lbl">Total CO₂ captured</div><div class="m-val" style="color:var(--green)">${fmt(state.totalCO2)} kg</div></div>
+    <div class="metric"><div class="m-lbl">Total O₂ produced</div><div class="m-val" style="color:var(--amber)">${fmt(state.totalO2)} kg</div></div>
+    <div class="metric"><div class="m-lbl">Total hydrocarbons</div><div class="m-val" style="color:var(--violet)">${fmt(state.totalHC)} kg</div></div>
+  `;
+}
+
+function drawSpark(canvasId, data, color){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth * 2;
+  const h = canvas.height = canvas.clientHeight * 2;
+  ctx.clearRect(0,0,w,h);
+  if(data.length<2) return;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = (max-min)||1;
+  ctx.beginPath();
+  data.forEach((v,i)=>{
+    const x = (i/(data.length-1))*w;
+    const y = h - ((v-min)/range)*h*0.85 - h*0.075;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineJoin='round'; ctx.stroke();
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0, color+'55'); grad.addColorStop(1, color+'00');
+  ctx.fillStyle = grad; ctx.fill();
+}
+
+function renderMarketView(){
+  document.getElementById('tickerTrack').innerHTML = tickerHTML();
+  const cardsDef = [
+    {key:'h2', name:'Green Hydrogen (H₂)', unit:'/kg', color:'#00e5ff'},
+    {key:'o2', name:'Industrial Oxygen (O₂)', unit:'/kg', color:'#ffb300'},
+    {key:'carbonAvoid', name:'Carbon Credits — Avoidance', unit:'/t', color:'#00e676'},
+    {key:'carbonDAC', name:'Carbon Credits — DAC/Tech Removal', unit:'/t', color:'#b388ff'},
+    {key:'methanol', name:'Methanol / Hydrocarbons', unit:'/t', color:'#ff8a50'},
+  ];
+  const grid = document.getElementById('priceCards');
+  grid.innerHTML = cardsDef.map(c=>`
+    <div class="priceCard">
+      <div class="pname">${c.name}</div>
+      <div class="pval" style="color:${c.color}">$${state.prices[c.key].toFixed(2)}<span style="font-size:.6rem;color:var(--textdim)">${c.unit}</span></div>
+      <canvas id="spark-${c.key}"></canvas>
+    </div>`).join('');
+  cardsDef.forEach(c=> drawSpark('spark-'+c.key, state.priceHist[c.key], c.color));
+  drawSpark('stockCanvas', state.stockHist, '#00e5ff');
+
+  const ledgerBody = document.getElementById('ledgerBody');
+  ledgerBody.innerHTML = state.ledger.slice(0,12).map(l=>`
+    <tr><td>${l.hour}h</td><td style="font-family:'Rajdhani'">${l.name}</td>
+    <td style="color:${l.delta>=0?'var(--green)':'var(--red)'}">${l.delta>=0?'+':''}${money(l.delta)}</td></tr>`).join('');
+}
+
+function tickerHTML(){
+  const parts = [
+    `H₂ <b>$${state.prices.h2.toFixed(2)}/kg</b>`,
+    `O₂ <b>$${state.prices.o2.toFixed(2)}/kg</b>`,
+    `Carbon (avoidance) <b>$${state.prices.carbonAvoid.toFixed(0)}/t</b>`,
+    `Carbon (DAC-tier) <b>$${state.prices.carbonDAC.toFixed(0)}/t</b>`,
+    `Methanol <b>$${state.prices.methanol.toFixed(0)}/t</b>`,
+    `LVTI <b>$${state.stock.toFixed(2)}</b>`,
+    `Sector index <b>${state.sector.toFixed(1)}</b>`,
+    `Reactor uptime <b>${fmt(state.hour)}h / 1000h benchmark</b>`,
+  ];
+  const line = parts.map(p=>`<span>${p}</span>`).join('');
+  return line + line; // duplicate for seamless scroll
+}
+
+function upgradeCost(c){ return Math.round(c.base * Math.pow(c.mult, c.level-1)); }
+function refurbCost(c){ return Math.round(c.base * 0.5 * (c.level)); }
+
+function renderLabView(){
+  const grid = document.getElementById('labGrid');
+  grid.innerHTML = Object.entries(components).map(([id,c])=>{
+    const cost = upgradeCost(c);
+    const canUp = c.level < c.max && state.cash >= cost;
+    const rCost = refurbCost(c);
+    const canRefurb = c.degrade > 0.03 && state.cash >= rCost;
+    const dots = Array.from({length:c.max}).map((_,i)=>`<div class="lvlDot ${i<c.level?'filled':''}" style="color:${c.hex}"></div>`).join('');
+    return `<div class="compCard" style="--accent:${c.hex}">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${c.hex}"></div>
+      <div class="compHead"><div><div class="cname">${c.name}</div><div class="crole">${c.role}</div></div>
+        <div class="mono" style="color:${c.hex};font-size:.9rem">Lv ${c.level}/${c.max}</div></div>
+      <div class="lvlDots">${dots}</div>
+      <div class="compStats">
+        ${c.stat}<br>Degradation: ${(c.degrade*100).toFixed(1)}%
+      </div>
+      <button class="upBtn" data-comp="${id}" data-act="upgrade" ${canUp?'':'disabled'}>
+        ${c.level>=c.max? 'MAX LEVEL' : 'Upgrade — '+money(cost)}
+      </button>
+      <button class="refurbBtn" data-comp="${id}" data-act="refurb" ${canRefurb?'':'disabled'}>
+        Refurbish (reset degradation) — ${money(rCost)}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function renderDeployView(){
+  const grid = document.getElementById('deployGrid');
+  const sitesDef = [
+    {key:'fuel', title:'Local Coastal Vessel Hydrogen Fueling Station', desc:'Sells compressed H₂ to coastal vessels at a premium once online.', metric: state.totalH2, need:3000, unit:'kg H₂', bonus:'+15% on H₂ sales'},
+    {key:'aqua', title:'Aqua-farm Aeration System', desc:'Routes generated O₂ to offshore aquaculture pens.', metric: state.totalO2, need:3500, unit:'kg O₂', bonus:'+20% on O₂ sales'},
+    {key:'gen', title:'Sustainable Community Generator Fuel', desc:'Supplies refined hydrocarbons to a local community generator.', metric: state.totalHC, need:800, unit:'kg hydrocarbons', bonus:'+18% on hydrocarbon sales'},
+    {key:'water', title:'Desalinated Process Water Community Tap', desc:'Opens a community freshwater tap fed by reactor byproduct water — reputational, not revenue.', metric: state.totalCO2, need:4000, unit:'kg CO₂ processed', bonus:'+ESG reputation'},
+  ];
+  grid.innerHTML = sitesDef.map(s=>{
+    const unlocked = state.sites[s.key];
+    const pct = clamp(s.metric/s.need*100,0,100);
+    return `<div class="siteCard ${unlocked?'':'locked'}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="sTitle">${s.title}</div>
+        <span class="badge ${unlocked?'on':'off'}">${unlocked?'ONLINE':'LOCKED'}</span>
+      </div>
+      <div class="sDesc">${s.desc} <span style="color:var(--silver)">${s.bonus}</span></div>
+      ${!unlocked?`<div class="progWrap"><div class="progLbl"><span>Progress</span><span>${fmt(s.metric)} / ${fmt(s.need)} ${s.unit}</span></div>
+      <div class="barTrack"><div class="barFill" style="width:${pct}%;background:var(--amber)"></div></div></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderImpactView(){
+  const sdgDef = [
+    {n:'SDG 7', name:'Affordable & Clean Energy', color:'#ffb300', val: clamp(Math.log10(state.totalH2+1)/4*100,0,100)},
+    {n:'SDG 9', name:'Industry, Innovation & Infrastructure', color:'#00e5ff', val: clamp((state.hour/1500)*100,0,100)},
+    {n:'SDG 13', name:'Climate Action', color:'#00e676', val: clamp(Math.log10(state.totalCO2+1)/4.5*100,0,100)},
+  ];
+  const grid = document.getElementById('sdgGrid');
+  grid.innerHTML = sdgDef.map(s=>`
+    <div class="sdgCard">
+      <div class="sdgNum" style="color:${s.color}">${s.val.toFixed(0)}%</div>
+      <div class="sdgName">${s.n} — ${s.name}</div>
+      <div class="barTrack" style="margin-top:8px"><div class="barFill" style="width:${s.val}%;background:${s.color}"></div></div>
+    </div>`).join('');
+
+  const achDef = [
+    {k:'h1000', label:'1,000-hour continuous operation (techno-economic validation)'},
+    {k:'million', label:'Treasury crosses $1,000,000'},
+    {k:'tonCO2', label:'10 metric tons CO₂ captured & valorized'},
+    {k:'fullLab', label:'All six catalyst components reach level 3'},
+  ];
+  document.getElementById('achList').innerHTML = achDef.map(a=>{
+    const done = !!state.achievements[a.k];
+    return `<div class="ach ${done?'done':'locked'}"><span>${a.label}</span><span>${done?'✓ COMPLETE':'—'}</span></div>`;
+  }).join('');
+}
+
+function renderEnvTabs(){
+  document.querySelectorAll('.envbtn').forEach(btn=>{
+    const key = btn.dataset.env;
+    btn.classList.toggle('active', state.env===key);
+    const req = envFactors[key].req;
+    const locked = req && components[req.c].level < req.lvl;
+    btn.classList.toggle('locked', !!locked);
+  });
+}
+
+function renderAll(){
+  renderHeader();
+  renderReactorView();
+  renderMarketView();
+  renderLabView();
+  renderDeployView();
+  renderImpactView();
+  renderEnvTabs();
+}
+
+/* ---------- interactions ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-'+tab.dataset.view).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.speedbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.speedbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.speed = Number(btn.dataset.speed);
+  });
+});
+
+document.getElementById('voltSlider').addEventListener('input', e=>{
+  state.voltage = Number(e.target.value);
+  document.getElementById('voltVal').textContent = state.voltage.toFixed(2)+' V';
+});
+
+document.getElementById('envTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.envbtn');
+  if(!btn) return;
+  const key = btn.dataset.env;
+  const req = envFactors[key].req;
+  if(req && components[req.c].level < req.lvl){
+    toast('LOCKED', req.msg, 'warn');
+    return;
+  }
+  state.env = key;
+  renderEnvTabs();
+});
+
+document.getElementById('labGrid').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const id = btn.dataset.comp; const act = btn.dataset.act;
+  const c = components[id];
+  if(act==='upgrade'){
+    const cost = upgradeCost(c);
+    if(c.level<c.max && state.cash>=cost){
+      state.cash -= cost; c.level++;
+      addLedger(`Upgraded ${c.name} to Lv${c.level}`, -cost);
+      toast('UPGRADE', `${c.name} advanced to level ${c.level}`, 'gain');
+    }
+  } else if(act==='refurb'){
+    const cost = refurbCost(c);
+    if(state.cash>=cost){
+      state.cash -= cost; c.degrade = 0; state.cycles++;
+      addLedger(`Refurbished ${c.name}`, -cost);
+    }
+  }
+  renderAll();
+});
+
+/* ---------- background particles ---------- */
+(function particles(){
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+  resize(); addEventListener('resize', resize);
+  const pts = Array.from({length:60}).map(()=>({
+    x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+    vx:(Math.random()-.5)*0.15, vy:(Math.random()-.5)*0.15, r: Math.random()*1.6+0.4,
+    c: ['#00e5ff','#b388ff','#00e676','#ffb300'][Math.floor(Math.random()*4)]
+  }));
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=innerWidth; if(p.x>innerWidth)p.x=0;
+      if(p.y<0)p.y=innerHeight; if(p.y>innerHeight)p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fillStyle=p.c; ctx.globalAlpha=0.5; ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ---------- init ---------- */
+buildReactorSvg();
+renderAll();
+requestAnimationFrame(loop);
+toast('SYSTEM ONLINE', 'Reactor initialized. Bring the six-component catalyst online and start selling into the market.', 'gain');
+</script>
+</body>
+</html>

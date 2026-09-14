@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru — Sealed Reactor Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #050708;
+    --bg2: #080b0e;
+    --panel: #0c1216;
+    --panel-line: #1c2830;
+    --cyan: #4de3ec;
+    --cyan-dim: #1f4d52;
+    --amber: #f4b445;
+    --amber-dim: #4d3d1a;
+    --violet: #b98cf0;
+    --violet-dim: #3a2c50;
+    --green: #79e0a0;
+    --green-dim: #1f4030;
+    --white-e: #eef6f8;
+    --text: #d8e6ec;
+    --muted: #7c93a0;
+    --muted-dim: #4a5c66;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% 0%, #0a1418 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 20%, #14100a 0%, transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    overflow-x:hidden;
+  }
+  #field{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;}
+
+  ::selection{background:var(--cyan);color:#000;}
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- HEADER ---------- */
+  header{padding:40px 0 18px;}
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--muted);
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulseDot 2s infinite;}
+  @keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.3;}}
+  h1{
+    font-family:'Orbitron',sans-serif;
+    font-weight:900;
+    font-size:clamp(26px,4.4vw,46px);
+    line-height:1.08;
+    margin:14px 0 8px;
+    letter-spacing:.01em;
+  }
+  h1 span{color:var(--cyan);}
+  .sub{
+    color:var(--muted);
+    font-size:16px;
+    max-width:640px;
+    line-height:1.5;
+  }
+  .byline{
+    margin-top:18px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted-dim);
+    display:flex;gap:18px;flex-wrap:wrap;
+  }
+  .byline b{color:var(--muted);font-weight:700;}
+
+  /* ---------- HERO / DEVICE ---------- */
+  .stage{
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:26px;
+    margin-top:34px;
+    align-items:start;
+  }
+  @media(max-width:920px){.stage{grid-template-columns:1fr;}}
+
+  .device-panel{
+    background:linear-gradient(180deg,var(--panel),#080c0f);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:22px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .device-panel::before{
+    content:'REACTOR CROSS-SECTION · UNIT MFM-01';
+    position:absolute;top:14px;left:18px;
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted-dim);
+  }
+  .device-panel::after{
+    content:attr(data-mode);
+    position:absolute;top:14px;right:18px;
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--cyan);
+    border:1px solid var(--cyan-dim);padding:3px 8px;border-radius:20px;
+  }
+  svg#rig{width:100%;height:auto;display:block;margin-top:26px;}
+
+  .case-glass{fill:rgba(140,190,205,0.04);stroke:rgba(180,220,230,0.35);stroke-width:1.4;}
+  .case-glass-hi{stroke:rgba(230,245,250,0.5);stroke-width:.7;}
+  .waterfill{transition:height 1.4s cubic-bezier(.4,0,.2,1), y 1.4s cubic-bezier(.4,0,.2,1), fill 1s;}
+  .label-sm{font-family:'Space Mono',monospace;font-size:9px;fill:var(--muted);letter-spacing:.05em;}
+  .label-tag{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;}
+
+  .bubble{fill:var(--cyan);opacity:0;}
+  .bubble.o{fill:var(--amber);}
+  .co2p{fill:var(--green);}
+  .chemp{fill:var(--violet);}
+
+  .flow-line{stroke:var(--white-e);stroke-width:1;stroke-dasharray:3 4;opacity:.5;}
+  .elec-arc{stroke:var(--cyan);stroke-width:2;fill:none;stroke-dasharray:6 6;filter:drop-shadow(0 0 4px var(--cyan));}
+
+  /* control rail */
+  .rail{display:flex;flex-direction:column;gap:14px;}
+  .card{
+    background:linear-gradient(180deg,var(--panel),#080c0f);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:18px 18px 16px;
+  }
+  .card h3{
+    margin:0 0 12px;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .seg{
+    display:flex;background:#050708;border-radius:10px;padding:4px;border:1px solid var(--panel-line);
+  }
+  .seg button{
+    flex:1;background:transparent;border:none;color:var(--muted);
+    font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;
+    padding:9px 4px;border-radius:7px;cursor:pointer;transition:.25s;
+  }
+  .seg button.active{background:var(--cyan-dim);color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(77,227,236,0.4);}
+  .seg button:hover:not(.active){color:var(--text);}
+
+  .hint{font-size:12px;color:var(--muted-dim);margin-top:9px;line-height:1.5;font-family:'Space Mono',monospace;}
+
+  .slider-row{display:flex;align-items:center;gap:12px;margin-top:4px;}
+  input[type=range]{
+    -webkit-appearance:none;flex:1;height:4px;border-radius:2px;
+    background:linear-gradient(90deg,var(--cyan-dim),var(--amber-dim));outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 8px var(--cyan);cursor:pointer;border:2px solid #05131a;
+  }
+  .slider-val{font-family:'Space Mono',monospace;font-size:13px;color:var(--cyan);min-width:44px;text-align:right;}
+
+  .readout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+  .ro{
+    background:#050708;border:1px solid var(--panel-line);border-radius:9px;padding:10px 12px;
+  }
+  .ro .rlabel{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;}
+  .ro .rval{font-family:'Orbitron',sans-serif;font-weight:700;font-size:18px;margin-top:4px;}
+  .ro.h .rval{color:var(--cyan);}
+  .ro.o .rval{color:var(--amber);}
+  .ro.c .rval{color:var(--green);}
+  .ro.e .rval{color:var(--violet);}
+  .ro .runit{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted-dim);margin-left:3px;}
+
+  /* ---------- COMPONENT LEGEND ---------- */
+  section{margin-top:64px;}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;}
+  .section-num{font-family:'Space Mono',monospace;color:var(--muted-dim);font-size:13px;}
+  .section-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:20px;letter-spacing:.02em;}
+  .section-title span{color:var(--cyan);}
+
+  .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:820px){.comp-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.comp-grid{grid-template-columns:1fr;}}
+  .comp{
+    background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
+    padding:16px;position:relative;overflow:hidden;transition:.25s border-color;
+  }
+  .comp:hover{border-color:var(--dotcolor,var(--cyan));}
+  .comp .dot{width:9px;height:9px;border-radius:50%;background:var(--dotcolor,var(--cyan));box-shadow:0 0 8px var(--dotcolor,var(--cyan));display:inline-block;margin-right:8px;}
+  .comp .ctitle{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;}
+  .comp .crole{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin:6px 0 8px;letter-spacing:.04em;}
+  .comp p{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0;}
+
+  /* ---------- OUTPUT / APPLICATION ---------- */
+  .app-wrap{
+    background:linear-gradient(160deg,#0b1013,#070a0c);
+    border:1px solid var(--panel-line);border-radius:16px;
+    padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;
+  }
+  @media(max-width:820px){.app-wrap{grid-template-columns:1fr;}}
+  .app-copy h4{font-family:'Orbitron',sans-serif;font-size:16px;margin:0 0 10px;}
+  .app-copy p{color:var(--muted);font-size:14px;line-height:1.6;}
+  .app-stats{display:flex;gap:24px;margin-top:18px;flex-wrap:wrap;}
+  .app-stat b{display:block;font-family:'Orbitron',sans-serif;font-size:22px;color:var(--amber);}
+  .app-stat span{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted-dim);letter-spacing:.05em;}
+
+  svg#buildingviz{width:100%;height:auto;}
+
+  /* ---------- STATS FOOTER ---------- */
+  .stat-strip{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:64px;
+  }
+  @media(max-width:760px){.stat-strip{grid-template-columns:repeat(2,1fr);}}
+  .stat-strip .cell{
+    border-top:1px solid var(--panel-line);padding-top:14px;
+  }
+  .stat-strip .cell b{font-family:'Orbitron',sans-serif;font-size:24px;color:var(--cyan);display:block;}
+  .stat-strip .cell span{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.03em;}
+
+  footer{
+    margin:70px 0 40px;padding-top:20px;border-top:1px solid var(--panel-line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-dim);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+<canvas id="field"></canvas>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Sealed Reactor Prototype · Rev A</div>
+    <h1>The <span>Sealed Cell</span><br>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru</h1>
+    <p class="sub">A transparent multi-layer reactor that draws in seawater, freshwater, or condensed atmospheric moisture, splits it into hydrogen and oxygen at a shared electrode stack, scrubs and converts ambient CO₂ in parallel, and delivers grid-ready electricity to a home or facility.</p>
+    <div class="byline">
+      <div><b>Author</b> Frank Levanti</div>
+      <div><b>Reactions</b> HER / OER / CO₂-RR</div>
+      <div><b>Rated endurance</b> 1,000+ hrs continuous</div>
+    </div>
+  </header>
+
+  <div class="stage">
+    <!-- ============ DEVICE VISUAL ============ -->
+    <div class="device-panel" id="devicePanel" data-mode="STANDBY">
+      <svg id="rig" viewBox="0 0 520 560" xmlns="http://www.w3.org/2000/svg">
+        <!-- intake pipe -->
+        <path d="M 40 40 Q 20 40 20 70 L 20 130" stroke="rgba(180,220,230,0.35)" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <text x="10" y="30" class="label-sm">INTAKE</text>
+        <circle id="intakeDrop" cx="20" cy="50" r="4" fill="#4de3ec" opacity="0"/>
+
+        <!-- outer transparent case -->
+        <rect x="70" y="60" width="380" height="430" rx="26" class="case-glass"/>
+        <rect x="76" y="66" width="368" height="418" rx="22" class="case-glass-hi" fill="none"/>
+
+        <!-- water fill -->
+        <clipPath id="caseClip"><rect x="70" y="60" width="380" height="430" rx="26"/></clipPath>
+        <g clip-path="url(#caseClip)">
+          <rect id="waterfill" class="waterfill" x="70" y="460" width="380" height="30" fill="#123640" opacity="0.55"/>
+          <rect id="waterSurface" x="70" y="460" width="380" height="3" fill="#7fe6ef" opacity="0.5"/>
+        </g>
+
+        <!-- BDD electron highway backbone -->
+        <rect x="252" y="90" width="16" height="370" rx="8" fill="rgba(238,246,248,0.12)" stroke="rgba(238,246,248,0.35)" stroke-width="1"/>
+        <text x="230" y="86" class="label-sm" text-anchor="middle">BDD SUBSTRATE</text>
+
+        <!-- cathode: MAC-FeMoS2 (HER) -->
+        <g id="cathode">
+          <rect x="120" y="150" width="70" height="260" rx="10" fill="rgba(77,227,236,0.10)" stroke="#4de3ec" stroke-width="1.3"/>
+          <text x="155" y="145" text-anchor="middle" class="label-tag" fill="#4de3ec">MAC-FeMoS₂</text>
+          <text x="155" y="425" text-anchor="middle" class="label-sm" fill="#4de3ec">CATHODE · HER</text>
+        </g>
+
+        <!-- anode: NiSe2 (OER) -->
+        <g id="anode">
+          <rect x="330" y="150" width="70" height="260" rx="10" fill="rgba(244,180,69,0.10)" stroke="#f4b445" stroke-width="1.3"/>
+          <text x="365" y="145" text-anchor="middle" class="label-tag" fill="#f4b445">NiSe₂</text>
+          <text x="365" y="425" text-anchor="middle" class="label-sm" fill="#f4b445">ANODE · OER</text>
+        </g>
+
+        <!-- ZIF-8 CO2 capture nodules (top) -->
+        <g id="zif">
+          <circle cx="230" cy="105" r="15" fill="rgba(121,224,160,0.12)" stroke="#79e0a0" stroke-width="1.2"/>
+          <circle cx="290" cy="105" r="15" fill="rgba(121,224,160,0.12)" stroke="#79e0a0" stroke-width="1.2"/>
+          <text x="260" y="70" text-anchor="middle" class="label-tag" fill="#79e0a0">ZIF-8</text>
+          <text x="260" y="82" text-anchor="middle" class="label-sm" fill="#79e0a0">CO₂ CAPTURE</text>
+        </g>
+
+        <!-- Cu-Ru conversion core (bottom) -->
+        <g id="cucore">
+          <circle cx="260" cy="470" r="26" fill="rgba(185,140,240,0.12)" stroke="#b98cf0" stroke-width="1.4"/>
+          <text x="260" y="512" text-anchor="middle" class="label-tag" fill="#b98cf0">Cu · Ru CORE</text>
+          <text x="260" y="524" text-anchor="middle" class="label-sm" fill="#b98cf0">CO₂ → CH₃OH / HCOOH</text>
+        </g>
+
+        <!-- bubble containers (populated by JS) -->
+        <g id="bubbleLayerH"></g>
+        <g id="bubbleLayerO"></g>
+        <g id="co2Layer"></g>
+        <g id="chemLayer"></g>
+
+        <!-- gas collection headers -->
+        <path d="M 155 150 L 155 40 Q 155 20 180 20 L 210 20" class="flow-line"/>
+        <text x="182" y="14" class="label-sm" fill="#4de3ec">H₂ →</text>
+        <path d="M 365 150 L 365 40 Q 365 20 340 20 L 310 20" class="flow-line"/>
+        <text x="300" y="14" class="label-sm" text-anchor="end" fill="#f4b445">← O₂</text>
+
+        <!-- electricity out -->
+        <path id="elecArc" class="elec-arc" d="M 260 496 L 260 545 L 470 545 L 470 500" />
+        <text x="475" y="520" class="label-sm" fill="#4de3ec">OUT</text>
+        <circle id="elecPulse" cx="260" cy="500" r="4" fill="#4de3ec" opacity="0"/>
+      </svg>
+    </div>
+
+    <!-- ============ CONTROL RAIL ============ -->
+    <div class="rail">
+      <div class="card">
+        <h3>Water Source</h3>
+        <div class="seg" id="sourceSeg">
+          <button data-src="sea" class="active">Seawater</button>
+          <button data-src="fresh">Freshwater</button>
+          <button data-src="atmo">Atmospheric</button>
+        </div>
+        <div class="hint" id="sourceHint">Chlorine-blocking BDD passivation lets the stack split saline water directly — no desalination stage, no anodic Cl₂ evolution.</div>
+      </div>
+
+      <div class="card">
+        <h3>Renewable Input</h3>
+        <div class="slider-row">
+          <input type="range" id="powerSlider" min="10" max="100" value="65">
+          <div class="slider-val" id="powerVal">65%</div>
+        </div>
+        <div class="hint">Scales HER/OER turnover, CO₂ throughput, and electrode bubble rate in the diagram.</div>
+      </div>
+
+      <div class="card">
+        <h3>Delivery Target</h3>
+        <div class="seg" id="targetSeg">
+          <button data-t="res" class="active">Residential</button>
+          <button data-t="com">Commercial</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Live Reactor Readout</h3>
+        <div class="readout-grid">
+          <div class="ro h"><div class="rlabel">H₂ Evolution</div><div class="rval" id="roH2">0<span class="runit">L/min</span></div></div>
+          <div class="ro o"><div class="rlabel">O₂ Evolution</div><div class="rval" id="roO2">0<span class="runit">L/min</span></div></div>
+          <div class="ro c"><div class="rlabel">CO₂ Captured</div><div class="rval" id="roCO2">0<span class="runit">g/hr</span></div></div>
+          <div class="ro e"><div class="rlabel">Electricity</div><div class="rval" id="roElec">0<span class="runit">kW</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COMPONENT LEGEND ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">Six Components, <span>One Stack</span></div>
+    </div>
+    <div class="comp-grid">
+      <div class="comp" style="--dotcolor:#4de3ec"><span class="dot"></span><span class="ctitle">MAC-FeMoS₂</span>
+        <div class="crole">CATHODE — HER</div>
+        <p>Iron-doped MoS₂ encapsulated in amorphous carbon. Drives hydrogen evolution while the carbon shell resists fouling from dissolved organics and salts.</p>
+      </div>
+      <div class="comp" style="--dotcolor:#f4b445"><span class="dot"></span><span class="ctitle">NiSe₂</span>
+        <div class="crole">ANODE — OER</div>
+        <p>Handles the oxygen half-reaction. Paired with the BDD backbone, it sustains anodic potentials in saline electrolyte without pitting.</p>
+      </div>
+      <div class="comp" style="--dotcolor:#eef6f8"><span class="dot"></span><span class="ctitle">BDD</span>
+        <div class="crole">SUBSTRATE — CONDUCTION</div>
+        <p>Boron-doped diamond forms the corrosion-proof electron highway linking both electrodes and rejecting chlorine evolution pathways.</p>
+      </div>
+      <div class="comp" style="--dotcolor:#79e0a0"><span class="dot"></span><span class="ctitle">ZIF-8</span>
+        <div class="crole">SORBENT — CO₂ CAPTURE</div>
+        <p>A porous metal-organic framework that selectively adsorbs CO₂ from ambient or flue-gas streams and concentrates it at the reaction core.</p>
+      </div>
+      <div class="comp" style="--dotcolor:#b98cf0"><span class="dot"></span><span class="ctitle">Cu</span>
+        <div class="crole">CO₂ REDUCTION — C–C COUPLING</div>
+        <p>Initiates CO₂ reduction and couples carbon centers toward multi-carbon products rather than stopping at CO.</p>
+      </div>
+      <div class="comp" style="--dotcolor:#b98cf0"><span class="dot"></span><span class="ctitle">Ru</span>
+        <div class="crole">HYDROGENATION FINISHER</div>
+        <p>Completes hydrogenation of Cu-activated intermediates into methanol, formate, and light hydrocarbons for storage or sale.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUTPUT / APPLICATION ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div class="section-title">From <span>Sealed Cell</span> to Meter</div>
+    </div>
+    <div class="app-wrap">
+      <div class="app-copy">
+        <h4 id="appTitle">Residential Delivery</h4>
+        <p id="appCopy">One sealed unit intakes ambient water, splits it, and routes the recombined H₂/O₂ energy through a fuel cell stage to household load — no pipeline, no tanker, no freshwater draw.</p>
+        <div class="app-stats">
+          <div class="app-stat"><b id="appKw">3.1</b><span>PEAK KW</span></div>
+          <div class="app-stat"><b id="appHomes">1</b><span id="appHomesLabel">HOME COVERED</span></div>
+          <div class="app-stat"><b id="appChem">180</b><span>G/DAY BY-PRODUCT FUEL</span></div>
+        </div>
+      </div>
+      <svg id="buildingviz" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <path id="bldgShape" d="M 40 170 L 40 100 L 90 60 L 140 100 L 140 170 Z" fill="none" stroke="#7c93a0" stroke-width="1.4"/>
+        <rect id="bldgWin" x="60" y="120" width="16" height="16" fill="rgba(244,180,69,0.6)"/>
+        <rect id="bldgWin2" x="100" y="120" width="16" height="16" fill="rgba(244,180,69,0.15)"/>
+        <path class="elec-arc" d="M 160 150 L 200 150 L 200 100 L 250 100" />
+        <circle cx="255" cy="100" r="18" fill="none" stroke="#4de3ec" stroke-width="1.3"/>
+        <text x="255" y="104" text-anchor="middle" class="label-sm" fill="#4de3ec">CELL</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ STAT STRIP ============ -->
+  <div class="stat-strip">
+    <div class="cell"><b>1,000+ hrs</b><span>CONTINUOUS OPERATION, MINIMAL DEGRADATION</span></div>
+    <div class="cell"><b>71%</b><span>OF EARTH'S SURFACE VIABLE AS FEEDSTOCK</span></div>
+    <div class="cell"><b>3</b><span>WATER SOURCES: SEA / FRESH / ATMOSPHERIC</span></div>
+    <div class="cell"><b>SDG 7·9·13·14</b><span>UN GOALS ADDRESSED</span></div>
+  </div>
+
+  <footer>
+    <div>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru — Frank Levanti</div>
+    <div>PROTOTYPE VISUALIZATION · ILLUSTRATIVE VALUES</div>
+  </footer>
+
+</div>
+
+<script>
+/* ---------------- background particle field ---------------- */
+const canvas = document.getElementById('field');
+const ctx = canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize(); addEventListener('resize', resize);
+const particles = Array.from({length:60}, () => ({
+  x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+  r:Math.random()*1.4+0.3, s:Math.random()*0.25+0.05,
+  c: Math.random()<0.5 ? '77,227,236' : '244,180,69'
+}));
+function drawField(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.y -= p.s;
+    if(p.y < -5) p.y = innerHeight+5;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${p.c},0.35)`;
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  requestAnimationFrame(drawField);
+}
+drawField();
+
+/* ---------------- state ---------------- */
+let state = { source:'sea', power:65, target:'res' };
+
+const sourceInfo = {
+  sea:   { hint:'Chlorine-blocking BDD passivation lets the stack split saline water directly — no desalination stage, no anodic Cl₂ evolution.', tint:'#123640', mode:'SEAWATER INTAKE' },
+  fresh: { hint:'Lowest ionic resistance of the three feeds — freshwater draw runs the stack at its baseline reference efficiency.', tint:'#0f2a38', mode:'FRESHWATER INTAKE' },
+  atmo:  { hint:'Coupled atmospheric water harvesting condenses ambient humidity before intake — enables deployment in arid, off-grid sites.', tint:'#182a2c', mode:'ATMOSPHERIC HARVEST' }
+};
+
+/* ---------------- controls wiring ---------------- */
+document.querySelectorAll('#sourceSeg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#sourceSeg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.source = btn.dataset.src;
+    applySource();
+  });
+});
+document.querySelectorAll('#targetSeg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#targetSeg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.target = btn.dataset.t;
+    applyTarget();
+  });
+});
+const powerSlider = document.getElementById('powerSlider');
+powerSlider.addEventListener('input', ()=>{
+  state.power = +powerSlider.value;
+  document.getElementById('powerVal').textContent = state.power + '%';
+  updateReadouts();
+});
+
+function applySource(){
+  const info = sourceInfo[state.source];
+  document.getElementById('sourceHint').textContent = info.hint;
+  document.getElementById('waterfill').setAttribute('fill', info.tint);
+  document.getElementById('devicePanel').setAttribute('data-mode', info.mode);
+  // animate fill rising then settling to operating level
+  const wf = document.getElementById('waterfill');
+  const ws = document.getElementById('waterSurface');
+  wf.setAttribute('y','480'); wf.setAttribute('height','10');
+  ws.setAttribute('y','480');
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      wf.setAttribute('y','130'); wf.setAttribute('height','360');
+      ws.setAttribute('y','130');
+    }, 60);
+  });
+}
+
+function applyTarget(){
+  if(state.target==='res'){
+    document.getElementById('appTitle').textContent = 'Residential Delivery';
+    document.getElementById('appCopy').textContent = 'One sealed unit intakes ambient water, splits it, and routes the recombined H₂/O₂ energy through a fuel cell stage to household load — no pipeline, no tanker, no freshwater draw.';
+    document.getElementById('appHomesLabel').textContent = 'HOME COVERED';
+    document.getElementById('bldgShape').setAttribute('d','M 40 170 L 40 100 L 90 60 L 140 100 L 140 170 Z');
+  } else {
+    document.getElementById('appTitle').textContent = 'Commercial Delivery';
+    document.getElementById('appCopy').textContent = 'A bank of racked units feeds a shared bus, sized to a commercial facility\'s baseload with CO₂-derived methanol/formate stored as a dispatchable co-product revenue stream.';
+    document.getElementById('appHomesLabel').textContent = 'HOMES-EQUIVALENT';
+    document.getElementById('bldgShape').setAttribute('d','M 30 170 L 30 80 L 60 80 L 60 60 L 150 60 L 150 170 Z');
+  }
+  updateReadouts();
+}
+
+function updateReadouts(){
+  const p = state.power/100;
+  const h2 = (2.4*p).toFixed(2);
+  const o2 = (1.2*p).toFixed(2);
+  const co2 = Math.round(140*p);
+  const elecBase = state.target==='res' ? 3.1 : 42;
+  const elec = (elecBase*p).toFixed(state.target==='res'?1:0);
+  const chemBase = state.target==='res' ? 180 : 2400;
+  const chem = Math.round(chemBase*p);
+  const homes = state.target==='res' ? 1 : Math.max(1, Math.round(14*p));
+
+  document.getElementById('roH2').innerHTML = h2 + '<span class="runit">L/min</span>';
+  document.getElementById('roO2').innerHTML = o2 + '<span class="runit">L/min</span>';
+  document.getElementById('roCO2').innerHTML = co2 + '<span class="runit">g/hr</span>';
+  document.getElementById('roElec').innerHTML = elec + '<span class="runit">kW</span>';
+  document.getElementById('appKw').textContent = elec;
+  document.getElementById('appHomes').textContent = homes;
+  document.getElementById('appChem').textContent = chem;
+
+  bubbleRateH = Math.max(120, 420 - p*300);
+  bubbleRateO = Math.max(160, 520 - p*350);
+  co2Rate = Math.max(500, 1400 - p*900);
+}
+
+/* ---------------- bubble / particle animation inside rig ---------------- */
+const nsSVG = 'http://www.w3.org/2000/svg';
+const bubbleLayerH = document.getElementById('bubbleLayerH');
+const bubbleLayerO = document.getElementById('bubbleLayerO');
+const co2Layer = document.getElementById('co2Layer');
+const chemLayer = document.getElementById('chemLayer');
+
+let bubbleRateH = 260, bubbleRateO = 340, co2Rate = 900;
+
+function spawnBubble(layer, xBase, colorClass){
+  const el = document.createElementNS(nsSVG,'circle');
+  const x = xBase + (Math.random()*20-10);
+  const startY = 400;
+  el.setAttribute('cx', x);
+  el.setAttribute('cy', startY);
+  el.setAttribute('r', 1.5 + Math.random()*2);
+  el.setAttribute('class','bubble '+colorClass);
+  layer.appendChild(el);
+  let y = startY, op = 0;
+  const dur = 1600 + Math.random()*900;
+  const t0 = performance.now();
+  function step(t){
+    const dt = (t-t0)/dur;
+    if(dt>=1){ el.remove(); return; }
+    y = startY - dt*280;
+    op = dt<0.15 ? dt/0.15 : (dt>0.8 ? (1-dt)/0.2 : 1);
+    el.setAttribute('cy', y);
+    el.setAttribute('opacity', Math.max(0,op*0.85));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function spawnCO2(){
+  const el = document.createElementNS(nsSVG,'circle');
+  const side = Math.random()<0.5 ? 230 : 290;
+  el.setAttribute('cx', side + (Math.random()*10-5));
+  el.setAttribute('cy', 115);
+  el.setAttribute('r', 2);
+  el.setAttribute('class','co2p');
+  co2Layer.appendChild(el);
+  const t0 = performance.now(); const dur = 1800;
+  function step(t){
+    const dt=(t-t0)/dur;
+    if(dt>=1){ el.remove(); spawnChem(); return; }
+    const cx = side + (260-side)*dt;
+    const cy = 115 + (455-115)*dt;
+    el.setAttribute('cx',cx); el.setAttribute('cy',cy);
+    el.setAttribute('opacity', dt<0.1?dt/0.1:(dt>0.85?(1-dt)/0.15:0.9));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function spawnChem(){
+  const el = document.createElementNS(nsSVG,'circle');
+  el.setAttribute('cx',260); el.setAttribute('cy',470);
+  el.setAttribute('r',2.2);
+  el.setAttribute('class','chemp');
+  chemLayer.appendChild(el);
+  const angle = Math.random()*Math.PI*2;
+  const t0 = performance.now(); const dur = 1200;
+  function step(t){
+    const dt=(t-t0)/dur;
+    if(dt>=1){ el.remove(); return; }
+    const dist = dt*30;
+    el.setAttribute('cx', 260+Math.cos(angle)*dist);
+    el.setAttribute('cy', 470+Math.sin(angle)*dist);
+    el.setAttribute('opacity', Math.max(0,(1-dt))*0.85);
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+let lastH=0,lastO=0,lastC=0;
+function loop(t){
+  if(t-lastH>bubbleRateH){ spawnBubble(bubbleLayerH,155,''); lastH=t; }
+  if(t-lastO>bubbleRateO){ spawnBubble(bubbleLayerO,365,'o'); lastO=t; }
+  if(t-lastC>co2Rate){ spawnCO2(); lastC=t; }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* electricity output pulse */
+const elecPulse = document.getElementById('elecPulse');
+const elecPath = document.getElementById('elecArc');
+const pathLen = elecPath.getTotalLength();
+let pulseT0 = performance.now();
+function pulseStep(t){
+  let dt = ((t-pulseT0)/1400) % 1;
+  const pt = elecPath.getPointAtLength(dt*pathLen);
+  elecPulse.setAttribute('cx', pt.x);
+  elecPulse.setAttribute('cy', pt.y);
+  elecPulse.setAttribute('opacity', 0.9);
+  requestAnimationFrame(pulseStep);
+}
+requestAnimationFrame(pulseStep);
+
+/* init */
+applySource();
+applyTarget();
+updateReadouts();
+</script>
+</body>
+</html>

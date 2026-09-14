@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Advanced Catalyst Engineering Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030810;--s1:#07101e;--s2:#0c1828;--s3:#111f35;
+  --b1:#152040;--b2:#1e3055;--b3:#2a4070;
+  --txt:#b0c8e8;--txt2:#6880a0;--txt3:#3a5070;
+  --cyan:#00ccff;--cyan2:#00aadd;--green:#00ff88;--green2:#00cc66;
+  --amber:#ff9030;--amber2:#cc7020;--red:#ff3050;--purple:#9060ff;
+  --gold:#ffd040;--pink:#ff50a0;
+  --h2-color:#00ccff;--o2-color:#ff9030;
+  --ch4-color:#00ff88;--meoh-color:#ff50a0;--syngas-color:#ffd040;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:var(--s1);border-bottom:1px solid var(--b2);flex-shrink:0}
+.hdr-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--cyan);letter-spacing:3px;text-shadow:0 0 20px var(--cyan)}
+.hdr-sub{font-size:11px;color:var(--txt2);letter-spacing:2px;margin-top:1px}
+.hdr-status{display:flex;gap:16px;align-items:center}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#333;position:relative}
+.status-dot.active{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+.status-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt2);font-family:'Share Tech Mono',monospace}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* TABS */
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0;padding:0 10px}
+.tab-btn{padding:10px 20px;background:transparent;border:none;color:var(--txt2);font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;text-transform:uppercase}
+.tab-btn:hover{color:var(--txt)}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
+
+/* MAIN CONTENT */
+.content{flex:1;overflow:hidden;position:relative}
+.tab-panel{display:none;width:100%;height:100%;overflow-y:auto;overflow-x:auto}
+.tab-panel.active{display:flex;flex-direction:column}
+
+/* PERIODIC TABLE TAB */
+#tab-elements{padding:10px 12px;gap:10px}
+.pt-wrapper{overflow-x:auto;flex-shrink:0}
+.pt-grid{display:grid;grid-template-columns:repeat(18,46px);grid-template-rows:repeat(9,46px);gap:2px;min-width:850px;position:relative}
+.pt-gap-row{grid-column:1/19;height:12px;display:flex;align-items:center;padding-left:160px}
+.pt-gap-label{font-size:9px;color:var(--txt3);letter-spacing:1px}
+.el{border:1px solid var(--b1);border-radius:3px;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.15s;user-select:none;overflow:hidden;padding:1px}
+.el:hover{transform:scale(1.15);z-index:100;border-color:rgba(255,255,255,0.5);box-shadow:0 0 12px rgba(0,200,255,0.4)}
+.el.selected{border-color:var(--cyan)!important;box-shadow:0 0 10px var(--cyan);z-index:5}
+.el .el-z{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(255,255,255,0.5);position:absolute;top:2px;left:3px}
+.el .el-sym{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#fff;line-height:1;margin-top:4px}
+.el .el-name{font-size:6px;color:rgba(255,255,255,0.55);text-align:center;margin-top:1px;white-space:nowrap;overflow:hidden;max-width:100%}
+.el .el-w{font-size:6px;color:rgba(255,255,255,0.35);margin-top:1px;font-family:'Share Tech Mono',monospace}
+.el-placeholder{background:var(--s2);border:1px dashed var(--b2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--txt3);text-align:center;line-height:1.2;font-family:'Share Tech Mono',monospace}
+
+/* Element category colors */
+.cat-alkali{background:linear-gradient(135deg,#1a0a00,#3d1500)}
+.cat-alkaline{background:linear-gradient(135deg,#1a1500,#3d3000)}
+.cat-lanthanide{background:linear-gradient(135deg,#1a001a,#3a0040)}
+.cat-actinide{background:linear-gradient(135deg,#1a0015,#3a0025)}
+.cat-transition{background:linear-gradient(135deg,#000d1f,#001a3d)}
+.cat-post{background:linear-gradient(135deg,#001a0a,#003015)}
+.cat-metalloid{background:linear-gradient(135deg,#100010,#200030)}
+.cat-nonmetal,.cat-diatomic{background:linear-gradient(135deg,#001a15,#003028)}
+.cat-halogen{background:linear-gradient(135deg,#1a0a00,#300a00)}
+.cat-noble{background:linear-gradient(135deg,#001520,#002535)}
+.cat-unknown{background:linear-gradient(135deg,#101010,#1a1a1a)}
+
+/* BASKET */
+.basket-section{display:flex;gap:10px;align-items:flex-start;flex-shrink:0}
+.basket-card{background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:12px;flex:1;min-height:80px}
+.basket-title{font-family:'Orbitron',sans-serif;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+.basket-items{display:flex;flex-wrap:wrap;gap:6px;min-height:40px}
+.basket-item{display:flex;align-items:center;gap:4px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:4px 8px;font-size:12px;font-family:'Orbitron',sans-serif;font-weight:700;cursor:pointer;transition:all 0.15s}
+.basket-item:hover{border-color:var(--red);background:#200010}
+.basket-item .rm{color:var(--red);font-size:10px;margin-left:2px}
+.basket-empty{color:var(--txt3);font-size:11px;padding:8px}
+.legend-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--txt2)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:rgba(5,15,30,0.97);border:1px solid var(--b3);border-radius:6px;padding:10px 12px;pointer-events:none;z-index:1000;display:none;min-width:180px;font-size:11px;box-shadow:0 8px 32px rgba(0,0,0,0.8)}
+.tt-sym{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#fff}
+.tt-name{font-size:13px;color:var(--txt2);margin-bottom:6px}
+.tt-row{display:flex;justify-content:space-between;gap:16px;margin-top:3px;color:var(--txt2)}
+.tt-row span:last-child{color:var(--txt);font-family:'Share Tech Mono',monospace}
+.tt-cat{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.tt-role{margin-top:6px;font-size:10px;color:var(--cyan);font-style:italic;border-top:1px solid var(--b1);padding-top:6px}
+
+/* CATALYST LAB TAB */
+#tab-catalyst{padding:12px;gap:12px}
+.catalyst-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1}
+.card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:14px}
+.card-title{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:'';width:3px;height:14px;background:var(--cyan);border-radius:2px}
+
+.comp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.comp-sym{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;width:36px}
+.comp-name{font-size:11px;color:var(--txt2);flex:1}
+.comp-ratio{background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:3px 8px;width:70px;color:var(--txt);font-family:'Share Tech Mono',monospace;font-size:12px;text-align:center}
+.comp-ratio:focus{outline:none;border-color:var(--cyan)}
+.comp-remove{background:none;border:none;color:var(--txt3);cursor:pointer;padding:2px 6px;font-size:14px;transition:color 0.15s}
+.comp-remove:hover{color:var(--red)}
+
+.btn{border:none;border-radius:5px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;padding:10px 18px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase}
+.btn-primary{background:linear-gradient(135deg,#004466,#006688);color:var(--cyan);border:1px solid var(--cyan2)}
+.btn-primary:hover{background:linear-gradient(135deg,#005577,#0077aa);box-shadow:0 0 16px rgba(0,200,255,0.3)}
+.btn-success{background:linear-gradient(135deg,#004422,#006633);color:var(--green);border:1px solid var(--green2)}
+.btn-success:hover{box-shadow:0 0 16px rgba(0,255,100,0.3)}
+.btn-amber{background:linear-gradient(135deg,#442200,#663300);color:var(--amber);border:1px solid var(--amber2)}
+.btn-danger{background:linear-gradient(135deg,#440011,#660022);color:var(--red);border:1px solid #880033}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:9px}
+
+.catalyst-props{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.prop-box{background:var(--s3);border:1px solid var(--b1);border-radius:5px;padding:8px 10px}
+.prop-label{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase}
+.prop-value{font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--cyan);margin-top:2px}
+.prop-unit{font-size:9px;color:var(--txt2)}
+
+.preset-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
+.preset-item{background:var(--s3);border:1px solid var(--b1);border-radius:5px;padding:8px 10px;cursor:pointer;transition:all 0.15s;display:flex;justify-content:space-between;align-items:center}
+.preset-item:hover{border-color:var(--cyan);background:var(--s2)}
+.preset-item.loaded{border-color:var(--green);background:#001510}
+.preset-name{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--txt);font-weight:700}
+.preset-formula{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--txt2);margin-top:2px}
+.preset-badges{display:flex;gap:4px}
+.badge{padding:2px 6px;border-radius:3px;font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.badge-oer{background:#3a1500;color:var(--amber);border:1px solid var(--amber2)}
+.badge-her{background:#001530;color:var(--cyan);border:1px solid var(--cyan2)}
+.badge-co2{background:#002010;color:var(--green);border:1px solid var(--green2)}
+
+/* RATING BAR */
+.rating-bar{display:flex;align-items:center;gap:6px;margin-top:4px}
+.rating-label{font-size:9px;color:var(--txt2);width:50px;text-transform:uppercase;letter-spacing:1px}
+.bar-bg{flex:1;height:6px;background:var(--s1);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease}
+
+/* REACTOR TAB */
+#tab-reactor{padding:12px;gap:12px}
+.reactor-layout{display:grid;grid-template-columns:240px 1fr 1fr;gap:12px;flex:1;min-height:0}
+.reactor-controls{display:flex;flex-direction:column;gap:10px}
+
+.control-group{background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:10px}
+.ctrl-label{font-size:9px;color:var(--txt2);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
+.ctrl-val{color:var(--cyan);font-family:'Share Tech Mono',monospace}
+.slider{width:100%;-webkit-appearance:none;height:4px;background:var(--b2);border-radius:2px;outline:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 8px var(--cyan)}
+
+.catalyst-status{background:var(--s3);border:1px solid var(--b1);border-radius:5px;padding:8px 10px;margin-bottom:8px}
+.cs-label{font-size:9px;color:var(--txt3);letter-spacing:1px}
+.cs-name{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold);margin-top:2px}
+
+.reactor-viz{position:relative;display:flex;flex-direction:column;gap:10px}
+.reactor-canvas-wrap{background:var(--s2);border:1px solid var(--b2);border-radius:8px;overflow:hidden;flex:1;min-height:0;position:relative}
+#reactorCanvas{width:100%;height:100%;display:block}
+
+.oer-her-meters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meter-box{background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:10px}
+.meter-title{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;margin-bottom:8px}
+.meter-title.oer{color:var(--amber)}
+.meter-title.her{color:var(--cyan)}
+.meter-value{font-family:'Share Tech Mono',monospace;font-size:22px;font-weight:700}
+.meter-value.oer{color:var(--amber)}
+.meter-value.her{color:var(--cyan)}
+.meter-unit{font-size:10px;color:var(--txt2);margin-left:4px}
+.meter-sub{font-size:10px;color:var(--txt2);margin-top:4px}
+
+.reactor-charts-col{display:flex;flex-direction:column;gap:10px}
+.chart-card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px;flex:1;min-height:0;display:flex;flex-direction:column}
+.chart-card canvas{flex:1;display:block}
+
+/* PRODUCTS TAB */
+#tab-products{padding:12px;gap:12px}
+.products-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+.tanks-section{display:flex;flex-direction:column;gap:8px}
+.tanks-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tank-card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.tank-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px}
+.tank-body{width:44px;height:80px;border:2px solid var(--b2);border-radius:4px 4px 6px 6px;position:relative;overflow:hidden;background:var(--s1)}
+.tank-fill{position:absolute;bottom:0;left:0;right:0;transition:height 0.5s ease;border-radius:0 0 4px 4px}
+.tank-fill.h2{background:linear-gradient(180deg,rgba(0,180,255,0.8),rgba(0,100,200,0.9))}
+.tank-fill.o2{background:linear-gradient(180deg,rgba(255,120,0,0.8),rgba(180,60,0,0.9))}
+.tank-fill.ch4{background:linear-gradient(180deg,rgba(0,220,100,0.8),rgba(0,140,60,0.9))}
+.tank-fill.meoh{background:linear-gradient(180deg,rgba(220,50,150,0.8),rgba(150,0,100,0.9))}
+.tank-fill.syngas{background:linear-gradient(180deg,rgba(220,180,0,0.8),rgba(150,100,0,0.9))}
+.tank-cap{font-family:'Share Tech Mono',monospace;font-size:11px}
+.tank-rate{font-size:9px;color:var(--txt2)}
+.tank-pressure{font-size:9px;color:var(--txt3);font-family:'Share Tech Mono',monospace}
+
+.revenue-section{display:flex;flex-direction:column;gap:10px}
+.rev-table{width:100%;border-collapse:collapse}
+.rev-table th{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:4px 8px;border-bottom:1px solid var(--b1)}
+.rev-table td{padding:6px 8px;border-bottom:1px solid var(--b1);font-family:'Share Tech Mono',monospace;font-size:12px}
+.rev-table td:last-child{text-align:right;color:var(--gold)}
+.rev-total{display:flex;justify-content:space-between;align-items:center;background:var(--s3);border:1px solid var(--b2);border-radius:5px;padding:10px 14px;margin-top:8px}
+.rev-total-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--txt2)}
+.rev-total-val{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--gold)}
+
+.projections-chart{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px;flex:1;display:flex;flex-direction:column}
+.projections-chart canvas{flex:1;display:block}
+
+/* LOGS */
+.logs-bar{background:var(--s1);border-top:1px solid var(--b1);padding:6px 12px;flex-shrink:0;height:90px;display:flex;flex-direction:column;gap:4px}
+.logs-header{display:flex;justify-content:space-between;align-items:center}
+.logs-title{font-family:'Orbitron',sans-serif;font-size:8px;color:var(--txt3);letter-spacing:2px}
+.logs-content{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:2px}
+.log-entry{font-family:'Share Tech Mono',monospace;font-size:10px;display:flex;gap:10px;line-height:1.3}
+.log-time{color:var(--txt3);flex-shrink:0}
+.log-sys{font-weight:700;flex-shrink:0}
+.log-sys.SYS{color:var(--cyan)}
+.log-sys.RXN{color:var(--green)}
+.log-sys.OER{color:var(--amber)}
+.log-sys.HER{color:var(--cyan)}
+.log-sys.ERR{color:var(--red)}
+.log-sys.REV{color:var(--gold)}
+.log-sys.CAT{color:var(--purple)}
+.log-msg{color:var(--txt2)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--b3);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan2)}
+
+/* INPUT */
+input,select{background:var(--s3);border:1px solid var(--b2);color:var(--txt);border-radius:4px;padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:12px}
+input:focus,select:focus{outline:none;border-color:var(--cyan)}
+select option{background:var(--s2)}
+
+.flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+
+/* GLOW effects */
+.glow-cyan{text-shadow:0 0 12px var(--cyan);color:var(--cyan)}
+.glow-green{text-shadow:0 0 12px var(--green);color:var(--green)}
+.glow-amber{text-shadow:0 0 12px var(--amber);color:var(--amber)}
+
+.section-divider{border:none;border-top:1px solid var(--b1);margin:8px 0}
+
+/* Notification */
+.notif{position:fixed;top:60px;right:20px;background:var(--s2);border:1px solid var(--cyan);border-radius:6px;padding:10px 16px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan);z-index:2000;display:none;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* f-block indicator in main table */
+.f-indicator{display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--txt3);font-style:italic;letter-spacing:1px}
+
+.running-indicator{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
+.running-indicator.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1s infinite}
+.running-indicator.off{background:#333}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">NEXUS</div>
+    <div class="hdr-sub">ADVANCED CATALYST ENGINEERING LABORATORY v4.2.1</div>
+  </div>
+  <div class="hdr-status">
+    <div class="status-item"><div class="status-dot" id="sysDot"></div>SYSTEM</div>
+    <div class="status-item"><div class="status-dot" id="rxnDot"></div>REACTOR</div>
+    <div class="status-item"><span id="hdrTime" style="font-size:11px;color:var(--txt2)">00:00:00</span></div>
+    <div class="status-item" id="hdrTemp" style="color:var(--amber)">TEMP: 25.0°C</div>
+    <div class="status-item" id="hdrPower" style="color:var(--green)">POWER: 0.0W</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('elements')">🔬 ELEMENTS</button>
+  <button class="tab-btn" onclick="switchTab('catalyst')">⚗️ CATALYST LAB</button>
+  <button class="tab-btn" onclick="switchTab('reactor')">⚡ REACTOR</button>
+  <button class="tab-btn" onclick="switchTab('products')">📊 PRODUCTS & REVENUE</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- TAB 1: ELEMENTS / PERIODIC TABLE -->
+<div id="tab-elements" class="tab-panel active">
+  <div class="pt-wrapper">
+    <div class="pt-grid" id="ptGrid"></div>
+  </div>
+  <div class="basket-section" style="margin-top:8px">
+    <div class="basket-card" style="max-width:600px">
+      <div class="basket-title">⚗ CATALYST BASKET — SELECTED ELEMENTS</div>
+      <div class="basket-items" id="basketItems"><div class="basket-empty">Click elements above to add to catalyst basket</div></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="switchTab('catalyst')">DESIGN CATALYST →</button>
+        <button class="btn btn-danger btn-sm" onclick="clearBasket()">CLEAR</button>
+        <span id="basketCount" style="font-size:11px;color:var(--txt2);align-self:center"></span>
+      </div>
+    </div>
+    <div class="basket-card" style="flex:1">
+      <div class="basket-title">ELEMENT CATEGORIES</div>
+      <div class="legend-grid">
+        <div class="legend-item"><div class="legend-dot" style="background:#3d1500"></div>Alkali Metal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3d3000"></div>Alkaline Earth</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#001a3d"></div>Transition Metal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3a0040"></div>Lanthanide</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3a0025"></div>Actinide</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#200030"></div>Metalloid</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#003028"></div>Nonmetal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#300a00"></div>Halogen</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#002535"></div>Noble Gas</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#003015"></div>Post-Transition</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1a1a1a"></div>Unknown</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: CATALYST LAB -->
+<div id="tab-catalyst" class="tab-panel">
+  <div class="catalyst-layout">
+    <!-- Left: Catalyst Builder -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title">COMPOSITE CATALYST DESIGNER</div>
+        <div id="catalystComponents"><div style="color:var(--txt3);font-size:11px">No elements selected. Go to ELEMENTS tab to select components.</div></div>
+        <hr class="section-divider">
+        <div class="flex-row">
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:4px">CATALYST NAME</div>
+            <input id="catalystName" type="text" placeholder="e.g. NiFe-LDH" style="width:100%">
+          </div>
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:4px">SUPPORT MATERIAL</div>
+            <select id="supportMaterial" style="width:100%">
+              <option value="none">No Support</option>
+              <option value="carbon">Carbon Black</option>
+              <option value="mwcnt">MWCNT</option>
+              <option value="graphene">Graphene</option>
+              <option value="tio2">TiO₂</option>
+              <option value="al2o3">Al₂O₃</option>
+              <option value="sio2">SiO₂</option>
+              <option value="nf">Ni Foam</option>
+              <option value="cc">Carbon Cloth</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex-row" style="margin-top:8px">
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:4px">ELECTROLYTE</div>
+            <select id="electrolyte" style="width:100%">
+              <option value="koh1">1M KOH (Alkaline)</option>
+              <option value="koh0.1">0.1M KOH</option>
+              <option value="h2so4">0.5M H₂SO₄ (Acidic)</option>
+              <option value="h2so40.1">0.1M H₂SO₄</option>
+              <option value="pbs">PBS (Neutral)</option>
+              <option value="seawater">Seawater</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:4px">SYNTHESIS METHOD</div>
+            <select id="synthesis" style="width:100%">
+              <option value="hydro">Hydrothermal</option>
+              <option value="elec">Electrodeposition</option>
+              <option value="coppt">Co-precipitation</option>
+              <option value="atomic">Atomic Layer Dep.</option>
+              <option value="sput">Sputtering</option>
+              <option value="cvd">CVD</option>
+              <option value="sol">Sol-Gel</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex-row" style="margin-top:12px">
+          <button class="btn btn-primary" onclick="generateCatalyst()">⚙ GENERATE CATALYST</button>
+          <button class="btn btn-success" onclick="loadToReactor()">▶ LOAD TO REACTOR</button>
+          <button class="btn btn-danger btn-sm" onclick="clearCatalyst()">CLEAR</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">PREDICTED PERFORMANCE METRICS</div>
+        <div class="catalyst-props" id="catalystProps">
+          <div class="prop-box"><div class="prop-label">OER Overpotential</div><div class="prop-value" id="propOerOvp">—</div><div class="prop-unit">η (mV)</div></div>
+          <div class="prop-box"><div class="prop-label">HER Overpotential</div><div class="prop-value" id="propHerOvp">—</div><div class="prop-unit">η (mV)</div></div>
+          <div class="prop-box"><div class="prop-label">Tafel Slope</div><div class="prop-value" id="propTafel">—</div><div class="prop-unit">mV/dec</div></div>
+          <div class="prop-box"><div class="prop-label">TOF</div><div class="prop-value" id="propTof">—</div><div class="prop-unit">s⁻¹</div></div>
+          <div class="prop-box"><div class="prop-label">Stability</div><div class="prop-value" id="propStab">—</div><div class="prop-unit">hours</div></div>
+          <div class="prop-box"><div class="prop-label">ECSA</div><div class="prop-value" id="propEcsa">—</div><div class="prop-unit">cm²</div></div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="rating-bar"><div class="rating-label">OER Activity</div><div class="bar-bg"><div class="bar-fill" id="barOer" style="width:0%;background:linear-gradient(90deg,var(--amber2),var(--amber))"></div></div></div>
+          <div class="rating-bar" style="margin-top:5px"><div class="rating-label">HER Activity</div><div class="bar-bg"><div class="bar-fill" id="barHer" style="width:0%;background:linear-gradient(90deg,var(--cyan2),var(--cyan))"></div></div></div>
+          <div class="rating-bar" style="margin-top:5px"><div class="rating-label">Stability</div><div class="bar-bg"><div class="bar-fill" id="barStab" style="width:0%;background:linear-gradient(90deg,var(--green2),var(--green))"></div></div></div>
+          <div class="rating-bar" style="margin-top:5px"><div class="rating-label">Selectivity</div><div class="bar-bg"><div class="bar-fill" id="barSel" style="width:0%;background:linear-gradient(90deg,var(--purple),#c080ff)"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Preset Library -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="flex:1">
+        <div class="card-title">CATALYST LIBRARY — PRESETS</div>
+        <div style="font-size:10px;color:var(--txt2);margin-bottom:8px">Click a preset to load into the designer</div>
+        <div class="preset-list" id="presetList"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ACTIVE CATALYST</div>
+        <div id="activeCatalystDisplay" style="color:var(--txt3);font-size:11px">No catalyst loaded. Generate or select a preset.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: REACTOR -->
+<div id="tab-reactor" class="tab-panel">
+  <div class="reactor-layout">
+    <!-- Controls Column -->
+    <div class="reactor-controls">
+      <div class="catalyst-status">
+        <div class="cs-label">LOADED CATALYST</div>
+        <div class="cs-name" id="reactorCatalystName">NONE — Load from Catalyst Lab</div>
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">APPLIED VOLTAGE <span class="ctrl-val" id="voltVal">1.80 V</span></div>
+        <input type="range" class="slider" id="voltSlider" min="1.23" max="3.0" step="0.01" value="1.80">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">TEMPERATURE <span class="ctrl-val" id="tempVal">25 °C</span></div>
+        <input type="range" class="slider" id="tempSlider" min="10" max="90" step="1" value="25">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">pH <span class="ctrl-val" id="phVal">14.0</span></div>
+        <input type="range" class="slider" id="phSlider" min="0" max="14" step="0.1" value="14">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">PRESSURE <span class="ctrl-val" id="pressVal">1.0 atm</span></div>
+        <input type="range" class="slider" id="pressSlider" min="1" max="30" step="0.5" value="1">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">ELECTRODE AREA <span class="ctrl-val" id="areaVal">10 cm²</span></div>
+        <input type="range" class="slider" id="areaSlider" min="1" max="100" step="1" value="10">
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-success" id="startBtn" onclick="toggleReactor()">▶ START REACTOR</button>
+      </div>
+      <div class="oer-her-meters">
+        <div class="meter-box">
+          <div class="meter-title oer">◈ OER ANODE</div>
+          <div><span class="meter-value oer" id="oerRate">0.0</span><span class="meter-unit">mL/min O₂</span></div>
+          <div class="meter-sub">η = <span id="oerOverp" style="color:var(--amber);font-family:'Share Tech Mono',monospace">—</span> mV</div>
+          <div class="meter-sub">j = <span id="oerJ" style="color:var(--amber);font-family:'Share Tech Mono',monospace">0.0</span> mA/cm²</div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-title her">◇ HER CATHODE</div>
+          <div><span class="meter-value her" id="herRate">0.0</span><span class="meter-unit">mL/min H₂</span></div>
+          <div class="meter-sub">η = <span id="herOverp" style="color:var(--cyan);font-family:'Share Tech Mono',monospace">—</span> mV</div>
+          <div class="meter-sub">j = <span id="herJ" style="color:var(--cyan);font-family:'Share Tech Mono',monospace">0.0</span> mA/cm²</div>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label" style="margin-bottom:8px">FARADAIC EFFICIENCY</div>
+        <div class="rating-bar"><div class="rating-label">HER FE</div><div class="bar-bg"><div class="bar-fill" id="feh2" style="width:0%;background:linear-gradient(90deg,var(--cyan2),var(--cyan))"></div></div><span id="feh2val" style="font-size:9px;color:var(--txt2);font-family:'Share Tech Mono',monospace;margin-left:4px">0%</span></div>
+        <div class="rating-bar" style="margin-top:4px"><div class="rating-label">OER FE</div><div class="bar-bg"><div class="bar-fill" id="feo2" style="width:0%;background:linear-gradient(90deg,var(--amber2),var(--amber))"></div></div><span id="feo2val" style="font-size:9px;color:var(--txt2);font-family:'Share Tech Mono',monospace;margin-left:4px">0%</span></div>
+      </div>
+    </div>
+
+    <!-- Reactor Visualization -->
+    <div class="reactor-viz">
+      <div class="reactor-canvas-wrap" style="height:320px">
+        <canvas id="reactorCanvas"></canvas>
+      </div>
+      <div class="card" style="flex-shrink:0">
+        <div class="card-title">CURRENT DENSITY CHART</div>
+        <canvas id="chartCurrent" height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts Column -->
+    <div class="reactor-charts-col">
+      <div class="chart-card">
+        <div class="card-title">PRODUCTION RATES</div>
+        <canvas id="chartProduction" height="140"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">SYSTEM EFFICIENCY</div>
+        <canvas id="chartEfficiency" height="120"></canvas>
+      </div>
+      <div class="card" style="flex-shrink:0">
+        <div class="card-title">REACTION STATUS</div>
+        <div id="reactionStatus" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--txt2);line-height:1.8">
+          <div>Overall: 2H₂O → 2H₂ + O₂</div>
+          <div>HER: 2H⁺ + 2e⁻ → H₂ (E° = 0.00 V)</div>
+          <div>OER: 2H₂O → O₂ + 4H⁺ + 4e⁻ (E° = 1.23 V)</div>
+          <div style="margin-top:4px">Total current: <span id="totalCurrent" style="color:var(--cyan)">0.0</span> mA</div>
+          <div>Power input: <span id="powerInput" style="color:var(--amber)">0.0</span> W</div>
+          <div>Energy efficiency: <span id="energyEff" style="color:var(--green)">0.0</span> %</div>
+          <div>H₂ purity: <span id="h2purity" style="color:var(--cyan)">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: PRODUCTS & REVENUE -->
+<div id="tab-products" class="tab-panel">
+  <div class="products-layout">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title">STORAGE TANKS</div>
+        <div class="tanks-row" id="tanksRow"></div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="ventTanks()">⬆ VENT TANKS</button>
+          <button class="btn btn-amber btn-sm" onclick="collectProducts()">⬇ COLLECT ALL</button>
+        </div>
+      </div>
+      <div class="chart-card" style="flex:1">
+        <div class="card-title">CUMULATIVE PRODUCTION (24h)</div>
+        <canvas id="chartCumulative" height="150"></canvas>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title">REVENUE DASHBOARD</div>
+        <table class="rev-table" id="revTable"></table>
+        <div class="rev-total">
+          <div>
+            <div class="rev-total-label">ESTIMATED REVENUE</div>
+            <div style="font-size:9px;color:var(--txt3);margin-top:2px">Per Hour at Current Rate</div>
+          </div>
+          <div class="rev-total-val" id="totalRevenue">$0.0000/hr</div>
+        </div>
+        <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="prop-box">
+            <div class="prop-label">Daily Projection</div>
+            <div class="prop-value" id="dailyRev" style="color:var(--gold)">$0.00</div>
+          </div>
+          <div class="prop-box">
+            <div class="prop-label">Annual Projection</div>
+            <div class="prop-value" id="annualRev" style="color:var(--gold)">$0.00</div>
+          </div>
+          <div class="prop-box">
+            <div class="prop-label">H₂ Production</div>
+            <div class="prop-value" id="h2Total" style="color:var(--cyan)">0.00</div>
+            <div class="prop-unit">kg/day</div>
+          </div>
+          <div class="prop-box">
+            <div class="prop-label">Power Cost</div>
+            <div class="prop-value" id="powerCost" style="color:var(--red)">$0.00</div>
+            <div class="prop-unit">/day @$0.10/kWh</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card" style="flex:1">
+        <div class="card-title">REVENUE PROJECTIONS (24h)</div>
+        <canvas id="chartRevenue" height="140"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- LOGS BAR -->
+<div class="logs-bar">
+  <div class="logs-header">
+    <div class="logs-title">▸ SYSTEM LOGS — REAL-TIME</div>
+    <div style="display:flex;gap:8px">
+      <span id="logCount" style="font-size:9px;color:var(--txt3)">0 entries</span>
+      <button onclick="clearLogs()" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:9px;letter-spacing:1px;font-family:'Orbitron',sans-serif">CLEAR</button>
+    </div>
+  </div>
+  <div class="logs-content" id="logsContent"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ============================================================
+// ALL 118 ELEMENTS DATA
+// ============================================================
+const ELEMENTS = [
+  {z:1,sym:'H',name:'Hydrogen',cat:'diatomic',g:1,p:1,w:1.008,mp:-259,bp:-253,en:2.20,role:'HER active site; essential for hydrogenation reactions'},
+  {z:2,sym:'He',name:'Helium',cat:'noble',g:18,p:1,w:4.003,mp:-272,bp:-269,en:null,role:'Inert carrier gas; purge applications'},
+  {z:3,sym:'Li',name:'Lithium',cat:'alkali',g:1,p:2,w:6.941,mp:181,bp:1342,en:0.98,role:'Li-S battery catalysis; CO₂ capture'},
+  {z:4,sym:'Be',name:'Beryllium',cat:'alkaline',g:2,p:2,w:9.012,mp:1287,bp:2469,en:1.57,role:'BeO support material; neutron moderator'},
+  {z:5,sym:'B',name:'Boron',cat:'metalloid',g:13,p:2,w:10.811,mp:2077,bp:3927,en:2.04,role:'Boron nitride support; boride catalysts for HER'},
+  {z:6,sym:'C',name:'Carbon',cat:'nonmetal',g:14,p:2,w:12.011,mp:3550,bp:4827,en:2.55,role:'Carbon support (graphene, MWCNT); ORR N-doped carbon'},
+  {z:7,sym:'N',name:'Nitrogen',cat:'diatomic',g:15,p:2,w:14.007,mp:-210,bp:-196,en:3.04,role:'N-doping of carbon for ORR; NRR electrocatalysis'},
+  {z:8,sym:'O',name:'Oxygen',cat:'diatomic',g:16,p:2,w:15.999,mp:-219,bp:-183,en:3.44,role:'OER product; oxide catalyst formation'},
+  {z:9,sym:'F',name:'Fluorine',cat:'halogen',g:17,p:2,w:18.998,mp:-220,bp:-188,en:3.98,role:'Nafion membrane component; fluoride electrolytes'},
+  {z:10,sym:'Ne',name:'Neon',cat:'noble',g:18,p:2,w:20.180,mp:-249,bp:-246,en:null,role:'Inert gas; plasma sources'},
+  {z:11,sym:'Na',name:'Sodium',cat:'alkali',g:1,p:3,w:22.990,mp:98,bp:883,en:0.93,role:'NaOH electrolyte; Na-ion battery catalysis'},
+  {z:12,sym:'Mg',name:'Magnesium',cat:'alkaline',g:2,p:3,w:24.305,mp:650,bp:1091,en:1.31,role:'Mg support; CO₂ hydrogenation promoter'},
+  {z:13,sym:'Al',name:'Aluminium',cat:'post',g:13,p:3,w:26.982,mp:660,bp:2519,en:1.61,role:'Al₂O₃ support; alumina catalysts'},
+  {z:14,sym:'Si',name:'Silicon',cat:'metalloid',g:14,p:3,w:28.086,mp:1414,bp:3265,en:1.90,role:'SiO₂ support; zeolite frameworks; photoelectrocatalysis'},
+  {z:15,sym:'P',name:'Phosphorus',cat:'nonmetal',g:15,p:3,w:30.974,mp:44,bp:277,en:2.19,role:'Phosphide catalysts (Ni₂P) for HER; P-doping'},
+  {z:16,sym:'S',name:'Sulfur',cat:'nonmetal',g:16,p:3,w:32.065,mp:113,bp:445,en:2.58,role:'Sulfide catalysts (MoS₂) for HER; S-vacancies'},
+  {z:17,sym:'Cl',name:'Chlorine',cat:'halogen',g:17,p:3,w:35.453,mp:-101,bp:-34,en:3.16,role:'Chlor-alkali electrolysis; RuO₂/TiO₂ DSA anodes'},
+  {z:18,sym:'Ar',name:'Argon',cat:'noble',g:18,p:3,w:39.948,mp:-189,bp:-186,en:null,role:'Inert atmosphere for synthesis; ALD carrier'},
+  {z:19,sym:'K',name:'Potassium',cat:'alkali',g:1,p:4,w:39.098,mp:64,bp:759,en:0.82,role:'KOH electrolyte for alkaline water splitting'},
+  {z:20,sym:'Ca',name:'Calcium',cat:'alkaline',g:2,p:4,w:40.078,mp:842,bp:1484,en:1.00,role:'CaO promoter; Ca-looping CO₂ capture'},
+  {z:21,sym:'Sc',name:'Scandium',cat:'transition',g:3,p:4,w:44.956,mp:1541,bp:2836,en:1.36,role:'ScₓCe₁₋ₓO₂ for SOFC; doping agent'},
+  {z:22,sym:'Ti',name:'Titanium',cat:'transition',g:4,p:4,w:47.867,mp:1668,bp:3287,en:1.54,role:'TiO₂ photocatalysis; ATO support; TiN for ORR'},
+  {z:23,sym:'V',name:'Vanadium',cat:'transition',g:5,p:4,w:50.942,mp:1910,bp:3407,en:1.63,role:'V₂O₅ for SO₂ oxidation; vanadium redox flow battery'},
+  {z:24,sym:'Cr',name:'Chromium',cat:'transition',g:6,p:4,w:51.996,mp:1907,bp:2671,en:1.66,role:'CrOₓ for dehydrogenation; Cr₂O₃/ZnO methanol'},
+  {z:25,sym:'Mn',name:'Manganese',cat:'transition',g:7,p:4,w:54.938,mp:1246,bp:2061,en:1.55,role:'MnO₂ OER; MnCo₂O₄ bifunctional; OER in alkaline'},
+  {z:26,sym:'Fe',name:'Iron',cat:'transition',g:8,p:4,w:55.845,mp:1538,bp:2861,en:1.83,role:'FeCoNi OER; Fe-N-C for ORR; Haber process'},
+  {z:27,sym:'Co',name:'Cobalt',cat:'transition',g:9,p:4,w:58.933,mp:1495,bp:2927,en:1.88,role:'CoP HER; Co₃O₄ OER; NiCoFe LDH bifunctional'},
+  {z:28,sym:'Ni',name:'Nickel',cat:'transition',g:10,p:4,w:58.693,mp:1455,bp:2913,en:1.91,role:'NiFe-LDH OER; NiMo HER; alkaline electrolyzer'},
+  {z:29,sym:'Cu',name:'Copper',cat:'transition',g:11,p:4,w:63.546,mp:1085,bp:2562,en:1.90,role:'CO₂RR to C₂+ products; methanol synthesis (Cu/ZnO)'},
+  {z:30,sym:'Zn',name:'Zinc',cat:'transition',g:12,p:4,w:65.38,mp:420,bp:907,en:1.65,role:'CO₂RR to CO; Cu/ZnO/Al₂O₃ methanol catalyst'},
+  {z:31,sym:'Ga',name:'Gallium',cat:'post',g:13,p:4,w:69.723,mp:30,bp:2204,en:1.81,role:'In-Ga alloy CO₂RR; GaN photoelectrocatalysis'},
+  {z:32,sym:'Ge',name:'Germanium',cat:'metalloid',g:14,p:4,w:72.640,mp:938,bp:2833,en:2.01,role:'GeO₂ co-catalyst; semiconductor photoelectrodes'},
+  {z:33,sym:'As',name:'Arsenic',cat:'metalloid',g:15,p:4,w:74.922,mp:817,bp:614,en:2.18,role:'FeAsS HER electrocatalyst; arsenide compounds'},
+  {z:34,sym:'Se',name:'Selenium',cat:'nonmetal',g:16,p:4,w:78.960,mp:221,bp:685,en:2.55,role:'CoSe₂ HER; FeSe₂ electrocatalyst; selenide OER'},
+  {z:35,sym:'Br',name:'Bromine',cat:'halogen',g:17,p:4,w:79.904,mp:-7,bp:59,en:2.96,role:'Bromide redox flow batteries; electrosynthesis'},
+  {z:36,sym:'Kr',name:'Krypton',cat:'noble',g:18,p:4,w:83.798,mp:-157,bp:-153,en:null,role:'Inert gas; trace applications'},
+  {z:37,sym:'Rb',name:'Rubidium',cat:'alkali',g:1,p:5,w:85.468,mp:39,bp:688,en:0.82,role:'Rb promoter in ammonia synthesis; Cs₂CO₃/Rb₂CO₃'},
+  {z:38,sym:'Sr',name:'Strontium',cat:'alkaline',g:2,p:5,w:87.620,mp:777,bp:1382,en:0.95,role:'LSCF perovskite for SOFC; SrTiO₃ photocatalyst'},
+  {z:39,sym:'Y',name:'Yttrium',cat:'transition',g:3,p:5,w:88.906,mp:1526,bp:3336,en:1.22,role:'YSZ electrolyte for SOFC; Y₂O₃ stabilizer'},
+  {z:40,sym:'Zr',name:'Zirconium',cat:'transition',g:4,p:5,w:91.224,mp:1855,bp:4409,en:1.33,role:'ZrO₂ support; YSZ solid electrolyte; corrosion barrier'},
+  {z:41,sym:'Nb',name:'Niobium',cat:'transition',g:5,p:5,w:92.906,mp:2477,bp:4744,en:1.60,role:'Nb₂O₅ support; NbOₓ for CO₂RR; Nb-doping'},
+  {z:42,sym:'Mo',name:'Molybdenum',cat:'transition',g:6,p:5,w:95.960,mp:2623,bp:4639,en:2.16,role:'MoS₂ HER; Mo₂C HER; MoN excellent acidic HER'},
+  {z:43,sym:'Tc',name:'Technetium',cat:'transition',g:7,p:5,w:98,mp:2157,bp:4265,en:1.90,role:'Radioactive; research only'},
+  {z:44,sym:'Ru',name:'Ruthenium',cat:'transition',g:8,p:5,w:101.07,mp:2334,bp:4150,en:2.20,role:'RuO₂ OER in acidic PEM; Ru-based HER; CO₂RR'},
+  {z:45,sym:'Rh',name:'Rhodium',cat:'transition',g:9,p:5,w:102.91,mp:1964,bp:3695,en:2.28,role:'Rh for three-way catalysis; CO oxidation; syngas'},
+  {z:46,sym:'Pd',name:'Palladium',cat:'transition',g:10,p:5,w:106.42,mp:1555,bp:2963,en:2.20,role:'Pd/C hydrogenation; Pd-H₂ storage; ORR catalyst'},
+  {z:47,sym:'Ag',name:'Silver',cat:'transition',g:11,p:5,w:107.87,mp:962,bp:2162,en:1.93,role:'Ag CO₂RR to CO/ethylene; Ag for ORR alkaline'},
+  {z:48,sym:'Cd',name:'Cadmium',cat:'transition',g:12,p:5,w:112.41,mp:321,bp:767,en:1.69,role:'CdS photocatalyst; CdTe solar; toxic — limited use'},
+  {z:49,sym:'In',name:'Indium',cat:'post',g:13,p:5,w:114.82,mp:157,bp:2072,en:1.78,role:'In₂O₃ CO₂RR to formate; InGaN photocatalyst'},
+  {z:50,sym:'Sn',name:'Tin',cat:'post',g:14,p:5,w:118.71,mp:232,bp:2602,en:1.96,role:'SnO₂ CO₂RR to formate; SnS₂ photocatalyst'},
+  {z:51,sym:'Sb',name:'Antimony',cat:'metalloid',g:15,p:5,w:121.76,mp:631,bp:1587,en:2.05,role:'Sb₂O₃ for N₂ reduction; SbOₓ electrocatalysis'},
+  {z:52,sym:'Te',name:'Tellurium',cat:'metalloid',g:16,p:5,w:127.60,mp:450,bp:988,en:2.10,role:'CoTe₂ HER; NiTe OER; chalcogenide catalysts'},
+  {z:53,sym:'I',name:'Iodine',cat:'halogen',g:17,p:5,w:126.90,mp:114,bp:184,en:2.66,role:'Iodide mediators in photocatalysis; I₂ regeneration'},
+  {z:54,sym:'Xe',name:'Xenon',cat:'noble',g:18,p:5,w:131.29,mp:-112,bp:-108,en:null,role:'Inert; Xe plasma applications; research gas'},
+  {z:55,sym:'Cs',name:'Caesium',cat:'alkali',g:1,p:6,w:132.91,mp:29,bp:671,en:0.79,role:'Cs promoter for NH₃; Cs₂CO₃ in CO₂ capture'},
+  {z:56,sym:'Ba',name:'Barium',cat:'alkaline',g:2,p:6,w:137.33,mp:727,bp:1897,en:0.89,role:'BaO promoter; Ba-ZrO₂ for CO₂ conversion'},
+  {z:57,sym:'La',name:'Lanthanum',cat:'lanthanide',g:3,p:6,w:138.91,mp:918,bp:3464,en:1.10,role:'La-Ni perovskite OER; La₂O₃ support; SOFC'},
+  {z:58,sym:'Ce',name:'Cerium',cat:'lanthanide',g:4,p:6,w:140.12,mp:798,bp:3443,en:1.12,role:'CeO₂ support; Ce redox for TWC; oxygen storage'},
+  {z:59,sym:'Pr',name:'Praseodymium',cat:'lanthanide',g:5,p:6,w:140.91,mp:931,bp:3520,en:1.13,role:'PrBaCo₂O₅ for SOFC cathode; OER perovskite'},
+  {z:60,sym:'Nd',name:'Neodymium',cat:'lanthanide',g:6,p:6,w:144.24,mp:1016,bp:3074,en:1.14,role:'NdNiO₃ perovskite; Nd₂O₃ promoter'},
+  {z:61,sym:'Pm',name:'Promethium',cat:'lanthanide',g:7,p:6,w:145,mp:1042,bp:3000,en:1.13,role:'Radioactive; no catalytic applications'},
+  {z:62,sym:'Sm',name:'Samarium',cat:'lanthanide',g:8,p:6,w:150.36,mp:1072,bp:1794,en:1.17,role:'SmCoO₃ perovskite for OER; Sm promoter'},
+  {z:63,sym:'Eu',name:'Europium',cat:'lanthanide',g:9,p:6,w:151.96,mp:822,bp:1529,en:1.20,role:'EuO photoelectrocatalysis; luminescence markers'},
+  {z:64,sym:'Gd',name:'Gadolinium',cat:'lanthanide',g:10,p:6,w:157.25,mp:1313,bp:3273,en:1.20,role:'GdBaCo₂O₅ SOFC; Gd-doped CeO₂ electrolyte'},
+  {z:65,sym:'Tb',name:'Terbium',cat:'lanthanide',g:11,p:6,w:158.93,mp:1356,bp:3230,en:1.20,role:'TbOₓ in mixed oxides; luminescent probes'},
+  {z:66,sym:'Dy',name:'Dysprosium',cat:'lanthanide',g:12,p:6,w:162.50,mp:1412,bp:2567,en:1.22,role:'Dy₂O₃ dopant; magnetic catalysts'},
+  {z:67,sym:'Ho',name:'Holmium',cat:'lanthanide',g:13,p:6,w:164.93,mp:1474,bp:2700,en:1.23,role:'Holmium mixed oxides; rare earth doping'},
+  {z:68,sym:'Er',name:'Erbium',cat:'lanthanide',g:14,p:6,w:167.26,mp:1529,bp:2868,en:1.24,role:'Er₂O₃ in catalytic systems; photocatalytic upconversion'},
+  {z:69,sym:'Tm',name:'Thulium',cat:'lanthanide',g:15,p:6,w:168.93,mp:1545,bp:1950,en:1.25,role:'Tm promoter in oxide catalysts; rare earth'},
+  {z:70,sym:'Yb',name:'Ytterbium',cat:'lanthanide',g:16,p:6,w:173.04,mp:824,bp:1196,en:1.10,role:'Yb₂O₃ in methane reforming; upconversion photocatalysis'},
+  {z:71,sym:'Lu',name:'Lutetium',cat:'lanthanide',g:17,p:6,w:174.97,mp:1663,bp:3402,en:1.27,role:'LuAlO₃ for SOFC; Lu₂O₃ HER electrocatalyst'},
+  {z:72,sym:'Hf',name:'Hafnium',cat:'transition',g:4,p:6,w:178.49,mp:2233,bp:4603,en:1.30,role:'HfO₂ gate dielectric; Hf-based ALD for catalysts'},
+  {z:73,sym:'Ta',name:'Tantalum',cat:'transition',g:5,p:6,w:180.95,mp:3017,bp:5458,en:1.50,role:'Ta₂O₅ photocatalyst; TaN for ORR; corrosion-resistant'},
+  {z:74,sym:'W',name:'Tungsten',cat:'transition',g:6,p:6,w:183.84,mp:3422,bp:5555,en:2.36,role:'WC HER catalyst; WS₂ for HER; W₂N electrocatalyst'},
+  {z:75,sym:'Re',name:'Rhenium',cat:'transition',g:7,p:6,w:186.21,mp:3186,bp:5596,en:1.90,role:'Re promoter in Fischer-Tropsch; methanol reforming'},
+  {z:76,sym:'Os',name:'Osmium',cat:'transition',g:8,p:6,w:190.23,mp:3033,bp:5012,en:2.20,role:'OsO₂ OER; Os-based HER; highest melting PGM'},
+  {z:77,sym:'Ir',name:'Iridium',cat:'transition',g:9,p:6,w:192.22,mp:2446,bp:4428,en:2.20,role:'IrO₂ state-of-art OER (acidic PEM); best OER stability'},
+  {z:78,sym:'Pt',name:'Platinum',cat:'transition',g:10,p:6,w:195.08,mp:1768,bp:3825,en:2.28,role:'Pt/C benchmark HER/ORR; Pt-Ni/Pt-Co alloys for ORR'},
+  {z:79,sym:'Au',name:'Gold',cat:'transition',g:11,p:6,w:196.97,mp:1064,bp:2856,en:2.54,role:'Au CO₂RR to CO; Au nanoclusters for CO oxidation'},
+  {z:80,sym:'Hg',name:'Mercury',cat:'transition',g:12,p:6,w:200.59,mp:-39,bp:357,en:2.00,role:'Amalgam electrodes; chlor-alkali (being phased out)'},
+  {z:81,sym:'Tl',name:'Thallium',cat:'post',g:13,p:6,w:204.38,mp:304,bp:1473,en:1.62,role:'Tl-based superconductors; limited use (toxic)'},
+  {z:82,sym:'Pb',name:'Lead',cat:'post',g:14,p:6,w:207.20,mp:327,bp:1749,en:2.33,role:'PbO₂ anodes; perovskite Pb-halide photocatalysts'},
+  {z:83,sym:'Bi',name:'Bismuth',cat:'post',g:15,p:6,w:208.98,mp:271,bp:1564,en:2.02,role:'BiVO₄ photocatalyst OER; Bi CO₂RR to formate'},
+  {z:84,sym:'Po',name:'Polonium',cat:'post',g:16,p:6,w:209,mp:254,bp:962,en:2.00,role:'Radioactive; no practical catalytic use'},
+  {z:85,sym:'At',name:'Astatine',cat:'halogen',g:17,p:6,w:210,mp:302,bp:337,en:2.20,role:'Radioactive halogen; nuclear medicine'},
+  {z:86,sym:'Rn',name:'Radon',cat:'noble',g:18,p:6,w:222,mp:-71,bp:-62,en:null,role:'Radioactive noble gas; no catalytic use'},
+  {z:87,sym:'Fr',name:'Francium',cat:'alkali',g:1,p:7,w:223,mp:27,bp:677,en:0.70,role:'Highly radioactive; no practical applications'},
+  {z:88,sym:'Ra',name:'Radium',cat:'alkaline',g:2,p:7,w:226,mp:700,bp:1737,en:0.90,role:'Historical radiotherapy; radioactive'},
+  {z:89,sym:'Ac',name:'Actinium',cat:'actinide',g:3,p:7,w:227,mp:1050,bp:3200,en:1.10,role:'Radioactive; neutron source applications'},
+  {z:90,sym:'Th',name:'Thorium',cat:'actinide',g:4,p:7,w:232.04,mp:1750,bp:4820,en:1.30,role:'ThO₂ catalyst support; Th nuclear fuel cycle'},
+  {z:91,sym:'Pa',name:'Protactinium',cat:'actinide',g:5,p:7,w:231.04,mp:1572,bp:4000,en:1.50,role:'Radioactive; precursor to U-233'},
+  {z:92,sym:'U',name:'Uranium',cat:'actinide',g:6,p:7,w:238.03,mp:1135,bp:4131,en:1.38,role:'UO₂/UO₃ for CO₂ reduction; nuclear fuel'},
+  {z:93,sym:'Np',name:'Neptunium',cat:'actinide',g:7,p:7,w:237,mp:640,bp:3902,en:1.36,role:'Radioactive transuranic; limited study'},
+  {z:94,sym:'Pu',name:'Plutonium',cat:'actinide',g:8,p:7,w:244,mp:640,bp:3228,en:1.28,role:'PuO₂ nuclear; radioactive — no catalytic use'},
+  {z:95,sym:'Am',name:'Americium',cat:'actinide',g:9,p:7,w:243,mp:1176,bp:2011,en:1.30,role:'AmO₂ radioactive source; smoke detectors'},
+  {z:96,sym:'Cm',name:'Curium',cat:'actinide',g:10,p:7,w:247,mp:1345,bp:3110,en:1.30,role:'Radioactive; space power sources (RTG)'},
+  {z:97,sym:'Bk',name:'Berkelium',cat:'actinide',g:11,p:7,w:247,mp:986,bp:2627,en:1.30,role:'Radioactive synthetic element; research only'},
+  {z:98,sym:'Cf',name:'Californium',cat:'actinide',g:12,p:7,w:251,mp:900,bp:1472,en:1.30,role:'Neutron source; no catalytic applications'},
+  {z:99,sym:'Es',name:'Einsteinium',cat:'actinide',g:13,p:7,w:252,mp:860,bp:996,en:1.30,role:'Synthetic radioactive; research only'},
+  {z:100,sym:'Fm',name:'Fermium',cat:'actinide',g:14,p:7,w:257,mp:1527,bp:null,en:1.30,role:'Radioactive synthetic; decay study'},
+  {z:101,sym:'Md',name:'Mendelevium',cat:'actinide',g:15,p:7,w:258,mp:827,bp:null,en:1.30,role:'Radioactive synthetic; minimal study'},
+  {z:102,sym:'No',name:'Nobelium',cat:'actinide',g:16,p:7,w:259,mp:827,bp:null,en:1.30,role:'Synthetic transuranic; very short half-life'},
+  {z:103,sym:'Lr',name:'Lawrencium',cat:'actinide',g:17,p:7,w:266,mp:1627,bp:null,en:1.30,role:'Last actinide; very short half-life'},
+  {z:104,sym:'Rf',name:'Rutherfordium',cat:'transition',g:4,p:7,w:267,mp:2100,bp:5500,en:null,role:'Superheavy; sub-second half-life'},
+  {z:105,sym:'Db',name:'Dubnium',cat:'transition',g:5,p:7,w:268,mp:null,bp:null,en:null,role:'Synthetic superheavy element'},
+  {z:106,sym:'Sg',name:'Seaborgium',cat:'transition',g:6,p:7,w:271,mp:null,bp:null,en:null,role:'Synthetic; Group 6 chemistry studies'},
+  {z:107,sym:'Bh',name:'Bohrium',cat:'transition',g:7,p:7,w:272,mp:null,bp:null,en:null,role:'Synthetic transactinide'},
+  {z:108,sym:'Hs',name:'Hassium',cat:'transition',g:8,p:7,w:270,mp:null,bp:null,en:null,role:'Volatile tetroxide predicted; limited study'},
+  {z:109,sym:'Mt',name:'Meitnerium',cat:'unknown',g:9,p:7,w:278,mp:null,bp:null,en:null,role:'Synthetic; named after Lise Meitner'},
+  {z:110,sym:'Ds',name:'Darmstadtium',cat:'unknown',g:10,p:7,w:281,mp:null,bp:null,en:null,role:'Synthetic; Group 10 superheavy'},
+  {z:111,sym:'Rg',name:'Roentgenium',cat:'unknown',g:11,p:7,w:282,mp:null,bp:null,en:null,role:'Synthetic; named after Wilhelm Röntgen'},
+  {z:112,sym:'Cn',name:'Copernicium',cat:'transition',g:12,p:7,w:285,mp:null,bp:null,en:null,role:'Volatile metal; gas-phase chemistry'},
+  {z:113,sym:'Nh',name:'Nihonium',cat:'unknown',g:13,p:7,w:286,mp:null,bp:null,en:null,role:'Synthetic; discovered in Japan'},
+  {z:114,sym:'Fl',name:'Flerovium',cat:'post',g:14,p:7,w:289,mp:null,bp:null,en:null,role:'Synthetic; predicted noble-gas-like behavior'},
+  {z:115,sym:'Mc',name:'Moscovium',cat:'unknown',g:15,p:7,w:290,mp:null,bp:null,en:null,role:'Synthetic; very short half-life'},
+  {z:116,sym:'Lv',name:'Livermorium',cat:'unknown',g:16,p:7,w:293,mp:null,bp:null,en:null,role:'Synthetic; predicted chalcogen chemistry'},
+  {z:117,sym:'Ts',name:'Tennessine',cat:'unknown',g:17,p:7,w:294,mp:null,bp:null,en:null,role:'Synthetic; predicted halogen-like behavior'},
+  {z:118,sym:'Og',name:'Oganesson',cat:'unknown',g:18,p:7,w:294,mp:null,bp:null,en:null,role:'Heaviest known element; synthetic'}
+];
+
+const elementByZ = {};
+ELEMENTS.forEach(e => { elementByZ[e.z] = e; });
+
+// Periodic table layout: [z, gridCol, gridRow]
+// Main table rows 1-7, lanthanides row 9, actinides row 10
+const PT_LAYOUT = [];
+// Helper: map z to grid position
+function ptPos(el) {
+  const {g, p, cat} = el;
+  if (cat === 'lanthanide') {
+    // La=57 col1=3, Ce=58 col2=4, ..., Lu=71 col15=17
+    const offset = el.z - 57;
+    return {col: 3 + offset, row: 9};
+  }
+  if (cat === 'actinide') {
+    const offset = el.z - 89;
+    return {col: 3 + offset, row: 10};
+  }
+  // period 6: Hf(72) is at group 4, so after the lanthanide gap
+  // period 7: Rf(104) is at group 4
+  return {col: g, row: p};
+}
+
+// ============================================================
+// PRESET CATALYSTS
+// ============================================================
+const PRESETS = [
+  {name:'IrO₂',formula:'IrO₂',components:[{z:77,ratio:2},{z:8,ratio:2}],type:['oer'],oerOvp:300,herOvp:null,tafel:39,tof:0.48,stab:2000,ecsa:85,support:'none',synth:'hydro',color:'#00ccff',desc:'State-of-the-art acidic OER in PEM electrolyzers'},
+  {name:'RuO₂',formula:'RuO₂',components:[{z:44,ratio:1},{z:8,ratio:2}],type:['oer'],oerOvp:270,herOvp:null,tafel:35,tof:0.62,stab:800,ecsa:90,support:'none',synth:'hydro',color:'#00aadd',desc:'Highest OER activity, lower stability than IrO₂'},
+  {name:'Pt/C',formula:'Pt/C (20wt%)',components:[{z:78,ratio:1},{z:6,ratio:4}],type:['her'],oerOvp:null,herOvp:50,tafel:29,tof:0.95,stab:5000,ecsa:120,support:'carbon',synth:'coppt',color:'#ffd040',desc:'Benchmark HER catalyst in acidic media'},
+  {name:'NiFe-LDH',formula:'Ni₆Fe₂(OH)₁₆CO₃',components:[{z:28,ratio:6},{z:26,ratio:2},{z:8,ratio:4}],type:['oer'],oerOvp:235,herOvp:null,tafel:45,tof:0.31,stab:3000,ecsa:67,support:'nf',synth:'hydro',color:'#00ff88',desc:'Best non-noble OER in alkaline; earth-abundant'},
+  {name:'MoS₂',formula:'MoS₂',components:[{z:42,ratio:1},{z:16,ratio:2}],type:['her'],oerOvp:null,herOvp:180,tafel:55,tof:0.12,stab:2000,ecsa:45,support:'cc',synth:'hydro',color:'#9060ff',desc:'2D layered HER catalyst; edge sites active'},
+  {name:'CoP',formula:'CoP',components:[{z:27,ratio:1},{z:15,ratio:1}],type:['her','oer'],oerOvp:320,herOvp:140,tafel:52,tof:0.18,stab:2500,ecsa:58,support:'cc',synth:'hydro',color:'#ff9030',desc:'Bifunctional phosphide; both HER and OER active'},
+  {name:'NiMoP',formula:'NiMoP',components:[{z:28,ratio:2},{z:42,ratio:1},{z:15,ratio:1}],type:['her'],oerOvp:null,herOvp:95,tafel:42,tof:0.35,stab:4000,ecsa:78,support:'nf',synth:'elec',color:'#ff50a0',desc:'Alkaline HER champion; approaches Pt performance'},
+  {name:'Cu/ZnO/Al₂O₃',formula:'Cu/ZnO/Al₂O₃',components:[{z:29,ratio:6},{z:30,ratio:3},{z:13,ratio:1}],type:['co2'],oerOvp:null,herOvp:null,tafel:null,tof:0.08,stab:8000,ecsa:35,support:'al2o3',synth:'coppt',color:'#ff9030',desc:'Industrial methanol synthesis from CO₂/H₂'},
+  {name:'Fe-N-C',formula:'Fe-N-C',components:[{z:26,ratio:1},{z:7,ratio:4},{z:6,ratio:20}],type:['her','oer'],oerOvp:350,herOvp:200,tafel:65,tof:0.09,stab:3500,ecsa:42,support:'carbon',synth:'cvd',color:'#00ff88',desc:'Non-PGM ORR/OER; Fe-N₄ active sites'},
+  {name:'Ir-Ru Alloy',formula:'Ir₀.₅Ru₀.₅O₂',components:[{z:77,ratio:1},{z:44,ratio:1},{z:8,ratio:4}],type:['oer'],oerOvp:255,herOvp:null,tafel:38,tof:0.58,stab:1400,ecsa:95,support:'none',synth:'sput',color:'#00ccff',desc:'High activity + improved stability vs pure RuO₂'},
+  {name:'WC',formula:'WC',components:[{z:74,ratio:1},{z:6,ratio:1}],type:['her'],oerOvp:null,herOvp:130,tafel:58,tof:0.14,stab:3200,ecsa:40,support:'carbon',synth:'cvd',color:'#6080ff',desc:'Tungsten carbide: Pt-like HER; ultra-low cost'},
+  {name:'CoSe₂',formula:'CoSe₂',components:[{z:27,ratio:1},{z:34,ratio:2}],type:['her'],oerOvp:null,herOvp:155,tafel:40,tof:0.22,stab:1800,ecsa:52,support:'cc',synth:'hydro',color:'#ff6080',desc:'Cobalt diselenide; good acidic/alkaline HER'},
+];
+
+// ============================================================
+// APP STATE
+// ============================================================
+let selectedElements = new Set();
+let catalystComponents = []; // {z, ratio}
+let activeCatalyst = null;
+let reactorRunning = false;
+let reactorTime = 0;
+let reactorInterval = null;
+let chartData = { current:[], production:[], efficiency:[], revenue:[], cumulative:[] };
+const MAX_CHART_POINTS = 60;
+
+let products = {
+  H2: {stored:0, rate:0, price:5.50, unit:'kg', color:'#00ccff', label:'H₂'},
+  O2: {stored:0, rate:0, price:0.18, unit:'m³', color:'#ff9030', label:'O₂'},
+  CH4: {stored:0, rate:0, price:0.65, unit:'m³', color:'#00ff88', label:'CH₄'},
+  MeOH: {stored:0, rate:0, price:0.52, unit:'kg', color:'#ff50a0', label:'MeOH'},
+  Syngas: {stored:0, rate:0, price:0.28, unit:'m³', color:'#ffd040', label:'Syngas'},
+};
+
+let logs = [];
+let logCount = 0;
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  buildPeriodicTable();
+  buildPresetList();
+  buildTanks();
+  buildRevTable();
+  initCharts();
+  updateClock();
+  setInterval(updateClock, 1000);
+  document.getElementById('sysDot').classList.add('active');
+  addLog('SYS','NEXUS Catalyst Engineering Laboratory initialized');
+  addLog('SYS','All 118 elements loaded — periodic table ready');
+  addLog('SYS','Awaiting catalyst selection and reactor configuration');
+
+  // Slider listeners
+  ['volt','temp','ph','press','area'].forEach(id => {
+    const sl = document.getElementById(id+'Slider');
+    if (sl) sl.addEventListener('input', updateSliderDisplays);
+  });
+  updateSliderDisplays();
+  initReactorCanvas();
+});
+
+// ============================================================
+// PERIODIC TABLE BUILD
+// ============================================================
+const CAT_COLORS = {
+  alkali:'#c04000',alkaline:'#a07800',lanthanide:'#7000a0',actinide:'#a00040',
+  transition:'#1050a0',post:'#105030',metalloid:'#400060',nonmetal:'#006040',
+  diatomic:'#006040',halogen:'#803000',noble:'#006080',unknown:'#303030'
+};
+
+function buildPeriodicTable() {
+  const grid = document.getElementById('ptGrid');
+  grid.innerHTML = '';
+
+  // Build lookup by [period][group]
+  const byPos = {};
+  ELEMENTS.forEach(el => {
+    if (el.cat !== 'lanthanide' && el.cat !== 'actinide') {
+      const key = `${el.p}_${el.g}`;
+      byPos[key] = el;
+    }
+  });
+
+  // Lanthanide/actinide lookup
+  const lanthanides = ELEMENTS.filter(e => e.cat === 'lanthanide');
+  const actinides = ELEMENTS.filter(e => e.cat === 'actinide');
+
+  // Set grid rows to accommodate 10 rows (7 periods + gap + 2 f-rows)
+  // Each row is one period, row 8 is the separator, rows 9-10 are f-block
+  // We'll use 10 rows
+  const totalRows = 10;
+  grid.style.gridTemplateRows = `repeat(${totalRows}, 46px)`;
+
+  // Empty cells first (periods 1-7, groups 1-18)
+  for (let row = 1; row <= 7; row++) {
+    for (let col = 1; col <= 18; col++) {
+      const el = byPos[`${row}_${col}`];
+      const cell = document.createElement('div');
+      cell.style.gridColumn = col;
+      cell.style.gridRow = row;
+
+      if (row === 6 && col === 3) {
+        // Lanthanide placeholder
+        cell.className = 'el-placeholder';
+        cell.style.background = 'rgba(112,0,160,0.2)';
+        cell.style.border = '1px dashed rgba(160,0,220,0.4)';
+        cell.style.fontSize = '7px';
+        cell.innerHTML = '57-71<br>La→Lu';
+        cell.onclick = () => { /* scroll to lanthanides */ };
+      } else if (row === 7 && col === 3) {
+        // Actinide placeholder
+        cell.className = 'el-placeholder';
+        cell.style.background = 'rgba(160,0,64,0.2)';
+        cell.style.border = '1px dashed rgba(200,0,80,0.4)';
+        cell.style.fontSize = '7px';
+        cell.innerHTML = '89-103<br>Ac→Lr';
+      } else if (el) {
+        buildElementCell(cell, el);
+      } else {
+        // Empty space
+        cell.style.background = 'transparent';
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  // Gap row (row 8) - label
+  const gapDiv = document.createElement('div');
+  gapDiv.style.gridColumn = '1/19';
+  gapDiv.style.gridRow = '8';
+  gapDiv.style.display = 'flex';
+  gapDiv.style.alignItems = 'center';
+  gapDiv.style.paddingLeft = '100px';
+  gapDiv.innerHTML = '<span style="font-size:8px;color:var(--txt3);letter-spacing:1px">── F-BLOCK ELEMENTS ──</span>';
+  grid.appendChild(gapDiv);
+
+  // Lanthanide label (col 1-2, row 9)
+  const lLabel = document.createElement('div');
+  lLabel.style.gridColumn = '1/3';
+  lLabel.style.gridRow = '9';
+  lLabel.style.display = 'flex';
+  lLabel.style.flexDirection = 'column';
+  lLabel.style.alignItems = 'center';
+  lLabel.style.justifyContent = 'center';
+  lLabel.innerHTML = '<span style="font-size:7px;color:rgba(160,0,220,0.8);letter-spacing:1px;writing-mode:horizontal-tb">LANTHAN.</span><span style="font-size:6px;color:var(--txt3)">57–71</span>';
+  grid.appendChild(lLabel);
+
+  // Actinide label (col 1-2, row 10)
+  const aLabel = document.createElement('div');
+  aLabel.style.gridColumn = '1/3';
+  aLabel.style.gridRow = '10';
+  aLabel.style.display = 'flex';
+  aLabel.style.flexDirection = 'column';
+  aLabel.style.alignItems = 'center';
+  aLabel.style.justifyContent = 'center';
+  aLabel.innerHTML = '<span style="font-size:7px;color:rgba(200,0,80,0.8);letter-spacing:1px">ACTINIDE</span><span style="font-size:6px;color:var(--txt3)">89–103</span>';
+  grid.appendChild(aLabel);
+
+  // Lanthanides row 9, cols 3-17
+  lanthanides.forEach((el, i) => {
+    const cell = document.createElement('div');
+    cell.style.gridColumn = 3 + i;
+    cell.style.gridRow = '9';
+    buildElementCell(cell, el);
+    grid.appendChild(cell);
+  });
+
+  // Actinides row 10, cols 3-17
+  actinides.forEach((el, i) => {
+    const cell = document.createElement('div');
+    cell.style.gridColumn = 3 + i;
+    cell.style.gridRow = '10';
+    buildElementCell(cell, el);
+    grid.appendChild(cell);
+  });
+}
+
+function buildElementCell(cell, el) {
+  cell.className = `el cat-${el.cat}`;
+  cell.dataset.z = el.z;
+  const catColor = CAT_COLORS[el.cat] || '#333';
+  cell.style.borderColor = `${catColor}80`;
+  cell.innerHTML = `<div class="el-z">${el.z}</div><div class="el-sym">${el.sym}</div><div class="el-name">${el.name}</div><div class="el-w">${el.w}</div>`;
+  cell.addEventListener('mouseenter', e => showTooltip(e, el));
+  cell.addEventListener('mouseleave', hideTooltip);
+  cell.addEventListener('click', () => toggleElement(el));
+  if (selectedElements.has(el.z)) cell.classList.add('selected');
+}
+
+// ============================================================
+// TOOLTIP
+// ============================================================
+function showTooltip(e, el) {
+  const tt = document.getElementById('tooltip');
+  const catColor = CAT_COLORS[el.cat] || '#333';
+  tt.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+      <div class="tt-sym" style="color:${catColor}">${el.sym}</div>
+      <div><div class="tt-name">${el.name}</div><span class="tt-cat" style="background:${catColor}33;color:${catColor};border:1px solid ${catColor}66">${el.cat.toUpperCase()}</span></div>
+    </div>
+    <div class="tt-row"><span>Atomic Number</span><span>${el.z}</span></div>
+    <div class="tt-row"><span>Atomic Mass</span><span>${el.w} u</span></div>
+    <div class="tt-row"><span>Melting Point</span><span>${el.mp != null ? el.mp+'°C' : '—'}</span></div>
+    <div class="tt-row"><span>Boiling Point</span><span>${el.bp != null ? el.bp+'°C' : '—'}</span></div>
+    <div class="tt-row"><span>Electronegativity</span><span>${el.en != null ? el.en : '—'}</span></div>
+    <div class="tt-role">${el.role}</div>
+    <div style="margin-top:6px;font-size:9px;color:var(--txt3)">Click to ${selectedElements.has(el.z) ? 'remove from' : 'add to'} catalyst basket</div>
+  `;
+  const rect = e.target.getBoundingClientRect();
+  let left = rect.right + 8;
+  let top = rect.top;
+  if (left + 200 > window.innerWidth) left = rect.left - 210;
+  if (top + 280 > window.innerHeight) top = window.innerHeight - 290;
+  tt.style.left = left + 'px';
+  tt.style.top = Math.max(10, top) + 'px';
+  tt.style.display = 'block';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ============================================================
+// ELEMENT SELECTION
+// ============================================================
+function toggleElement(el) {
+  if (selectedElements.has(el.z)) {
+    selectedElements.delete(el.z);
+    // Remove from catalyst components
+    catalystComponents = catalystComponents.filter(c => c.z !== el.z);
+    addLog('SYS', `Removed ${el.sym} (${el.name}) from basket`);
+  } else {
+    selectedElements.add(el.z);
+    catalystComponents.push({z: el.z, ratio: 1});
+    addLog('SYS', `Added ${el.sym} (${el.name}) — ${el.role.split(';')[0]}`);
+  }
+  // Update cell
+  document.querySelectorAll(`.el[data-z="${el.z}"]`).forEach(c => {
+    c.classList.toggle('selected', selectedElements.has(el.z));
+  });
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+}
+
+function updateBasket() {
+  const container = document.getElementById('basketItems');
+  if (selectedElements.size === 0) {
+    container.innerHTML = '<div class="basket-empty">Click elements above to add to catalyst basket</div>';
+    return;
+  }
+  container.innerHTML = '';
+  selectedElements.forEach(z => {
+    const el = elementByZ[z];
+    if (!el) return;
+    const item = document.createElement('div');
+    item.className = 'basket-item';
+    item.style.borderColor = `${CAT_COLORS[el.cat]}60`;
+    item.style.color = CAT_COLORS[el.cat];
+    item.innerHTML = `<span>${el.sym}</span><span class="rm" onclick="removeFromBasket(${z},event)">×</span>`;
+    item.title = el.name;
+    container.appendChild(item);
+  });
+}
+
+function removeFromBasket(z, e) {
+  e.stopPropagation();
+  selectedElements.delete(z);
+  catalystComponents = catalystComponents.filter(c => c.z !== z);
+  document.querySelectorAll(`.el[data-z="${z}"]`).forEach(c => c.classList.remove('selected'));
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+}
+
+function clearBasket() {
+  selectedElements.forEach(z => {
+    document.querySelectorAll(`.el[data-z="${z}"]`).forEach(c => c.classList.remove('selected'));
+  });
+  selectedElements.clear();
+  catalystComponents = [];
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+  addLog('SYS','Catalyst basket cleared');
+}
+
+function updateBasketCount() {
+  const el = document.getElementById('basketCount');
+  if (el) el.textContent = selectedElements.size > 0 ? `${selectedElements.size} element(s) selected` : '';
+}
+
+// ============================================================
+// CATALYST LAB
+// ============================================================
+function updateCatalystComponents() {
+  const container = document.getElementById('catalystComponents');
+  if (catalystComponents.length === 0) {
+    container.innerHTML = '<div style="color:var(--txt3);font-size:11px">No elements selected. Go to ELEMENTS tab to select components.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  catalystComponents.forEach((comp, i) => {
+    const el = elementByZ[comp.z];
+    if (!el) return;
+    const row = document.createElement('div');
+    row.className = 'comp-row';
+    row.innerHTML = `
+      <span class="comp-sym" style="color:${CAT_COLORS[el.cat]}">${el.sym}</span>
+      <span class="comp-name">${el.name}</span>
+      <span style="font-size:9px;color:var(--txt3)">ratio:</span>
+      <input class="comp-ratio" type="number" min="0.1" max="100" step="0.1" value="${comp.ratio}" 
+        onchange="updateRatio(${i}, this.value)" style="width:60px">
+      <button class="comp-remove" onclick="removeComponent(${i})">×</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function updateRatio(i, val) {
+  catalystComponents[i].ratio = parseFloat(val) || 1;
+}
+
+function removeComponent(i) {
+  const z = catalystComponents[i].z;
+  catalystComponents.splice(i, 1);
+  selectedElements.delete(z);
+  document.querySelectorAll(`.el[data-z="${z}"]`).forEach(c => c.classList.remove('selected'));
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+}
+
+function generateCatalyst() {
+  if (catalystComponents.length === 0) {
+    showNotif('Add elements to catalyst basket first!');
+    return;
+  }
+  const name = document.getElementById('catalystName').value || buildAutoName();
+  document.getElementById('catalystName').value = name;
+
+  // Simulate property prediction based on components
+  const props = predictProperties(catalystComponents);
+  document.getElementById('propOerOvp').textContent = props.oerOvp ? props.oerOvp.toFixed(0) : '—';
+  document.getElementById('propHerOvp').textContent = props.herOvp ? props.herOvp.toFixed(0) : '—';
+  document.getElementById('propTafel').textContent = props.tafel.toFixed(0);
+  document.getElementById('propTof').textContent = props.tof.toFixed(3);
+  document.getElementById('propStab').textContent = props.stab.toFixed(0);
+  document.getElementById('propEcsa').textContent = props.ecsa.toFixed(0);
+
+  // Bars
+  const oerScore = props.oerOvp ? Math.max(0, 100 - (props.oerOvp - 200) / 5) : 0;
+  const herScore = props.herOvp ? Math.max(0, 100 - (props.herOvp - 30) / 3) : 0;
+  const stabScore = Math.min(100, props.stab / 80);
+  const selScore = props.selectivity;
+  document.getElementById('barOer').style.width = Math.min(100, oerScore) + '%';
+  document.getElementById('barHer').style.width = Math.min(100, herScore) + '%';
+  document.getElementById('barStab').style.width = Math.min(100, stabScore) + '%';
+  document.getElementById('barSel').style.width = Math.min(100, selScore) + '%';
+
+  activeCatalyst = { name, components: [...catalystComponents], props,
+    support: document.getElementById('supportMaterial').value,
+    electrolyte: document.getElementById('electrolyte').value,
+    synth: document.getElementById('synthesis').value };
+
+  updateActiveCatalystDisplay();
+  addLog('CAT', `Catalyst generated: ${name} — OER η=${props.oerOvp||'N/A'}mV, HER η=${props.herOvp||'N/A'}mV`);
+  showNotif(`Catalyst "${name}" generated!`);
+}
+
+function buildAutoName() {
+  return catalystComponents.map(c => elementByZ[c.z]?.sym || '').join('') + '-X';
+}
+
+function predictProperties(components) {
+  // Weighted prediction based on catalytic element properties
+  const catalyticData = {
+    77:{oer:300,her:null,tafel:39,tof:0.48,stab:2000},  // Ir
+    44:{oer:270,her:null,tafel:35,tof:0.62,stab:800},    // Ru
+    78:{oer:null,her:50,tafel:29,tof:0.95,stab:5000},    // Pt
+    28:{oer:260,her:120,tafel:50,tof:0.25,stab:3500},    // Ni
+    26:{oer:280,her:160,tafel:55,tof:0.20,stab:4000},    // Fe
+    27:{oer:320,her:140,tafel:52,tof:0.18,stab:2500},    // Co
+    42:{oer:null,her:180,tafel:55,tof:0.12,stab:2000},   // Mo
+    74:{oer:null,her:130,tafel:58,tof:0.14,stab:3200},   // W
+    25:{oer:350,her:null,tafel:65,tof:0.10,stab:3000},   // Mn
+    29:{oer:null,her:200,tafel:75,tof:0.08,stab:1500},   // Cu
+    76:{oer:290,her:null,tafel:41,tof:0.40,stab:1200},   // Os
+    46:{oer:null,her:80,tafel:35,tof:0.60,stab:3000},    // Pd
+  };
+  let oerSum=0,oerW=0,herSum=0,herW=0,tafelSum=0,tofSum=0,stabSum=0,n=0;
+  components.forEach(c => {
+    const d = catalyticData[c.z];
+    if (d) {
+      if (d.oer) { oerSum += d.oer * c.ratio; oerW += c.ratio; }
+      if (d.her) { herSum += d.her * c.ratio; herW += c.ratio; }
+      tafelSum += d.tafel * c.ratio;
+      tofSum += d.tof * c.ratio;
+      stabSum += d.stab * c.ratio;
+      n += c.ratio;
+    } else {
+      tafelSum += 60 * (c.ratio||1);
+      tofSum += 0.05 * (c.ratio||1);
+      stabSum += 1000 * (c.ratio||1);
+      n += c.ratio||1;
+    }
+  });
+  if (!n) n = 1;
+  // Synergy bonus for multi-component catalysts
+  const synergy = Math.min(0.3, (components.length - 1) * 0.08);
+  return {
+    oerOvp: oerW > 0 ? Math.max(200, (oerSum/oerW) * (1 - synergy) + (Math.random()-0.5)*20) : null,
+    herOvp: herW > 0 ? Math.max(30, (herSum/herW) * (1 - synergy) + (Math.random()-0.5)*15) : null,
+    tafel: Math.max(28, tafelSum/n + (Math.random()-0.5)*5),
+    tof: Math.min(1.2, tofSum/n * (1 + synergy) + Math.random()*0.05),
+    stab: stabSum/n * (1 + synergy*2) + Math.random()*100,
+    ecsa: 40 + components.length * 8 + Math.random()*20,
+    selectivity: 50 + components.length * 8 + Math.random()*20,
+  };
+}
+
+function updateActiveCatalystDisplay() {
+  const d = document.getElementById('activeCatalystDisplay');
+  if (!activeCatalyst) { d.innerHTML = '<span style="color:var(--txt3)">None</span>'; return; }
+  const c = activeCatalyst;
+  d.innerHTML = `
+    <div style="font-family:'Orbitron',sans-serif;font-size:14px;color:var(--gold)">${c.name}</div>
+    <div style="font-size:10px;color:var(--txt2);margin-top:4px">Components: ${c.components.map(x => elementByZ[x.z]?.sym).join(', ')}</div>
+    <div style="font-size:10px;color:var(--txt2)">Support: ${c.support} | Electrolyte: ${c.electrolyte}</div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      ${c.props.oerOvp ? `<span class="badge badge-oer">OER η=${c.props.oerOvp.toFixed(0)}mV</span>` : ''}
+      ${c.props.herOvp ? `<span class="badge badge-her">HER η=${c.props.herOvp.toFixed(0)}mV</span>` : ''}
+      <span class="badge" style="background:#201500;color:var(--gold);border:1px solid #604000">Tafel ${c.props.tafel.toFixed(0)} mV/dec</span>
+    </div>
+  `;
+}
+
+function loadToReactor() {
+  if (!activeCatalyst) { generateCatalyst(); }
+  if (!activeCatalyst) { showNotif('Generate a catalyst first!'); return; }
+  const nm = document.getElementById('reactorCatalystName');
+  if (nm) nm.textContent = activeCatalyst.name;
+  addLog('RXN', `Catalyst loaded to reactor: ${activeCatalyst.name}`);
+  addLog('RXN', `HER η=${activeCatalyst.props.herOvp?.toFixed(0)||'N/A'}mV | OER η=${activeCatalyst.props.oerOvp?.toFixed(0)||'N/A'}mV | TOF=${activeCatalyst.props.tof?.toFixed(3)}`);
+  showNotif(`${activeCatalyst.name} loaded to reactor!`);
+  switchTab('reactor');
+}
+
+function clearCatalyst() {
+  catalystComponents = [];
+  selectedElements.clear();
+  document.querySelectorAll('.el.selected').forEach(c => c.classList.remove('selected'));
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+  activeCatalyst = null;
+  updateActiveCatalystDisplay();
+  ['propOerOvp','propHerOvp','propTafel','propTof','propStab','propEcsa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+  ['barOer','barHer','barStab','barSel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = '0%';
+  });
+  addLog('SYS','Catalyst designer cleared');
+}
+
+// ============================================================
+// PRESET LIBRARY
+// ============================================================
+function buildPresetList() {
+  const list = document.getElementById('presetList');
+  list.innerHTML = '';
+  PRESETS.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'preset-item';
+    item.dataset.idx = i;
+    item.innerHTML = `
+      <div>
+        <div class="preset-name" style="color:${p.color}">${p.name}</div>
+        <div class="preset-formula">${p.formula}</div>
+        <div style="font-size:9px;color:var(--txt3);margin-top:2px">${p.desc}</div>
+      </div>
+      <div class="preset-badges">
+        ${p.type.includes('oer') ? '<span class="badge badge-oer">OER</span>' : ''}
+        ${p.type.includes('her') ? '<span class="badge badge-her">HER</span>' : ''}
+        ${p.type.includes('co2') ? '<span class="badge badge-co2">CO₂RR</span>' : ''}
+      </div>
+    `;
+    item.addEventListener('click', () => loadPreset(i));
+    list.appendChild(item);
+  });
+}
+
+function loadPreset(i) {
+  const p = PRESETS[i];
+  // Clear existing
+  selectedElements.clear();
+  catalystComponents = [];
+  document.querySelectorAll('.el.selected').forEach(c => c.classList.remove('selected'));
+
+  // Load components
+  p.components.forEach(c => {
+    if (elementByZ[c.z]) {
+      selectedElements.add(c.z);
+      catalystComponents.push({z: c.z, ratio: c.ratio});
+    }
+  });
+
+  document.querySelectorAll('.el').forEach(cell => {
+    const z = parseInt(cell.dataset.z);
+    if (selectedElements.has(z)) cell.classList.add('selected');
+  });
+
+  document.getElementById('catalystName').value = p.name;
+  updateBasket();
+  updateCatalystComponents();
+  updateBasketCount();
+
+  // Set predicted props
+  document.getElementById('propOerOvp').textContent = p.oerOvp || '—';
+  document.getElementById('propHerOvp').textContent = p.herOvp || '—';
+  document.getElementById('propTafel').textContent = p.tafel || '—';
+  document.getElementById('propTof').textContent = p.tof?.toFixed(3) || '—';
+  document.getElementById('propStab').textContent = p.stab;
+  document.getElementById('propEcsa').textContent = p.ecsa;
+
+  const oerScore = p.oerOvp ? Math.max(0, 100 - (p.oerOvp - 200) / 5) : 0;
+  const herScore = p.herOvp ? Math.max(0, 100 - (p.herOvp - 30) / 3) : 0;
+  document.getElementById('barOer').style.width = Math.min(100, oerScore) + '%';
+  document.getElementById('barHer').style.width = Math.min(100, herScore) + '%';
+  document.getElementById('barStab').style.width = Math.min(100, p.stab / 80) + '%';
+  document.getElementById('barSel').style.width = '72%';
+
+  activeCatalyst = {
+    name: p.name, components: [...p.components],
+    props: { oerOvp: p.oerOvp, herOvp: p.herOvp, tafel: p.tafel, tof: p.tof, stab: p.stab, ecsa: p.ecsa, selectivity: 72 },
+    support: p.support, electrolyte: 'koh1', synth: p.synth
+  };
+
+  document.querySelectorAll('.preset-item').forEach((el, j) => el.classList.toggle('loaded', j === i));
+  updateActiveCatalystDisplay();
+  addLog('CAT', `Preset loaded: ${p.name} — ${p.desc}`);
+  showNotif(`${p.name} loaded!`);
+}
+
+// ============================================================
+// REACTOR
+// ============================================================
+function updateSliderDisplays() {
+  const volt = document.getElementById('voltSlider')?.value || 1.80;
+  const temp = document.getElementById('tempSlider')?.value || 25;
+  const ph = document.getElementById('phSlider')?.value || 14;
+  const press = document.getElementById('pressSlider')?.value || 1;
+  const area = document.getElementById('areaSlider')?.value || 10;
+  const vEl = document.getElementById('voltVal'); if (vEl) vEl.textContent = parseFloat(volt).toFixed(2) + ' V';
+  const tEl = document.getElementById('tempVal'); if (tEl) tEl.textContent = temp + ' °C';
+  const pEl = document.getElementById('phVal'); if (pEl) pEl.textContent = parseFloat(ph).toFixed(1);
+  const prEl = document.getElementById('pressVal'); if (prEl) prEl.textContent = parseFloat(press).toFixed(1) + ' atm';
+  const aEl = document.getElementById('areaVal'); if (aEl) aEl.textContent = area + ' cm²';
+  document.getElementById('hdrTemp').textContent = 'TEMP: ' + parseFloat(temp).toFixed(1) + '°C';
+}
+
+let reactorCanvas, reactorCtx;
+let bubbles = [];
+
+class Bubble {
+  constructor(x, y, r, color, type) {
+    this.x = x; this.y = y; this.r = r; this.color = color; this.type = type;
+    this.vy = -(0.4 + Math.random() * 1.2);
+    this.vx = (Math.random() - 0.5) * 0.2;
+    this.opacity = 0.5 + Math.random() * 0.5;
+    this.wobble = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.02 + Math.random() * 0.04;
+    this.life = 1;
+  }
+  update() {
+    this.y += this.vy;
+    this.wobble += this.wobbleSpeed;
+    this.x += Math.sin(this.wobble) * 0.4 + this.vx;
+    this.r *= 1.0015;
+    this.life -= 0.008;
+    this.opacity = this.life * 0.85;
+  }
+  draw(ctx) {
+    if (this.opacity <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = this.opacity;
+    // Bubble
+    const grad = ctx.createRadialGradient(this.x - this.r*0.3, this.y - this.r*0.3, this.r*0.1, this.x, this.y, this.r);
+    grad.addColorStop(0, 'rgba(255,255,255,0.6)');
+    grad.addColorStop(0.4, this.color + 'cc');
+    grad.addColorStop(1, this.color + '44');
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = this.color + '88';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+  isDead() { return this.life <= 0 || this.y < -this.r * 2; }
+}
+
+function initReactorCanvas() {
+  reactorCanvas = document.getElementById('reactorCanvas');
+  if (!reactorCanvas) return;
+  reactorCtx = reactorCanvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  drawReactor(false, 0, 0);
+}
+
+function resizeCanvas() {
+  if (!reactorCanvas) return;
+  const wrap = reactorCanvas.parentElement;
+  if (!wrap) return;
+  reactorCanvas.width = wrap.clientWidth;
+  reactorCanvas.height = wrap.clientHeight || 300;
+}
+
+function drawReactor(running, oerRate, herRate) {
+  if (!reactorCtx || !reactorCanvas) return;
+  const ctx = reactorCtx;
+  const W = reactorCanvas.width;
+  const H = reactorCanvas.height;
+  if (W === 0 || H === 0) return;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#020810');
+  bg.addColorStop(1, '#040d20');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Cell walls
+  const cellL = W * 0.08, cellR = W * 0.92;
+  const cellT = H * 0.08, cellB = H * 0.88;
+  const cellW = cellR - cellL;
+  const cellH = cellB - cellT;
+
+  // Electrolyte gradient
+  const elGrad = ctx.createLinearGradient(cellL, cellT, cellR, cellT);
+  elGrad.addColorStop(0, 'rgba(0,60,120,0.5)');
+  elGrad.addColorStop(0.5, 'rgba(0,20,60,0.6)');
+  elGrad.addColorStop(1, 'rgba(80,30,0,0.5)');
+  ctx.fillStyle = elGrad;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cellL, cellT, cellW, cellH, 6) : ctx.rect(cellL, cellT, cellW, cellH);
+  ctx.fill();
+
+  // Cell border
+  ctx.strokeStyle = '#1a3060';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Electrode thickness
+  const elecW = cellW * 0.06;
+
+  // CATHODE (left, HER) - dark gray electrode
+  const catGrad = ctx.createLinearGradient(cellL, 0, cellL + elecW, 0);
+  catGrad.addColorStop(0, '#1a2a3a');
+  catGrad.addColorStop(1, '#0d1e30');
+  ctx.fillStyle = catGrad;
+  ctx.fillRect(cellL, cellT, elecW, cellH);
+  ctx.strokeStyle = '#204080';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cellL, cellT, elecW, cellH);
+
+  // ANODE (right, OER)
+  const anoGrad = ctx.createLinearGradient(cellR - elecW, 0, cellR, 0);
+  anoGrad.addColorStop(0, '#2a1800');
+  anoGrad.addColorStop(1, '#3a2200');
+  ctx.fillStyle = anoGrad;
+  ctx.fillRect(cellR - elecW, cellT, elecW, cellH);
+  ctx.strokeStyle = '#804020';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cellR - elecW, cellT, elecW, cellH);
+
+  // MEMBRANE (center)
+  const memX = (cellL + cellR) / 2;
+  const memGrad = ctx.createLinearGradient(memX - 3, 0, memX + 3, 0);
+  memGrad.addColorStop(0, 'rgba(180,180,200,0.05)');
+  memGrad.addColorStop(0.5, 'rgba(200,200,220,0.15)');
+  memGrad.addColorStop(1, 'rgba(180,180,200,0.05)');
+  ctx.fillStyle = memGrad;
+  ctx.fillRect(memX - 3, cellT, 6, cellH);
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(150,170,220,0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(memX, cellT);
+  ctx.lineTo(memX, cellB);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.font = 'bold 10px Orbitron, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#00aadd';
+  ctx.fillText('CATHODE', cellL + elecW / 2 + (cellW * 0.25 / 2), cellT + 18);
+  ctx.fillStyle = '#cc7020';
+  ctx.fillText('ANODE', cellR - elecW / 2 - (cellW * 0.25 / 2), cellT + 18);
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillStyle = '#00aadd88';
+  ctx.fillText('HER', cellL + elecW / 2 + cellW * 0.12, cellT + 30);
+  ctx.fillStyle = '#cc702088';
+  ctx.fillText('OER', cellR - elecW / 2 - cellW * 0.12, cellT + 30);
+
+  // Membrane label
+  ctx.font = '7px Share Tech Mono';
+  ctx.fillStyle = 'rgba(150,170,220,0.5)';
+  ctx.fillText('NAFION', memX, cellT - 5);
+
+  // Ion flow arrows when running
+  if (running) {
+    const arrowY = (cellT + cellB) / 2;
+    // H+ ions from cathode to anode (right)
+    for (let i = 0; i < 3; i++) {
+      const ax = cellL + elecW + (memX - cellL - elecW) * (0.2 + i * 0.3);
+      drawArrow(ctx, ax, arrowY - 15 + i * 10, ax + 12, arrowY - 15 + i * 10, 'rgba(0,200,255,0.3)', 0.5);
+    }
+  }
+
+  // Draw bubbles
+  bubbles.forEach(b => b.draw(ctx));
+
+  // Spawn new bubbles when running
+  if (running) {
+    const catX = cellL + elecW;
+    const anoX = cellR - elecW;
+    const herIntensity = herRate / 5;
+    const oerIntensity = oerRate / 5;
+
+    if (Math.random() < herIntensity * 0.4) {
+      const bx = catX - Math.random() * elecW;
+      const by = cellT + cellH * 0.85 - Math.random() * cellH * 0.5;
+      const r = 2 + Math.random() * 4;
+      bubbles.push(new Bubble(bx, by, r, '#00aadd', 'H2'));
+    }
+    if (Math.random() < oerIntensity * 0.3) {
+      const bx = anoX + Math.random() * elecW;
+      const by = cellT + cellH * 0.85 - Math.random() * cellH * 0.5;
+      const r = 2 + Math.random() * 5;
+      bubbles.push(new Bubble(bx, by, r, '#ff8020', 'O2'));
+    }
+  }
+
+  // Update & filter bubbles
+  bubbles = bubbles.filter(b => !b.isDead());
+  bubbles.forEach(b => {
+    if (b.y > cellT) b.update();
+  });
+  if (bubbles.length > 200) bubbles.splice(0, bubbles.length - 200);
+
+  // Electrode labels
+  ctx.font = 'bold 9px Orbitron, sans-serif';
+  ctx.textAlign = 'center';
+  if (running && herRate > 0) {
+    ctx.fillStyle = '#00ccff';
+    ctx.fillText(`H₂ ${herRate.toFixed(1)} mL/m`, cellL + elecW / 2 + cellW * 0.15, cellB - 8);
+  }
+  if (running && oerRate > 0) {
+    ctx.fillStyle = '#ff9030';
+    ctx.fillText(`O₂ ${oerRate.toFixed(1)} mL/m`, cellR - elecW / 2 - cellW * 0.15, cellB - 8);
+  }
+
+  // HER label
+  if (!running) {
+    ctx.font = '11px Rajdhani';
+    ctx.fillStyle = 'rgba(100,150,200,0.4)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Load catalyst and press START to begin electrolysis', W/2, H/2);
+  }
+
+  // Voltage indicator (top)
+  const volt = parseFloat(document.getElementById('voltSlider')?.value || 1.8);
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillStyle = '#ffd040';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${volt.toFixed(2)} V`, W/2, cellT - 6);
+
+  // Red/blue glow on electrodes when running
+  if (running) {
+    ctx.save();
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#00aadd';
+    ctx.strokeStyle = '#00aadd44';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cellL, cellT, elecW, cellH);
+    ctx.shadowColor = '#ff8020';
+    ctx.strokeStyle = '#ff802044';
+    ctx.strokeRect(cellR - elecW, cellT, elecW, cellH);
+    ctx.restore();
+  }
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  const angle = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 5*Math.cos(angle-0.4), y2 - 5*Math.sin(angle-0.4));
+  ctx.lineTo(x2 - 5*Math.cos(angle+0.4), y2 - 5*Math.sin(angle+0.4));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+const charts = {};
+
+function initCharts() {
+  setupChart('chartCurrent', 'Current Density (mA/cm²)', '#00ccff');
+  setupChart('chartProduction', 'Production Rate (mL/min)', '#00ff88');
+  setupChart('chartEfficiency', 'Faradaic Efficiency (%)', '#ffd040');
+  setupChart('chartCumulative', 'Cumulative Production (L)', '#00ccff');
+  setupChart('chartRevenue', 'Revenue ($/hr)', '#ffd040');
+  renderAllCharts();
+}
+
+function setupChart(id, label, color) {
+  charts[id] = { label, color, data: [], data2: [], maxPoints: 60 };
+}
+
+function renderAllCharts() {
+  renderChart('chartCurrent', [{label:'Current (mA/cm²)', color:'#00ccff', data: chartData.current}]);
+  renderChart('chartProduction', [
+    {label:'H₂ (mL/min)', color:'#00ccff', data: chartData.production.map(p => p[0])},
+    {label:'O₂ (mL/min)', color:'#ff9030', data: chartData.production.map(p => p[1])}
+  ]);
+  renderChart('chartEfficiency', [{label:'FE (%)', color:'#ffd040', data: chartData.efficiency}]);
+  renderChart('chartCumulative', [
+    {label:'H₂ (L)', color:'#00ccff', data: chartData.cumulative.map(p => p[0])},
+    {label:'O₂ (L)', color:'#ff9030', data: chartData.cumulative.map(p => p[1])},
+  ]);
+  renderChart('chartRevenue', [{label:'Rev ($/hr)', color:'#ffd040', data: chartData.revenue}]);
+}
+
+function renderChart(id, series) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 300;
+  const H = canvas.offsetHeight || canvas.height || 100;
+  canvas.width = W;
+  canvas.height = H;
+
+  const PAD = {l:38, r:8, t:8, b:20};
+  const cW = W - PAD.l - PAD.r;
+  const cH = H - PAD.t - PAD.b;
+
+  // Background
+  ctx.fillStyle = '#050e1a';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#0f2035';
+  ctx.lineWidth = 0.5;
+
+  // Grid
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.t + cH - (i/4) * cH;
+    ctx.beginPath();
+    ctx.moveTo(PAD.l, y);
+    ctx.lineTo(PAD.l + cW, y);
+    ctx.stroke();
+  }
+
+  // Compute global max
+  let maxVal = 0;
+  series.forEach(s => { if (s.data?.length) maxVal = Math.max(maxVal, ...s.data.map(v => Math.abs(v||0))); });
+  if (maxVal === 0) maxVal = 1;
+
+  // Y axis labels
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillStyle = '#3a5070';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = (i/4 * maxVal);
+    ctx.fillText(v < 10 ? v.toFixed(2) : v.toFixed(0), PAD.l - 2, PAD.t + cH - (i/4)*cH + 3);
+  }
+
+  // Axes
+  ctx.strokeStyle = '#1a2840';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t);
+  ctx.lineTo(PAD.l, PAD.t + cH);
+  ctx.lineTo(PAD.l + cW, PAD.t + cH);
+  ctx.stroke();
+
+  // Series
+  series.forEach(s => {
+    if (!s.data || s.data.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = s.color;
+    const n = Math.min(s.data.length, 60);
+    const startIdx = s.data.length - n;
+    for (let i = 0; i < n; i++) {
+      const v = s.data[startIdx + i] || 0;
+      const x = PAD.l + (i / (n-1)) * cW;
+      const y = PAD.t + cH - Math.min(1, v/maxVal) * cH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Fill
+    ctx.beginPath();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = s.color;
+    const n2 = Math.min(s.data.length, 60);
+    const si = s.data.length - n2;
+    for (let i = 0; i < n2; i++) {
+      const v = s.data[si + i] || 0;
+      const x = PAD.l + (i / (n2-1)) * cW;
+      const y = PAD.t + cH - Math.min(1, v/maxVal) * cH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineTo(PAD.l + cW, PAD.t + cH);
+    ctx.lineTo(PAD.l, PAD.t + cH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Current value dot
+    if (s.data.length > 0) {
+      const lastV = s.data[s.data.length - 1] || 0;
+      const x = PAD.l + cW;
+      const y = PAD.t + cH - Math.min(1, lastV/maxVal) * cH;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI*2);
+      ctx.fillStyle = s.color;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = s.color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // Value label
+      ctx.font = 'bold 9px Share Tech Mono';
+      ctx.fillStyle = s.color;
+      ctx.textAlign = 'right';
+      ctx.fillText(lastV < 10 ? lastV.toFixed(2) : lastV.toFixed(1), W - 2, y - 3);
+    }
+  });
+
+  // Legend
+  ctx.font = '8px Rajdhani';
+  ctx.textAlign = 'left';
+  series.forEach((s, i) => {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(PAD.l + i * 80, 2, 8, 4);
+    ctx.fillText(s.label, PAD.l + i * 80 + 10, 8);
+  });
+}
+
+// ============================================================
+// REACTOR LOGIC
+// ============================================================
+function toggleReactor() {
+  if (!activeCatalyst) {
+    showNotif('Load a catalyst first!');
+    addLog('ERR','Reactor start failed: no catalyst loaded');
+    return;
+  }
+  reactorRunning = !reactorRunning;
+  const btn = document.getElementById('startBtn');
+  const rxnDot = document.getElementById('rxnDot');
+
+  if (reactorRunning) {
+    btn.textContent = '⬛ STOP REACTOR';
+    btn.className = 'btn btn-danger';
+    rxnDot.classList.add('active');
+    addLog('RXN', `Reactor STARTED — ${activeCatalyst.name} @ ${document.getElementById('voltSlider').value}V`);
+    addLog('OER', `Anode active: η=${activeCatalyst.props.oerOvp?.toFixed(0)||'?'}mV | Tafel ${activeCatalyst.props.tafel.toFixed(0)} mV/dec`);
+    addLog('HER', `Cathode active: η=${activeCatalyst.props.herOvp?.toFixed(0)||'?'}mV | TOF ${activeCatalyst.props.tof.toFixed(3)} s⁻¹`);
+    reactorInterval = setInterval(reactorTick, 1000);
+    animateReactor();
+  } else {
+    btn.textContent = '▶ START REACTOR';
+    btn.className = 'btn btn-success';
+    rxnDot.classList.remove('active');
+    clearInterval(reactorInterval);
+    addLog('RXN','Reactor STOPPED');
+    document.getElementById('oerRate').textContent = '0.0';
+    document.getElementById('herRate').textContent = '0.0';
+    document.getElementById('totalCurrent').textContent = '0.0';
+    document.getElementById('powerInput').textContent = '0.0';
+    document.getElementById('hdrPower').textContent = 'POWER: 0.0W';
+  }
+}
+
+let animFrame = null;
+function animateReactor() {
+  if (!reactorRunning) {
+    const oerR = parseFloat(document.getElementById('oerRate').textContent) || 0;
+    const herR = parseFloat(document.getElementById('herRate').textContent) || 0;
+    drawReactor(false, oerR, herR);
+    return;
+  }
+  const oerR = parseFloat(document.getElementById('oerRate').textContent) || 0;
+  const herR = parseFloat(document.getElementById('herRate').textContent) || 0;
+  drawReactor(true, oerR, herR);
+  animFrame = requestAnimationFrame(animateReactor);
+}
+
+function reactorTick() {
+  if (!reactorRunning || !activeCatalyst) return;
+  reactorTime++;
+
+  const volt = parseFloat(document.getElementById('voltSlider').value);
+  const temp = parseFloat(document.getElementById('tempSlider').value);
+  const ph = parseFloat(document.getElementById('phSlider').value);
+  const press = parseFloat(document.getElementById('pressSlider').value);
+  const area = parseFloat(document.getElementById('areaSlider').value);
+
+  // Butler-Volmer current density
+  const thermoVolt = 1.23;
+  const overVolt = volt - thermoVolt;
+  const catProps = activeCatalyst.props;
+
+  // OER overpotential reduction from catalyst
+  const oerEta = (catProps.oerOvp || 400) * 0.001; // V
+  const herEta = (catProps.herOvp || 400) * 0.001; // V
+  const tempFactor = 1 + (temp - 25) * 0.02;
+  const phFactor = ph > 7 ? (1 + (ph - 7) * 0.05) : (1 - (7 - ph) * 0.02);
+  const pressFactor = Math.pow(press, 0.3);
+
+  // Current density calc
+  const effectiveOvp = Math.max(0, overVolt - oerEta - herEta);
+  const j0 = 1.2 * catProps.tof * tempFactor * phFactor; // exchange current density mA/cm²
+  const beta = 0.5;
+  const F = 96485, R = 8.314, T = 273 + temp;
+  const j = j0 * (Math.exp(beta * F * effectiveOvp / (R * T)) - 1);
+  const jNet = Math.max(0, j * pressFactor + (Math.random() - 0.5) * j * 0.05);
+  const totalI = jNet * area; // mA
+
+  // Production rates (mL/min)
+  // H2: 2H+ + 2e- → H2; 1 mol H2 = 22.4L = 22400mL, F=96485 C/mol e-
+  const FE_H2 = Math.min(0.98, 0.88 + (catProps.herOvp ? (1 - catProps.herOvp/500) * 0.1 : 0.05));
+  const FE_O2 = Math.min(0.98, 0.90 + (catProps.oerOvp ? (1 - catProps.oerOvp/600) * 0.08 : 0.04));
+  // mol/s = I(A) * FE / (n * F)
+  const I_A = totalI / 1000; // A
+  const herRateML = (I_A * FE_H2 * 22400 / (2 * 96485)) * 60; // mL/min
+  const oerRateML = (I_A * FE_O2 * 22400 / (4 * 96485)) * 60; // mL/min
+
+  // Secondary products (CO2 hydrogenation, requires CO2 feed)
+  const ch4Rate = herRateML * 0.15 * (activeCatalyst.name.includes('Ni') || activeCatalyst.name.includes('Ru') ? 0.3 : 0.05);
+  const meohRate = herRateML * 0.08 * (activeCatalyst.name.includes('Cu') ? 0.5 : 0.03);
+  const syngasRate = herRateML * 0.12 * 0.1;
+
+  // Update displays
+  document.getElementById('herRate').textContent = herRateML.toFixed(2);
+  document.getElementById('oerRate').textContent = oerRateML.toFixed(2);
+  document.getElementById('herJ').textContent = jNet.toFixed(1);
+  document.getElementById('oerJ').textContent = (jNet * 0.5).toFixed(1);
+  document.getElementById('herOverp').textContent = catProps.herOvp ? catProps.herOvp.toFixed(0) : 'N/A';
+  document.getElementById('oerOverp').textContent = catProps.oerOvp ? catProps.oerOvp.toFixed(0) : 'N/A';
+
+  const power = totalI * volt / 1000; // W
+  const energyEff = (thermoVolt / volt * 100 * FE_H2).toFixed(1);
+  document.getElementById('totalCurrent').textContent = totalI.toFixed(1);
+  document.getElementById('powerInput').textContent = power.toFixed(2);
+  document.getElementById('energyEff').textContent = energyEff;
+  document.getElementById('h2purity').textContent = (FE_H2 * 99).toFixed(1) + '%';
+  document.getElementById('hdrPower').textContent = 'POWER: ' + power.toFixed(1) + 'W';
+
+  // Faradaic efficiency bars
+  const fe2 = document.getElementById('feh2'); if (fe2) fe2.style.width = (FE_H2*100)+'%';
+  const fe2v = document.getElementById('feh2val'); if (fe2v) fe2v.textContent = (FE_H2*100).toFixed(1)+'%';
+  const feo = document.getElementById('feo2'); if (feo) feo.style.width = (FE_O2*100)+'%';
+  const feov = document.getElementById('feo2val'); if (feov) feov.textContent = (FE_O2*100).toFixed(1)+'%';
+
+  // Chart data
+  chartData.current.push(jNet);
+  chartData.production.push([herRateML, oerRateML]);
+  chartData.efficiency.push(parseFloat(energyEff));
+  if (chartData.current.length > MAX_CHART_POINTS) chartData.current.shift();
+  if (chartData.production.length > MAX_CHART_POINTS) chartData.production.shift();
+  if (chartData.efficiency.length > MAX_CHART_POINTS) chartData.efficiency.shift();
+
+  // Products
+  products.H2.rate = herRateML / 1000 * 0.0899 / 1000 * 60; // kg/hr approx
+  products.O2.rate = oerRateML / 1000 / 60 * 60; // L/hr → m³/hr
+  products.CH4.rate = ch4Rate / 1000 * 60;
+  products.MeOH.rate = meohRate / 1000 * 0.8 * 60;
+  products.Syngas.rate = syngasRate / 1000 * 60;
+
+  products.H2.stored = Math.min(1000, products.H2.stored + herRateML / 60 / 1000 * 0.0899);
+  products.O2.stored = Math.min(1000, products.O2.stored + oerRateML / 60 / 1000 / 60);
+  products.CH4.stored = Math.min(1000, products.CH4.stored + ch4Rate / 60 / 1000 / 60);
+  products.MeOH.stored = Math.min(1000, products.MeOH.stored + meohRate / 60 / 1000 * 0.8 / 60);
+  products.Syngas.stored = Math.min(1000, products.Syngas.stored + syngasRate / 60 / 1000 / 60);
+
+  // Revenue
+  const hrRev = products.H2.rate * products.H2.price + products.O2.rate * products.O2.price +
+    products.CH4.rate * products.CH4.price + products.MeOH.rate * products.MeOH.price +
+    products.Syngas.rate * products.Syngas.price;
+  chartData.revenue.push(hrRev);
+  chartData.cumulative.push([products.H2.stored * 11.12, products.O2.stored]);
+  if (chartData.revenue.length > MAX_CHART_POINTS) chartData.revenue.shift();
+  if (chartData.cumulative.length > MAX_CHART_POINTS) chartData.cumulative.shift();
+
+  updateTankDisplays();
+  updateRevenueDashboard();
+  renderAllCharts();
+
+  // Periodic log
+  if (reactorTime % 10 === 0) {
+    addLog('RXN', `t=${reactorTime}s | j=${jNet.toFixed(1)} mA/cm² | H₂=${herRateML.toFixed(2)} mL/min | O₂=${oerRateML.toFixed(2)} mL/min`);
+    addLog('REV', `Revenue rate: $${hrRev.toFixed(4)}/hr | H₂ stored: ${products.H2.stored.toFixed(4)} kg`);
+  }
+}
+
+// ============================================================
+// PRODUCTS & TANKS
+// ============================================================
+function buildTanks() {
+  const row = document.getElementById('tanksRow');
+  if (!row) return;
+  row.innerHTML = '';
+  const pKeys = ['H2','O2','CH4','MeOH','Syngas'];
+  pKeys.forEach(key => {
+    const p = products[key];
+    const div = document.createElement('div');
+    div.className = 'tank-card';
+    const className = key === 'MeOH' ? 'meoh' : key.toLowerCase();
+    div.innerHTML = `
+      <div class="tank-label" style="color:${p.color}">${p.label}</div>
+      <div class="tank-body">
+        <div class="tank-fill ${className}" id="tankFill_${key}" style="height:0%"></div>
+      </div>
+      <div class="tank-cap" style="color:${p.color}" id="tankStored_${key}">0.000</div>
+      <div class="tank-rate" id="tankRate_${key}">0.000 ${p.unit}/hr</div>
+      <div class="tank-pressure" id="tankPres_${key}">1.0 atm</div>
+    `;
+    row.appendChild(div);
+  });
+}
+
+function updateTankDisplays() {
+  const pKeys = ['H2','O2','CH4','MeOH','Syngas'];
+  pKeys.forEach(key => {
+    const p = products[key];
+    const fill = document.getElementById(`tankFill_${key}`);
+    const stored = document.getElementById(`tankStored_${key}`);
+    const rate = document.getElementById(`tankRate_${key}`);
+    const pres = document.getElementById(`tankPres_${key}`);
+    const pct = Math.min(100, (p.stored / 1) * 100);
+    if (fill) fill.style.height = pct + '%';
+    if (stored) stored.textContent = p.stored.toFixed(4);
+    if (rate) rate.textContent = (p.rate || 0).toFixed(4) + ' ' + p.unit + '/hr';
+    if (pres) pres.textContent = (1 + p.stored * 10).toFixed(1) + ' atm';
+  });
+}
+
+function buildRevTable() {
+  const table = document.getElementById('revTable');
+  if (!table) return;
+  table.innerHTML = `<thead><tr>
+    <th>Product</th><th>Rate (unit/hr)</th><th>Price ($/unit)</th><th>Revenue ($/hr)</th>
+  </tr></thead><tbody id="revBody"></tbody>`;
+  updateRevenueDashboard();
+}
+
+function updateRevenueDashboard() {
+  const body = document.getElementById('revBody');
+  if (!body) return;
+  const pKeys = ['H2','O2','CH4','MeOH','Syngas'];
+  let totalHr = 0;
+  body.innerHTML = '';
+  pKeys.forEach(key => {
+    const p = products[key];
+    const rev = (p.rate || 0) * p.price;
+    totalHr += rev;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:${p.color}">${p.label}</td>
+      <td>${(p.rate||0).toFixed(4)} ${p.unit}</td>
+      <td>$${p.price.toFixed(2)}/${p.unit}</td>
+      <td>$${rev.toFixed(4)}</td>
+    `;
+    body.appendChild(tr);
+  });
+  const revEl = document.getElementById('totalRevenue');
+  if (revEl) revEl.textContent = '$' + totalHr.toFixed(4) + '/hr';
+  const daily = totalHr * 24;
+  const annual = daily * 365;
+  const d = document.getElementById('dailyRev'); if (d) d.textContent = '$' + daily.toFixed(2);
+  const a = document.getElementById('annualRev'); if (a) a.textContent = '$' + annual.toFixed(0);
+
+  // H2 production
+  const h2daily = (products.H2.rate || 0) * 24;
+  const h2el = document.getElementById('h2Total'); if (h2el) h2el.textContent = h2daily.toFixed(4);
+
+  // Power cost
+  const pwr = parseFloat(document.getElementById('hdrPower')?.textContent?.replace('POWER: ','')?.replace('W','') || '0');
+  const pwrCost = pwr / 1000 * 24 * 0.10;
+  const pcEl = document.getElementById('powerCost'); if (pcEl) pcEl.textContent = '$' + pwrCost.toFixed(2);
+}
+
+function ventTanks() {
+  Object.keys(products).forEach(k => { products[k].stored = 0; });
+  updateTankDisplays();
+  addLog('SYS','All storage tanks vented');
+  showNotif('Tanks vented!');
+}
+
+function collectProducts() {
+  addLog('REV', `Products collected — H₂: ${products.H2.stored.toFixed(4)}kg, O₂: ${products.O2.stored.toFixed(4)}m³`);
+  showNotif('Products collected!');
+}
+
+// ============================================================
+// CLOCK & STATUS
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('hdrTime');
+  if (el) el.textContent = `${h}:${m}:${s}`;
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+function addLog(sys, msg) {
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
+  logs.push({time, sys, msg});
+  logCount++;
+  const el = document.getElementById('logsContent');
+  if (!el) return;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span class="log-sys ${sys}">[${sys}]</span><span class="log-msg">${msg}</span>`;
+  el.appendChild(entry);
+  el.scrollTop = el.scrollHeight;
+  if (el.children.length > 100) el.removeChild(el.firstChild);
+  const cnt = document.getElementById('logCount');
+  if (cnt) cnt.textContent = `${logCount} entries`;
+}
+
+function clearLogs() {
+  const el = document.getElementById('logsContent');
+  if (el) el.innerHTML = '';
+  logs = [];
+  addLog('SYS','Log cleared');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(`tab-${name}`);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name.split('-')[0])) b.classList.add('active');
+  });
+  // Re-render charts after tab switch
+  setTimeout(() => {
+    if (name === 'reactor') { resizeCanvas(); renderAllCharts(); }
+    if (name === 'products') { renderAllCharts(); updateTankDisplays(); }
+  }, 50);
+}
+
+// ============================================================
+// NOTIFICATION
+// ============================================================
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  if (!n) return;
+  n.textContent = msg;
+  n.style.display = 'block';
+  setTimeout(() => { n.style.display = 'none'; }, 3000);
+}
+
+// ============================================================
+// RENDER LOOP (charts refresh when reactor running)
+// ============================================================
+setInterval(() => {
+  if (!reactorRunning) {
+    drawReactor(false, 0, 0);
+  }
+  const activeTab = document.querySelector('.tab-panel.active')?.id;
+  if (activeTab === 'tab-reactor' || activeTab === 'tab-products') {
+    renderAllCharts();
+  }
+}, 500);
+
+</script>
+</body>
+</html>

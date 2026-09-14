@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVANTI PROTOCOL — Bench-to-Grid Prototype Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#05070a; --panel:#0d131c; --panel2:#101927; --line:#1b2635; --line-lit:#28405a;
+    --cyan:#00e5ff; --amber:#ffb300; --violet:#b388ff; --green:#00e676; --silver:#dfe8ef;
+    --red:#ff5470; --text:#c9d6e3; --textdim:#6d7f92;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg0);color:var(--text);font-family:'Rajdhani',sans-serif;}
+  body{background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(0,229,255,.06), transparent 60%),
+    radial-gradient(1000px 600px at 90% 0%, rgba(179,136,255,.05), transparent 55%),
+    radial-gradient(1400px 900px at 50% 120%, rgba(0,230,118,.04), transparent 60%),
+    var(--bg0); min-height:100vh;}
+  .app{max-width:1320px;margin:0 auto;padding:16px 16px 60px;}
+  h1,h2,h3,.mono{font-family:'Space Mono',monospace;}
+
+  header{padding:18px 20px;border:1px solid var(--line);border-radius:10px;
+    background:linear-gradient(180deg, rgba(16,25,39,.9), rgba(10,15,22,.9));margin-bottom:14px;}
+  header .eyebrow{font-family:'Space Mono';font-size:.68rem;color:var(--amber);letter-spacing:1px;}
+  header h1{font-family:'Orbitron';font-weight:900;font-size:1.5rem;margin:6px 0 4px;color:var(--silver);}
+  header h1 span{color:var(--cyan);}
+  header p{margin:0;font-size:.85rem;color:var(--textdim);max-width:900px;line-height:1.55;}
+
+  .statusStrip{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .statusChip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);font-size:.7rem;font-family:'Space Mono';color:var(--textdim);}
+  .statusChip b{color:var(--silver);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .tab{padding:9px 14px;border-radius:8px 8px 0 0;background:var(--panel);border:1px solid var(--line);
+    border-bottom:none;color:var(--textdim);font-family:'Orbitron';font-size:.63rem;letter-spacing:.8px;cursor:pointer;}
+  .tab.active{color:var(--cyan);background:var(--panel2);box-shadow:0 -2px 0 var(--cyan) inset;}
+  .view{display:none;}
+  .view.active{display:block;animation:fadein .3s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .grid{display:grid;gap:12px;}
+  .g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:920px){.g2,.g3{grid-template-columns:1fr;}}
+
+  .panel{background:linear-gradient(180deg, rgba(16,25,39,.65), rgba(9,13,19,.75));
+    border:1px solid var(--line);border-radius:10px;padding:16px;}
+  .panel h3{margin:0 0 10px;font-size:.78rem;letter-spacing:1px;color:var(--silver);
+    text-transform:uppercase;font-family:'Orbitron';display:flex;align-items:center;gap:8px;}
+  .panel h3 .dot{width:7px;height:7px;border-radius:50%;}
+  .subtle{color:var(--textdim);font-size:.8rem;line-height:1.6;}
+  .callout{border-left:3px solid var(--amber);background:rgba(255,179,0,.06);border-radius:6px;
+    padding:10px 12px;font-size:.78rem;color:var(--text);margin:10px 0;line-height:1.55;}
+  .callout.red{border-color:var(--red);background:rgba(255,84,112,.06);}
+  .callout.green{border-color:var(--green);background:rgba(0,230,118,.06);}
+
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px;}
+  th{text-align:left;color:var(--textdim);font-weight:600;padding:7px 6px;border-bottom:1px solid var(--line);
+    font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;}
+  td{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+  td.mono, td .mono{font-family:'Space Mono';}
+
+  /* bridge map */
+  .bridgeRow{display:grid;grid-template-columns:1fr 40px 1fr;gap:10px;align-items:center;
+    padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+  .bridgeRow:last-child{border-bottom:none;}
+  .bcard{padding:10px 12px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:.76rem;}
+  .bcard .blbl{font-size:.6rem;color:var(--textdim);text-transform:uppercase;letter-spacing:.5px;}
+  .arrow{text-align:center;color:var(--textdim);font-size:1.1rem;}
+
+  /* calculators */
+  .calcRow{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+  .calcRow label{font-size:.74rem;color:var(--textdim);display:flex;justify-content:space-between;}
+  .calcRow label b{color:var(--silver);font-family:'Space Mono';}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--line);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 8px var(--cyan);cursor:pointer;}
+  .outGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px;}
+  .outCard{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;}
+  .outCard .ol{font-size:.6rem;color:var(--textdim);text-transform:uppercase;}
+  .outCard .ov{font-family:'Space Mono';font-size:1.15rem;font-weight:700;margin-top:3px;}
+
+  /* roadmap gantt */
+  .ganttRow{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;margin-bottom:10px;}
+  .ganttLbl{font-size:.72rem;color:var(--silver);}
+  .ganttTrack{position:relative;height:22px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;}
+  .ganttBar{position:absolute;top:2px;bottom:2px;border-radius:5px;display:flex;align-items:center;
+    padding:0 8px;font-size:.62rem;font-family:'Space Mono';color:#04121a;font-weight:700;white-space:nowrap;overflow:hidden;}
+  .ganttAxis{display:grid;grid-template-columns:170px 1fr;margin-bottom:8px;}
+  .ganttAxis div{font-size:.6rem;color:var(--textdim);}
+  .axisTrack{display:flex;justify-content:space-between;font-family:'Space Mono';}
+
+  .budgetBar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;display:flex;margin-top:6px;}
+  .budgetSeg{height:100%;}
+
+  .riskGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+  .riskCard{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--panel2);}
+  .riskCard .rlvl{font-size:.6rem;padding:2px 8px;border-radius:12px;font-family:'Space Mono';display:inline-block;margin-bottom:6px;}
+  .rlvl.high{background:rgba(255,84,112,.15);color:var(--red);}
+  .rlvl.med{background:rgba(255,179,0,.15);color:var(--amber);}
+  .rlvl.low{background:rgba(0,230,118,.15);color:var(--green);}
+  .riskCard .rtitle{font-size:.78rem;color:var(--silver);margin-bottom:4px;}
+  .riskCard .rdesc{font-size:.68rem;color:var(--textdim);line-height:1.5;}
+
+  .checklist{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+  .chkItem{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:7px;font-size:.75rem;}
+  .chkItem .stage{font-family:'Space Mono';font-size:.62rem;color:var(--cyan);min-width:70px;}
+
+  footer{margin-top:22px;text-align:center;font-size:.65rem;color:var(--textdim);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="eyebrow">LEVANTI PROTOCOL → REALITY BRIDGE</div>
+    <h1>Bench-to-Grid Prototype <span>Development Plan</span></h1>
+    <p>This translates the game's six-component reactor, market model, and 1,000-hour stability benchmark into an actual hardware development plan: real electrochemistry, a techno-economic model with load-bearing formulas, a phased TRL roadmap with budget, and an honest account of what is proven versus what still needs to be tested.</p>
+    <div class="statusStrip">
+      <div class="statusChip">Current stage: <b>TRL 1–2 (concept / feasibility)</b></div>
+      <div class="statusChip">Individually literature-supported: <b>all 6 components</b></div>
+      <div class="statusChip">Integrated composite validated: <b>not yet — this is the open question</b></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-view="bridge">01 · REALITY BRIDGE</div>
+    <div class="tab" data-view="bench">02 · BENCH PROTOTYPE</div>
+    <div class="tab" data-view="tea">03 · TECHNO-ECONOMIC MODEL</div>
+    <div class="tab" data-view="validate">04 · VALIDATION PROTOCOL</div>
+    <div class="tab" data-view="roadmap">05 · ROADMAP &amp; BUDGET</div>
+    <div class="tab" data-view="risk">06 · RISK REGISTER</div>
+  </div>
+
+  <!-- ============ 01 BRIDGE ============ -->
+  <div class="view active" id="view-bridge">
+    <div class="panel" style="margin-bottom:12px">
+      <h3><span class="dot" style="background:var(--amber)"></span>Where the game is a simplification</h3>
+      <p class="subtle">The game abstracted six real material-science literatures into single "level" numbers and let you sell instantly into a liquid market. None of that is true yet in reality. The table below is the honest translation — what each game system stands for, and what actually has to happen for it to become real.</p>
+    </div>
+    <div class="panel">
+      <h3><span class="dot" style="background:var(--cyan)"></span>Game mechanic → real-world equivalent</h3>
+      <div id="bridgeList"></div>
+    </div>
+    <div class="callout red" style="margin-top:12px">
+      <b>The honest gap:</b> Iron-doped MoS₂ (HER), NiSe₂ (OER), boron-doped diamond electrodes, ZIF-8 CO₂ capture, and Cu/Ru CO₂ reduction to hydrocarbons are each independently active research areas with published literature. The specific claim in the thesis — that all six can be co-deposited into one monolithic composite electrode and operate together across freshwater, seawater, and atmospheric-moisture modes at industrial scale — has not been experimentally demonstrated as a single integrated system. That integration, not any one component, is the real R&D risk and the first thing a prototype program has to test.
+    </div>
+  </div>
+
+  <!-- ============ 02 BENCH ============ -->
+  <div class="view" id="view-bench">
+    <div class="grid g2">
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--cyan)"></span>Bench electrode calculator (Faraday's law)</h3>
+        <p class="subtle">This is real electrochemistry, not a game formula: mass produced = (current × time × molar mass) ÷ (electrons transferred × Faraday's constant). Use it to size a lab test cell for a target output.</p>
+        <div class="calcRow">
+          <label>Electrode active area <b id="areaVal">25 cm²</b></label>
+          <input type="range" id="areaSlider" min="1" max="500" step="1" value="25">
+        </div>
+        <div class="calcRow">
+          <label>Applied current density <b id="jVal">0.50 A/cm²</b></label>
+          <input type="range" id="jSlider" min="0.05" max="2.0" step="0.01" value="0.50">
+        </div>
+        <div class="calcRow">
+          <label>Run duration <b id="tVal">24 h</b></label>
+          <input type="range" id="tSlider" min="1" max="1000" step="1" value="24">
+        </div>
+        <div class="outGrid" id="faradayOut"></div>
+        <p class="subtle" style="margin-top:8px">Reference points: a typical PEM/alkaline lab test cell runs 1–25 cm² at 0.2–1.0 A/cm²; a pilot stack scales to 100s–1,000s of cm² per cell repeated across dozens of cells.</p>
+      </div>
+
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--violet)"></span>Physical prototype specification sheet</h3>
+        <table>
+          <tr><th>Layer</th><th>Real fabrication route</th><th>What to measure</th></tr>
+          <tr><td class="mono">MAC-FeMoS₂</td><td>Hydrothermal or CVD growth of Fe-doped MoS₂ nanosheets, carbon-encapsulated via pyrolysis of a carbon precursor</td><td>HER overpotential @10 mA/cm², Tafel slope</td></tr>
+          <tr><td class="mono">NiSe₂</td><td>Selenization of a Ni foam or Ni-precursor film in Se vapor or solution-phase synthesis</td><td>OER overpotential @10 mA/cm², Tafel slope</td></tr>
+          <tr><td class="mono">BDD</td><td>Microwave plasma or hot-filament CVD boron-doped diamond film on Si or Nb substrate</td><td>Corrosion current in synthetic seawater, sheet resistance</td></tr>
+          <tr><td class="mono">ZIF-8</td><td>Room-temperature co-precipitation of Zn²⁺ and 2-methylimidazole, coated or packed adjacent to the cathode</td><td>CO₂ uptake capacity (mmol/g), selectivity vs. N₂/O₂</td></tr>
+          <tr><td class="mono">Cu</td><td>Electrodeposition or sputtering onto the composite surface</td><td>CO₂ reduction Faradaic efficiency by product</td></tr>
+          <tr><td class="mono">Ru</td><td>Impregnation or atomic-layer deposition as finishing hydrogenation sites</td><td>Selectivity to target hydrocarbons/methanol, TOF</td></tr>
+        </table>
+        <div class="callout" style="margin-top:10px">Ruthenium is a platinum-group metal. It is scarce and price-volatile — this is flagged again in the Risk Register, since it directly affects both bench cost and eventual unit economics.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 03 TEA ============ -->
+  <div class="view" id="view-tea">
+    <div class="grid g2">
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--amber)"></span>Levelized cost of hydrogen (LCOH) calculator</h3>
+        <p class="subtle">Standard techno-economic-analysis formula used across the electrolyzer industry: LCOH = (annualized CAPEX + annual OPEX) ÷ annual kg H₂ produced. Adjust the inputs to see how your prototype's assumptions compare to today's real market range.</p>
+        <div class="calcRow"><label>Stack CAPEX <b id="capexVal">$900/kW</b></label>
+          <input type="range" id="capexSlider" min="400" max="2500" step="10" value="900"></div>
+        <div class="calcRow"><label>System size <b id="sizeVal">100 kW</b></label>
+          <input type="range" id="sizeSlider" min="1" max="5000" step="1" value="100"></div>
+        <div class="calcRow"><label>Specific energy use <b id="specVal">55 kWh/kg</b></label>
+          <input type="range" id="specSlider" min="42" max="70" step="0.5" value="55"></div>
+        <div class="calcRow"><label>Electricity price <b id="elecVal">$0.05/kWh</b></label>
+          <input type="range" id="elecSlider" min="0.01" max="0.20" step="0.005" value="0.05"></div>
+        <div class="calcRow"><label>Capacity factor <b id="cfVal">60%</b></label>
+          <input type="range" id="cfSlider" min="10" max="95" step="1" value="60"></div>
+        <div class="calcRow"><label>Stack lifetime <b id="lifeVal">60,000 h</b></label>
+          <input type="range" id="lifeSlider" min="10000" max="100000" step="1000" value="60000"></div>
+        <div class="calcRow"><label>Discount rate <b id="rateVal">7%</b></label>
+          <input type="range" id="rateSlider" min="2" max="15" step="0.5" value="7"></div>
+        <div class="outGrid" id="teaOut"></div>
+      </div>
+
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--green)"></span>Where that lands you</h3>
+        <div id="teaContext"></div>
+        <table style="margin-top:12px">
+          <tr><th>Benchmark</th><th>2026 value</th></tr>
+          <tr><td>Grey hydrogen (unsubsidized)</td><td class="mono">$1.00–$2.00/kg</td></tr>
+          <tr><td>Blue hydrogen</td><td class="mono">$1.80–$4.70/kg</td></tr>
+          <tr><td>Green hydrogen, unsubsidized, global range</td><td class="mono">$2.50–$12.00/kg</td></tr>
+          <tr><td>Green hydrogen, Europe spot</td><td class="mono">~$7.40/kg (Aug 2026)</td></tr>
+          <tr><td>DOE Hydrogen Shot target</td><td class="mono">$1.00/kg by 2030</td></tr>
+        </table>
+        <div class="callout green">Byproduct revenue (O₂, carbon credits on captured CO₂, converted hydrocarbons) is not included in the LCOH figure above — it would need to be netted against it separately per site, since each has its own market and its own buyer.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 04 VALIDATION ============ -->
+  <div class="view" id="view-validate">
+    <div class="panel">
+      <h3><span class="dot" style="background:var(--cyan)"></span>Real test protocol behind the "1,000-hour benchmark"</h3>
+      <p class="subtle">The thesis cites &gt;1,000 hours of continuous operation with minimal degradation as evidence of practical viability. In a real lab, that number is earned through a specific, unglamorous sequence of tests — not claimed up front. This is that sequence.</p>
+      <div class="checklist" id="validateList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 05 ROADMAP ============ -->
+  <div class="view" id="view-roadmap">
+    <div class="panel" style="margin-bottom:12px">
+      <h3><span class="dot" style="background:var(--violet)"></span>TRL 1 → 9 phased plan</h3>
+      <div class="ganttAxis"><div></div><div class="axisTrack"><span>Yr 0</span><span>Yr 1</span><span>Yr 2</span><span>Yr 3</span><span>Yr 4</span><span>Yr 5</span></div></div>
+      <div id="ganttChart"></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--amber)"></span>Indicative budget by phase</h3>
+        <div id="budgetList"></div>
+      </div>
+      <div class="panel">
+        <h3><span class="dot" style="background:var(--green)"></span>Funding pathways to pursue in order</h3>
+        <table id="fundingTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 06 RISK ============ -->
+  <div class="view" id="view-risk">
+    <div class="panel">
+      <h3><span class="dot" style="background:var(--red)"></span>Risk register</h3>
+      <div class="riskGrid" id="riskGrid"></div>
+    </div>
+  </div>
+
+  <footer>
+    This plan uses real electrochemical formulas (Faraday's law) and standard levelized-cost-of-hydrogen methodology, with 2026 market benchmarks drawn from public reporting. It is a planning tool, not a certified engineering or investment document — before committing capital, have the bench data, the TEA, and the safety case independently reviewed.
+  </footer>
+</div>
+
+<script>
+/* ================= BRIDGE MAP ================= */
+const bridgePairs = [
+  {game:'Catalyst "level" 1–5', real:'Measured activity: HER/OER overpotential at a given current density, CO₂ capture capacity in mmol/g, product selectivity — each requires its own bench test, not a single number'},
+  {game:'"Environment" tab switch (fresh/sea/atmo)', real:'Distinct engineering problems: seawater needs a real anti-chlorine-evolution strategy and corrosion-tested materials; atmospheric moisture needs an actual direct-air or humidity-harvesting front end'},
+  {game:'Instant market sale of H₂/O₂/CO₂-products', real:'Requires compression/storage, offtake contracts, and — for carbon credits — third-party verification (Verra, Gold Standard, or an ICVCM-aligned registry) before anything is sellable'},
+  {game:'Degradation % and "Refurbish" button', real:'Real degradation mechanisms: catalyst dissolution, active-site poisoning, membrane fouling — diagnosed by post-mortem XRD/XPS/ICP-MS, not reset with a click'},
+  {game:'LVTI stock price', real:'A real company valuation would depend on IP position, verified performance data, offtake agreements, and financing — not a random walk'},
+  {game:'1,000-hour achievement badge', real:'An actual multi-week continuous chronopotentiometry run under realistic load-cycling, with performance and post-mortem data published or shared with investors'},
+];
+document.getElementById('bridgeList').innerHTML = bridgePairs.map(b=>`
+  <div class="bridgeRow">
+    <div class="bcard"><div class="blbl">In the game</div>${b.game}</div>
+    <div class="arrow">→</div>
+    <div class="bcard"><div class="blbl">In reality</div>${b.real}</div>
+  </div>`).join('');
+
+/* ================= FARADAY CALCULATOR ================= */
+const F = 96485; // C/mol
+function updateFaraday(){
+  const area = Number(document.getElementById('areaSlider').value);
+  const j = Number(document.getElementById('jSlider').value);
+  const t = Number(document.getElementById('tSlider').value);
+  document.getElementById('areaVal').textContent = area + ' cm²';
+  document.getElementById('jVal').textContent = j.toFixed(2) + ' A/cm²';
+  document.getElementById('tVal').textContent = t + ' h';
+
+  const I = j * area; // amps
+  const seconds = t * 3600;
+  const massH2_g = (I * seconds * 2.016) / (2 * F);
+  const massO2_g = (I * seconds * 32.00) / (4 * F);
+  const power_W = I * 1.8; // approx cell voltage 1.8V
+  const energy_kWh = power_W * t / 1000;
+
+  document.getElementById('faradayOut').innerHTML = `
+    <div class="outCard"><div class="ol">Cell current</div><div class="ov" style="color:var(--cyan)">${I.toFixed(2)} A</div></div>
+    <div class="outCard"><div class="ol">H₂ produced</div><div class="ov" style="color:var(--cyan)">${massH2_g.toFixed(2)} g</div></div>
+    <div class="outCard"><div class="ol">O₂ produced</div><div class="ov" style="color:var(--amber)">${massO2_g.toFixed(2)} g</div></div>
+    <div class="outCard"><div class="ol">Energy input</div><div class="ov" style="color:var(--violet)">${energy_kWh.toFixed(2)} kWh</div></div>
+  `;
+}
+['areaSlider','jSlider','tSlider'].forEach(id=> document.getElementById(id).addEventListener('input', updateFaraday));
+updateFaraday();
+
+/* ================= TEA CALCULATOR ================= */
+function updateTEA(){
+  const capexPerKW = Number(document.getElementById('capexSlider').value);
+  const sizeKW = Number(document.getElementById('sizeSlider').value);
+  const spec = Number(document.getElementById('specSlider').value); // kWh/kg
+  const elec = Number(document.getElementById('elecSlider').value); // $/kWh
+  const cf = Number(document.getElementById('cfSlider').value)/100;
+  const life = Number(document.getElementById('lifeSlider').value); // hours
+  const rate = Number(document.getElementById('rateSlider').value)/100;
+
+  document.getElementById('capexVal').textContent = '$'+capexPerKW+'/kW';
+  document.getElementById('sizeVal').textContent = sizeKW+' kW';
+  document.getElementById('specVal').textContent = spec.toFixed(1)+' kWh/kg';
+  document.getElementById('elecVal').textContent = '$'+elec.toFixed(3)+'/kWh';
+  document.getElementById('cfVal').textContent = (cf*100).toFixed(0)+'%';
+  document.getElementById('lifeVal').textContent = life.toLocaleString()+' h';
+  document.getElementById('rateVal').textContent = (rate*100).toFixed(1)+'%';
+
+  const projectYears = Math.min(20, Math.max(5, Math.round(life / (8760*cf))));
+  const totalCapex = capexPerKW * sizeKW;
+  const CRF = (rate*Math.pow(1+rate,projectYears)) / (Math.pow(1+rate,projectYears)-1);
+  const annualCapex = totalCapex * CRF;
+
+  const annualHours = 8760 * cf;
+  const annualKWh = sizeKW * annualHours;
+  const annualKgH2 = annualKWh / spec;
+  const annualElecCost = annualKWh * elec;
+  const omCost = totalCapex * 0.025; // 2.5% of capex/yr, standard O&M assumption
+  // stack replacement: if lifetime hours < project hours, amortize a replacement
+  const stackReplacements = Math.max(0, Math.floor((annualHours*projectYears)/life) - 1);
+  const stackReplaceCostAnnual = stackReplacements>0 ? (totalCapex*0.4*stackReplacements)/projectYears : 0;
+
+  const annualOpex = annualElecCost + omCost + stackReplaceCostAnnual;
+  const lcoh = (annualCapex + annualOpex) / annualKgH2;
+
+  document.getElementById('teaOut').innerHTML = `
+    <div class="outCard"><div class="ol">Annual H₂ output</div><div class="ov" style="color:var(--cyan)">${Math.round(annualKgH2).toLocaleString()} kg</div></div>
+    <div class="outCard"><div class="ol">Annual electricity cost</div><div class="ov" style="color:var(--amber)">$${Math.round(annualElecCost).toLocaleString()}</div></div>
+    <div class="outCard"><div class="ol">Annualized CAPEX</div><div class="ov" style="color:var(--violet)">$${Math.round(annualCapex).toLocaleString()}</div></div>
+    <div class="outCard"><div class="ol">LCOH</div><div class="ov" style="color:var(--green)">$${lcoh.toFixed(2)}/kg</div></div>
+  `;
+
+  let context, cls;
+  if(lcoh <= 2.0){ context = 'This lands at or below the DOE Hydrogen Shot 2030 target — an aggressive but not impossible combination of low CAPEX and cheap power.'; cls='green'; }
+  else if(lcoh <= 6.0){ context = 'This sits inside today\'s real unsubsidized green-hydrogen range — competitive with current market projects, not yet with grey or blue hydrogen.'; cls=''; }
+  else { context = 'This is above today\'s typical green-hydrogen range. Cheaper power, lower CAPEX, or a longer stack lifetime would be needed to reach market-competitive cost, or the site would need to lean on byproduct/carbon-credit revenue and incentives to close the gap.'; cls='red'; }
+  document.getElementById('teaContext').innerHTML = `<div class="callout ${cls}">${context}</div>
+  <p class="subtle">Assumed project length for amortization: <b style="color:var(--silver)">${projectYears} years</b>, implying <b style="color:var(--silver)">${stackReplacements}</b> stack replacement(s) over the project at the stack lifetime given.</p>`;
+}
+['capexSlider','sizeSlider','specSlider','elecSlider','cfSlider','lifeSlider','rateSlider'].forEach(id=>
+  document.getElementById(id).addEventListener('input', updateTEA));
+updateTEA();
+
+/* ================= VALIDATION CHECKLIST ================= */
+const validationSteps = [
+  {stage:'TRL 1-2', text:'Individually synthesize and characterize each of the six materials (XRD, SEM/TEM, BET surface area) against literature reference values before combining anything.'},
+  {stage:'TRL 2-3', text:'Half-cell testing: HER activity of MAC-FeMoS₂ alone and OER activity of NiSe₂ alone, each in a 3-electrode cell, benchmarked against a Pt/Ir standard.'},
+  {stage:'TRL 3', text:'Deposit the composite onto BDD and re-run half-cell tests to confirm the support does not suppress activity — this is where "does the composite even work together" gets answered.'},
+  {stage:'TRL 3-4', text:'ZIF-8 CO₂ capture isotherms measured independently, then co-located with the Cu/Ru layer to test whether captured CO₂ is actually accessible to the reduction sites.'},
+  {stage:'TRL 4', text:'Full two-electrode cell assembly, freshwater only, short-duration (24–100 h) chronopotentiometry to get a first real degradation curve.'},
+  {stage:'TRL 4-5', text:'Extend to seawater, monitor for chlorine evolution and pitting corrosion on the BDD support — this determines whether the "no chlorine evolution" claim holds at your operating voltage.'},
+  {stage:'TRL 5', text:'Long-duration test toward 1,000 continuous hours under realistic load-cycling (not constant current) with periodic Faradaic-efficiency and product-selectivity checks.'},
+  {stage:'TRL 5-6', text:'Post-mortem analysis (ICP-MS for metal leaching, XPS for surface poisoning, XRD for phase change) to identify the real degradation mechanism, not just the rate.'},
+  {stage:'TRL 6', text:'Scale from single test cell to a small stack (multiple cells in series) to confirm performance holds when cells are no longer individually tuned.'},
+  {stage:'TRL 6-7', text:'Pilot skid at a real site (a coastal test location, ideally) integrating storage, compression, and a real offtake for at least one product stream.'},
+];
+document.getElementById('validateList').innerHTML = validationSteps.map(v=>`
+  <div class="chkItem"><span class="stage">${v.stage}</span><span>${v.text}</span></div>`).join('');
+
+/* ================= ROADMAP GANTT ================= */
+const phases = [
+  {name:'Materials feasibility (TRL1-2)', start:0, len:6, color:'#00e5ff'},
+  {name:'Half-cell testing (TRL2-3)', start:4, len:6, color:'#ffb300'},
+  {name:'Composite bench cell (TRL3-4)', start:8, len:8, color:'#00e676'},
+  {name:'Environment testing (TRL4-5)', start:14, len:9, color:'#b388ff'},
+  {name:'1,000h validation (TRL5)', start:20, len:6, color:'#ff8a50'},
+  {name:'Small stack build (TRL5-6)', start:24, len:8, color:'#00e5ff'},
+  {name:'Pilot skid deployment (TRL6-7)', start:30, len:12, color:'#ffb300'},
+  {name:'Demonstration plant (TRL7-8)', start:40, len:16, color:'#00e676'},
+  {name:'Commercial scale-up (TRL8-9)', start:52, len:12, color:'#b388ff'},
+];
+const totalMonths = 64;
+document.getElementById('ganttChart').innerHTML = phases.map(p=>`
+  <div class="ganttRow">
+    <div class="ganttLbl">${p.name}</div>
+    <div class="ganttTrack"><div class="ganttBar" style="left:${p.start/totalMonths*100}%;width:${p.len/totalMonths*100}%;background:${p.color}">${p.len}mo</div></div>
+  </div>`).join('');
+
+/* ================= BUDGET ================= */
+const budget = [
+  {phase:'Materials feasibility + half-cell (TRL1-3)', low:80000, high:250000, color:'#00e5ff'},
+  {phase:'Composite bench cell + environment testing (TRL3-5)', low:250000, high:700000, color:'#00e676'},
+  {phase:'Small stack + pilot skid (TRL5-7)', low:1200000, high:4000000, color:'#ffb300'},
+  {phase:'Demonstration plant (TRL7-8)', low:8000000, high:25000000, color:'#b388ff'},
+  {phase:'Commercial scale-up (TRL8-9)', low:40000000, high:150000000, color:'#ff8a50'},
+];
+const maxHigh = Math.max(...budget.map(b=>b.high));
+document.getElementById('budgetList').innerHTML = budget.map(b=>`
+  <div style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;font-size:.75rem;">
+      <span style="color:var(--silver)">${b.phase}</span>
+      <span class="mono" style="color:${b.color}">$${(b.low/1000).toFixed(0)}k – $${b.high>=1000000?(b.high/1000000).toFixed(1)+'M':(b.high/1000).toFixed(0)+'k'}</span>
+    </div>
+    <div class="budgetBar"><div class="budgetSeg" style="width:${b.high/maxHigh*100}%;background:${b.color}"></div></div>
+  </div>`).join('');
+
+const funding = [
+  {name:'DOE SBIR/STTR (Phase I)', amt:'$200k–$250k', fit:'Materials feasibility and half-cell testing (TRL1-3)'},
+  {name:'DOE SBIR/STTR (Phase II)', amt:'$1.1M–$1.6M', fit:'Composite bench cell and small stack (TRL3-6)'},
+  {name:'ARPA-E focused solicitation', amt:'$500k–$10M', fit:'High-risk, high-reward integration work — best fit for the "does the composite work together" question'},
+  {name:'DOE Hydrogen Shot / HFTO FOAs', amt:'Varies by NOFO', fit:'Pilot skid and demonstration-scale, aligned with the $1/kg-by-2030 goal'},
+  {name:'DOE Loan Programs Office', amt:'Up to billions (loans, not grants)', fit:'Commercial-scale plant financing once bankable performance data exists'},
+  {name:'Strategic industry partner / offtake agreement', amt:'Varies', fit:'Coastal vessel fueling, aquaculture, or community generator partners as co-funders once TRL5+ data exists'},
+];
+document.getElementById('fundingTable').innerHTML = '<tr><th>Source</th><th>Typical size</th><th>Best-fit stage</th></tr>' +
+  funding.map(f=>`<tr><td>${f.name}</td><td class="mono">${f.amt}</td><td class="subtle">${f.fit}</td></tr>`).join('');
+
+/* ================= RISK REGISTER ================= */
+const risks = [
+  {lvl:'high', title:'Composite integration may not work as proposed', desc:'The core unproven assumption — six materials that each work alone may interfere with each other electronically or physically when stacked. This must be tested first, cheaply, before any capital-intensive step.'},
+  {lvl:'high', title:'Ruthenium cost and supply', desc:'Ru is a platinum-group metal with limited, geopolitically concentrated supply. A commercial-scale deployment needs either a low Ru loading, a Ru recycling loop, or a non-PGM substitute identified during bench work.'},
+  {lvl:'med', title:'Seawater corrosion and chlorine evolution', desc:'BDD is corrosion-resistant but the claim of avoiding chlorine evolution entirely at practical current densities and chloride concentrations needs direct measurement, not assumption.'},
+  {lvl:'med', title:'CO₂ capture-to-conversion handoff', desc:'ZIF-8 capturing CO₂ is well established; whether captured CO₂ is efficiently released to and converted by the adjacent Cu/Ru sites in one integrated device is a separate, harder engineering question.'},
+  {lvl:'med', title:'Stack lifetime vs. degradation mechanism', desc:'The 1,000-hour figure needs a known failure mode behind it (leaching, poisoning, delamination) — without that, scaling past 1,000 hours is a guess, not an extrapolation.'},
+  {lvl:'low', title:'Market price volatility', desc:'Green H₂, carbon credit, and methanol prices all move independently; a real project should model revenue with a range, not a point estimate, and should not depend on the highest end of any one market to be viable.'},
+  {lvl:'med', title:'Regulatory and permitting timeline', desc:'Coastal deployment (vessel fueling, aquaculture integration) will involve hydrogen-safety codes, marine/environmental permitting, and possibly Coast Guard review — this typically adds 12–24 months not reflected in a lab timeline.'},
+  {lvl:'low', title:'Funding sequencing risk', desc:'Applying to demonstration-scale funding (Hydrogen Shot FOAs, Loan Programs Office) before TRL5+ bench data exists will likely be a wasted cycle — sequence funding asks to match actual TRL.'},
+  {lvl:'high', title:'IP and prior art', desc:'Each individual component (Fe-doped MoS₂, NiSe₂, BDD, ZIF-8, Cu/Ru CO₂RR) has existing published and patented work; a freedom-to-operate review is needed before claiming the integrated architecture as novel IP.'},
+];
+document.getElementById('riskGrid').innerHTML = risks.map(r=>`
+  <div class="riskCard">
+    <span class="rlvl ${r.lvl}">${r.lvl.toUpperCase()} RISK</span>
+    <div class="rtitle">${r.title}</div>
+    <div class="rdesc">${r.desc}</div>
+  </div>`).join('');
+
+/* ================= TABS ================= */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-'+tab.dataset.view).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

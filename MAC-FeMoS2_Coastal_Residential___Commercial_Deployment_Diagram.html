@@ -1,0 +1,564 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head><base href="https://d16ilfvy4mv02r.cloudfront.net/workspaces/dNxyATtSS06h1Qgm4DQPKHu2lZnZr8iB/ecab5ed9-1e7e-4afb-bd35-d8f8b470429b/files/">
+<meta charset="UTF-8">
+<title>MAC-FeMoS2 Coastal Deployment Diagram</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(180deg, #0a1628 0%, #0d2244 40%, #1a3a5c 70%, #1e4a6e 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #7ecfff;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #a0c4e8;
+    margin-bottom: 18px;
+  }
+  .diagram-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: rgba(10,22,50,0.97);
+    color: #cfe8ff;
+    border: 1px solid #3b7fc4;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    max-width: 230px;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    line-height: 1.5;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    justify-content: center;
+    margin-top: 14px;
+    font-size: 0.7rem;
+    color: #b8d8f0;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .comp-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(100,180,255,0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .comp-card h3 {
+    font-size: 0.72rem;
+    color: #7ecfff;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .comp-card p {
+    font-size: 0.65rem;
+    color: #94b8d8;
+    line-height: 1.45;
+  }
+  footer {
+    text-align: center;
+    font-size: 0.6rem;
+    color: #4a6a90;
+    margin-top: 18px;
+  }
+</style>
+</head>
+<body>
+
+<div class="diagram-wrap">
+  <h1>MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru · Coastal Energy System</h1>
+  <p class="subtitle">Residential &amp; Commercial Deployment | Seawater Electrolysis · Green Hydrogen · CO₂ Valorization</p>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <svg viewBox="0 0 1050 580" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Sky gradient -->
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a1a35"/>
+        <stop offset="100%" stop-color="#1a4a72"/>
+      </linearGradient>
+      <!-- Sea gradient -->
+      <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0e3d6e"/>
+        <stop offset="100%" stop-color="#05182e"/>
+      </linearGradient>
+      <!-- Ground gradient -->
+      <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a3a20"/>
+        <stop offset="100%" stop-color="#0d2010"/>
+      </linearGradient>
+      <!-- Catalyst box -->
+      <linearGradient id="catGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a3a6e"/>
+        <stop offset="100%" stop-color="#0d2244"/>
+      </linearGradient>
+      <!-- House wall -->
+      <linearGradient id="houseWall" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#c8a878"/>
+        <stop offset="100%" stop-color="#9a7a54"/>
+      </linearGradient>
+      <!-- H2 tank -->
+      <linearGradient id="h2Grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1e6fa8"/>
+        <stop offset="100%" stop-color="#0a3d6a"/>
+      </linearGradient>
+      <!-- Solar panel -->
+      <linearGradient id="solarGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1a3a6e"/>
+        <stop offset="100%" stop-color="#0a1f40"/>
+      </linearGradient>
+      <!-- Arrow marker blue -->
+      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#4ab4ff"/>
+      </marker>
+      <!-- Arrow marker green -->
+      <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#4aff9a"/>
+      </marker>
+      <!-- Arrow marker orange -->
+      <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#ffa04a"/>
+      </marker>
+      <!-- Arrow marker yellow -->
+      <marker id="arrowYellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#ffe04a"/>
+      </marker>
+      <!-- Arrow marker red -->
+      <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#ff6a4a"/>
+      </marker>
+      <!-- Arrow marker white -->
+      <marker id="arrowWhite" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#cfe8ff"/>
+      </marker>
+      <!-- Glow filter -->
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="softglow">
+        <feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Wave pattern -->
+      <pattern id="wavePattern" x="0" y="0" width="80" height="20" patternUnits="userSpaceOnUse">
+        <path d="M0,10 Q20,2 40,10 Q60,18 80,10" fill="none" stroke="rgba(100,200,255,0.15)" stroke-width="1.5"/>
+      </pattern>
+    </defs>
+
+    <!-- ═══ BACKGROUND ═══ -->
+    <rect width="1050" height="580" fill="url(#sky)"/>
+    <!-- Sea -->
+    <rect x="0" y="390" width="340" height="190" fill="url(#sea)"/>
+    <rect x="0" y="390" width="340" height="190" fill="url(#wavePattern)"/>
+    <!-- Ground -->
+    <rect x="330" y="430" width="720" height="150" fill="url(#ground)"/>
+    <!-- Horizon line -->
+    <line x1="0" y1="430" x2="1050" y2="430" stroke="rgba(100,200,255,0.08)" stroke-width="1"/>
+
+    <!-- ═══ SUN / STARS ═══ -->
+    <circle cx="900" cy="60" r="38" fill="#fff6c0" opacity="0.9" filter="url(#softglow)"/>
+    <circle cx="900" cy="60" r="28" fill="#ffe87a"/>
+    <!-- Sun rays -->
+    <g stroke="#ffe87a" stroke-width="2" opacity="0.5">
+      <line x1="900" y1="10" x2="900" y2="0"/>
+      <line x1="945" y1="25" x2="955" y2="15"/>
+      <line x1="960" y1="60" x2="975" y2="60"/>
+      <line x1="945" y1="95" x2="955" y2="105"/>
+      <line x1="900" y1="110" x2="900" y2="122"/>
+      <line x1="855" y1="95" x2="845" y2="105"/>
+      <line x1="840" y1="60" x2="825" y2="60"/>
+      <line x1="855" y1="25" x2="845" y2="15"/>
+    </g>
+
+    <!-- Clouds (CO2 source label) -->
+    <ellipse cx="200" cy="80" rx="50" ry="22" fill="rgba(200,220,255,0.12)"/>
+    <ellipse cx="230" cy="72" rx="35" ry="18" fill="rgba(200,220,255,0.12)"/>
+    <ellipse cx="170" cy="75" rx="30" ry="16" fill="rgba(200,220,255,0.12)"/>
+
+    <!-- ═══ SEA WAVES ═══ -->
+    <path d="M0,405 Q40,395 80,405 Q120,415 160,405 Q200,395 240,405 Q280,415 320,405 L340,405 L340,580 L0,580 Z" fill="rgba(14,61,110,0.7)"/>
+    <path d="M0,415 Q30,408 60,415 Q100,422 140,415 Q180,408 220,415 Q260,422 300,415 L340,415" fill="none" stroke="rgba(120,220,255,0.3)" stroke-width="1.5"/>
+
+    <!-- ═══ SEAWATER INTAKE PIPE ═══ -->
+    <!-- Pipe in sea -->
+    <rect x="120" y="390" width="12" height="120" rx="4" fill="#2a5a8a" stroke="#4a8abc" stroke-width="1.5"/>
+    <circle cx="126" cy="510" r="10" fill="#1a3a6a" stroke="#4a8abc" stroke-width="1.5"/>
+    <!-- Pipe holes -->
+    <circle cx="126" cy="495" r="3" fill="#0a2040" opacity="0.6"/>
+    <circle cx="126" cy="480" r="3" fill="#0a2040" opacity="0.6"/>
+    <circle cx="126" cy="465" r="3" fill="#0a2040" opacity="0.6"/>
+    <!-- Intake label -->
+    <rect x="40" y="455" rx="5" ry="5" width="72" height="28" fill="rgba(10,30,60,0.8)" stroke="#4a8abc" stroke-width="1"/>
+    <text x="76" y="466" text-anchor="middle" font-size="8.5" fill="#7ecfff" font-weight="600">SEAWATER</text>
+    <text x="76" y="476" text-anchor="middle" font-size="8" fill="#a0c4e8">INTAKE</text>
+    <line x1="112" y1="469" x2="76" y2="469" stroke="#4a8abc" stroke-width="1" stroke-dasharray="3,2"/>
+
+    <!-- ═══ ELECTROLYZER / CATALYST UNIT ═══ -->
+    <!-- Main unit box -->
+    <rect x="310" y="300" width="180" height="130" rx="12" fill="url(#catGrad)" stroke="#3a7fc4" stroke-width="2.5"/>
+    <rect x="310" y="300" width="180" height="130" rx="12" fill="rgba(74,180,255,0.04)"/>
+    <!-- Glow effect -->
+    <rect x="310" y="300" width="180" height="130" rx="12" fill="none" stroke="#4ab4ff" stroke-width="1" opacity="0.4" filter="url(#glow)"/>
+
+    <!-- Electrode plates inside -->
+    <rect x="328" y="320" width="8" height="90" rx="3" fill="#2a6aaa" stroke="#4a9acc" stroke-width="1"/>
+    <rect x="342" y="320" width="8" height="90" rx="3" fill="#1a4a8a" stroke="#3a7abc" stroke-width="1"/>
+    <rect x="356" y="320" width="8" height="90" rx="3" fill="#2a6aaa" stroke="#4a9acc" stroke-width="1"/>
+
+    <!-- Bubbles H2 -->
+    <circle cx="336" cy="336" r="4" fill="rgba(74,180,255,0.5)" filter="url(#glow)"/>
+    <circle cx="333" cy="322" r="3" fill="rgba(74,180,255,0.5)" filter="url(#glow)"/>
+    <circle cx="338" cy="315" r="2" fill="rgba(74,180,255,0.5)" filter="url(#glow)"/>
+    <!-- Bubbles O2 -->
+    <circle cx="364" cy="340" r="4" fill="rgba(74,255,150,0.5)" filter="url(#glow)"/>
+    <circle cx="361" cy="326" r="2.5" fill="rgba(74,255,150,0.5)" filter="url(#glow)"/>
+
+    <!-- ZIF-8 CO2 capture module (on side) -->
+    <rect x="374" y="325" width="44" height="50" rx="6" fill="#2a1a5a" stroke="#8a5acc" stroke-width="1.5"/>
+    <text x="396" y="342" text-anchor="middle" font-size="7.5" fill="#c89aff" font-weight="700">ZIF-8</text>
+    <text x="396" y="353" text-anchor="middle" font-size="6.5" fill="#a07acc">CO₂</text>
+    <text x="396" y="363" text-anchor="middle" font-size="6.5" fill="#a07acc">Capture</text>
+    <!-- Honeycomb pattern on ZIF -->
+    <path d="M376,372 L380,368 L388,368 L392,372 L388,376 L380,376 Z" fill="none" stroke="#6a3aaa" stroke-width="0.8"/>
+    <path d="M388,372 L392,368 L400,368 L404,372 L400,376 L392,376 Z" fill="none" stroke="#6a3aaa" stroke-width="0.8"/>
+    <path d="M382,380 L386,376 L394,376 L398,380 L394,384 L386,384 Z" fill="none" stroke="#6a3aaa" stroke-width="0.8"/>
+
+    <!-- Cu-Ru catalytic converter -->
+    <rect x="424" y="325" width="52" height="50" rx="6" fill="#3a1a0a" stroke="#cc6a2a" stroke-width="1.5"/>
+    <text x="450" y="342" text-anchor="middle" font-size="7.5" fill="#ffa06a" font-weight="700">Cu-Ru</text>
+    <text x="450" y="353" text-anchor="middle" font-size="6.5" fill="#cc8040">CO₂→</text>
+    <text x="450" y="363" text-anchor="middle" font-size="6.5" fill="#cc8040">CH₃OH</text>
+
+    <!-- Unit label -->
+    <text x="400" y="420" text-anchor="middle" font-size="10" fill="#7ecfff" font-weight="700">MAC-FeMoS₂@NiSe₂</text>
+    <text x="400" y="432" text-anchor="middle" font-size="8.5" fill="#5a9acc">BDD-ZIF-8-Cu-Ru Electrolyzer</text>
+    <!-- BDD label -->
+    <text x="356" y="418" text-anchor="middle" font-size="7" fill="#90c0e8" font-style="italic">BDD</text>
+
+    <!-- ═══ RESIDENTIAL HOUSE ═══ -->
+    <!-- House wall -->
+    <rect x="560" y="310" width="160" height="120" fill="url(#houseWall)" stroke="#8a6a44" stroke-width="2"/>
+    <!-- Roof -->
+    <polygon points="545,310 640,230 735,310" fill="#7a3a2a" stroke="#5a2a1a" stroke-width="2"/>
+    <!-- Roof ridge -->
+    <line x1="545" y1="310" x2="640" y2="230" stroke="#5a2a1a" stroke-width="1"/>
+    <line x1="735" y1="310" x2="640" y2="230" stroke="#5a2a1a" stroke-width="1"/>
+    <!-- Door -->
+    <rect x="614" y="370" width="32" height="60" rx="3" fill="#5a3a1a" stroke="#3a2010" stroke-width="1.5"/>
+    <circle cx="638" cy="400" r="3" fill="#c8a040"/>
+    <!-- Windows -->
+    <rect x="574" y="330" width="36" height="30" rx="3" fill="#a0c8f0" stroke="#7a9abc" stroke-width="1.5" opacity="0.8"/>
+    <line x1="592" y1="330" x2="592" y2="360" stroke="#7a9abc" stroke-width="1"/>
+    <line x1="574" y1="345" x2="610" y2="345" stroke="#7a9abc" stroke-width="1"/>
+    <rect x="686" y="330" width="36" height="30" rx="3" fill="#a0c8f0" stroke="#7a9abc" stroke-width="1.5" opacity="0.8"/>
+    <line x1="704" y1="330" x2="704" y2="360" stroke="#7a9abc" stroke-width="1"/>
+    <line x1="686" y1="345" x2="722" y2="345" stroke="#7a9abc" stroke-width="1"/>
+    <!-- House label -->
+    <text x="640" y="460" text-anchor="middle" font-size="9" fill="#d4b888" font-weight="600">RESIDENTIAL</text>
+
+    <!-- Solar panels on roof -->
+    <g transform="translate(575,255) rotate(-38)">
+      <rect width="25" height="14" rx="2" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+      <line x1="0" y1="7" x2="25" y2="7" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="8" y1="0" x2="8" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="17" y1="0" x2="17" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+    </g>
+    <g transform="translate(596,242) rotate(-38)">
+      <rect width="25" height="14" rx="2" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+      <line x1="0" y1="7" x2="25" y2="7" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="8" y1="0" x2="8" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="17" y1="0" x2="17" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+    </g>
+    <g transform="translate(617,229) rotate(-38)">
+      <rect width="25" height="14" rx="2" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+      <line x1="0" y1="7" x2="25" y2="7" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="8" y1="0" x2="8" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+      <line x1="17" y1="0" x2="17" y2="14" stroke="#2a4a8a" stroke-width="0.7"/>
+    </g>
+
+    <!-- ═══ COMMERCIAL BUILDING ═══ -->
+    <rect x="810" y="240" width="200" height="190" fill="#607080" stroke="#405060" stroke-width="2"/>
+    <!-- Commercial windows grid -->
+    <g fill="#7ab0d0" opacity="0.75" stroke="#4a7a9a" stroke-width="0.8">
+      <rect x="822" y="255" width="22" height="16" rx="2"/>
+      <rect x="852" y="255" width="22" height="16" rx="2"/>
+      <rect x="882" y="255" width="22" height="16" rx="2"/>
+      <rect x="912" y="255" width="22" height="16" rx="2"/>
+      <rect x="942" y="255" width="22" height="16" rx="2"/>
+      <rect x="972" y="255" width="22" height="16" rx="2"/>
+      <rect x="822" y="282" width="22" height="16" rx="2"/>
+      <rect x="852" y="282" width="22" height="16" rx="2"/>
+      <rect x="882" y="282" width="22" height="16" rx="2"/>
+      <rect x="912" y="282" width="22" height="16" rx="2"/>
+      <rect x="942" y="282" width="22" height="16" rx="2"/>
+      <rect x="972" y="282" width="22" height="16" rx="2"/>
+      <rect x="822" y="309" width="22" height="16" rx="2"/>
+      <rect x="852" y="309" width="22" height="16" rx="2"/>
+      <rect x="882" y="309" width="22" height="16" rx="2"/>
+      <rect x="912" y="309" width="22" height="16" rx="2"/>
+      <rect x="942" y="309" width="22" height="16" rx="2"/>
+      <rect x="972" y="309" width="22" height="16" rx="2"/>
+      <rect x="822" y="336" width="22" height="16" rx="2"/>
+      <rect x="852" y="336" width="22" height="16" rx="2"/>
+      <rect x="882" y="336" width="22" height="16" rx="2"/>
+      <rect x="912" y="336" width="22" height="16" rx="2"/>
+      <rect x="942" y="336" width="22" height="16" rx="2"/>
+      <rect x="972" y="336" width="22" height="16" rx="2"/>
+      <rect x="822" y="363" width="22" height="16" rx="2"/>
+      <rect x="852" y="363" width="22" height="16" rx="2"/>
+      <rect x="882" y="363" width="22" height="16" rx="2"/>
+      <rect x="912" y="363" width="22" height="16" rx="2"/>
+      <rect x="942" y="363" width="22" height="16" rx="2"/>
+      <rect x="972" y="363" width="22" height="16" rx="2"/>
+    </g>
+    <!-- Commercial door -->
+    <rect x="880" y="390" width="50" height="40" rx="3" fill="#4a6a7a" stroke="#3a5060" stroke-width="1.5"/>
+    <line x1="905" y1="390" x2="905" y2="430" stroke="#3a5060" stroke-width="1"/>
+    <!-- Commercial sign -->
+    <rect x="820" y="242" width="200" height="12" rx="2" fill="#3a5060" stroke="#4a6070" stroke-width="1"/>
+    <text x="920" y="250" text-anchor="middle" font-size="7.5" fill="#90c8e8" font-weight="600">COMMERCIAL BUILDING</text>
+    <!-- Commercial rooftop solar array -->
+    <rect x="818" y="232" width="30" height="8" rx="1" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+    <line x1="818" y1="236" x2="848" y2="236" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="828" y1="232" x2="828" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="838" y1="232" x2="838" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <rect x="855" y="232" width="30" height="8" rx="1" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+    <line x1="855" y1="236" x2="885" y2="236" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="865" y1="232" x2="865" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="875" y1="232" x2="875" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <rect x="892" y="232" width="30" height="8" rx="1" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+    <line x1="892" y1="236" x2="922" y2="236" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="902" y1="232" x2="902" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="912" y1="232" x2="912" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <rect x="929" y="232" width="30" height="8" rx="1" fill="url(#solarGrad)" stroke="#4a6aaa" stroke-width="1"/>
+    <line x1="929" y1="236" x2="959" y2="236" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="939" y1="232" x2="939" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+    <line x1="949" y1="232" x2="949" y2="240" stroke="#2a4a8a" stroke-width="0.6"/>
+
+    <!-- ═══ H2 STORAGE TANK ═══ -->
+    <ellipse cx="780" cy="420" rx="35" ry="16" fill="#1a4a7a" stroke="#3a7abc" stroke-width="2"/>
+    <rect x="745" y="420" width="70" height="45" fill="#1a4a7a" stroke="#3a7abc" stroke-width="2"/>
+    <ellipse cx="780" cy="465" rx="35" ry="16" fill="#1a4a7a" stroke="#3a7abc" stroke-width="2"/>
+    <!-- H2 label on tank -->
+    <text x="780" y="447" text-anchor="middle" font-size="18" fill="#4ab4ff" font-weight="900" filter="url(#glow)">H₂</text>
+    <text x="780" y="458" text-anchor="middle" font-size="7" fill="#7ab4e8">STORAGE</text>
+    <!-- Tank valve -->
+    <rect x="793" y="410" width="6" height="10" fill="#2a6aaa" stroke="#4a8abc" stroke-width="1"/>
+    <rect x="789" y="408" width="14" height="4" rx="2" fill="#3a7abc"/>
+
+    <!-- ═══ FUEL CELL ═══ -->
+    <rect x="750" y="300" width="75" height="55" rx="8" fill="#0a2a4a" stroke="#2a6aaa" stroke-width="2"/>
+    <text x="788" y="322" text-anchor="middle" font-size="9" fill="#7ecfff" font-weight="700">FUEL CELL</text>
+    <text x="788" y="335" text-anchor="middle" font-size="8" fill="#4a9acc">H₂ → Power</text>
+    <!-- Fuel cell stacks -->
+    <rect x="758" y="340" width="12" height="8" rx="2" fill="#1a4a7a" stroke="#2a6aaa" stroke-width="1"/>
+    <rect x="774" y="340" width="12" height="8" rx="2" fill="#1a4a7a" stroke="#2a6aaa" stroke-width="1"/>
+    <rect x="790" y="340" width="12" height="8" rx="2" fill="#1a4a7a" stroke="#2a6aaa" stroke-width="1"/>
+    <text x="788" y="350" text-anchor="middle" font-size="6.5" fill="#3a7abc" opacity="0.8">PEM Stack</text>
+
+    <!-- ═══ FLOW ARROWS ═══ -->
+
+    <!-- 1. Seawater pipe → Electrolyzer (blue) -->
+    <path d="M132,390 Q132,360 310,360" fill="none" stroke="#4ab4ff" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrowBlue)"/>
+    <text x="220" y="348" text-anchor="middle" font-size="8" fill="#4ab4ff" font-weight="600">Seawater / H₂O</text>
+
+    <!-- 2. H2 from electrolyzer → H2 storage (green going up then right) -->
+    <path d="M400,300 Q400,270 600,270 Q680,270 745,355" fill="none" stroke="#4aff9a" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#arrowGreen)"/>
+    <text x="560" y="262" text-anchor="middle" font-size="8" fill="#4aff9a" font-weight="600">H₂ gas</text>
+
+    <!-- 3. O2 from electrolyzer → atmosphere (light blue going up) -->
+    <path d="M360,300 Q340,200 260,180" fill="none" stroke="#80e8ff" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowBlue)" opacity="0.7"/>
+    <text x="295" y="225" text-anchor="middle" font-size="8" fill="#80e8ff">O₂ released</text>
+
+    <!-- 4. Solar → Electrolyzer (yellow) -->
+    <path d="M880,66 Q700,66 530,250 Q510,270 490,300" fill="none" stroke="#ffe04a" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrowYellow)" opacity="0.8"/>
+    <text x="720" y="100" text-anchor="middle" font-size="8" fill="#ffe04a" font-weight="600">Solar Energy (PV)</text>
+
+    <!-- 5. CO2 from building → ZIF-8 (orange dashed) -->
+    <path d="M640,310 Q640,280 480,320 Q475,330 470,335" fill="none" stroke="#ffa04a" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowOrange)"/>
+    <text x="565" y="288" text-anchor="middle" font-size="8" fill="#ffa04a">CO₂ emissions</text>
+
+    <!-- 6. CO2 from commercial → ZIF-8 (orange) -->
+    <path d="M810,300 Q700,300 490,340" fill="none" stroke="#ffa04a" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+
+    <!-- 7. Methanol/chemicals output (red/orange) -->
+    <path d="M490,430 Q490,490 640,510 Q700,520 750,510" fill="none" stroke="#ff8a4a" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#arrowOrange)"/>
+    <rect x="620" y="510" rx="5" ry="5" width="90" height="20" fill="rgba(60,20,0,0.8)" stroke="#cc6a2a" stroke-width="1"/>
+    <text x="665" y="524" text-anchor="middle" font-size="8" fill="#ffa06a" font-weight="600">CH₃OH / Formate</text>
+
+    <!-- 8. H2 from storage → Fuel cell -->
+    <path d="M780,404 L788,355" fill="none" stroke="#4aff9a" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+    <text x="800" y="385" text-anchor="middle" font-size="7.5" fill="#4aff9a">H₂ feed</text>
+
+    <!-- 9. Fuel cell power → Residential house -->
+    <path d="M750,328 Q720,328 720,365" fill="none" stroke="#ffe04a" stroke-width="2.5" marker-end="url(#arrowYellow)"/>
+    <text x="728" y="350" text-anchor="middle" font-size="7.5" fill="#ffe04a">⚡ Power</text>
+
+    <!-- 10. Fuel cell power → Commercial building (upward) -->
+    <path d="M820,320 Q820,280 812,275" fill="none" stroke="#ffe04a" stroke-width="2.5" marker-end="url(#arrowYellow)"/>
+
+    <!-- 11. Brine discharge (faint) -->
+    <path d="M400,430 Q400,480 250,490" fill="none" stroke="#4a7a9a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowBlue)" opacity="0.5"/>
+    <text x="310" y="492" text-anchor="middle" font-size="7.5" fill="#4a9abc" opacity="0.7">Brine / O₂</text>
+
+    <!-- 12. H2 pipeline to commercial -->
+    <path d="M815,420 Q870,420 870,430" fill="none" stroke="#4aff9a" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowGreen)"/>
+    <text x="855" y="413" text-anchor="middle" font-size="7.5" fill="#4aff9a">H₂ pipeline</text>
+
+    <!-- ═══ ATMOSPHERIC WATER HARVESTER ═══ -->
+    <rect x="200" y="150" width="80" height="40" rx="6" fill="rgba(20,50,90,0.85)" stroke="#3a7abc" stroke-width="1.5"/>
+    <text x="240" y="168" text-anchor="middle" font-size="8" fill="#7ecfff" font-weight="600">ATM WATER</text>
+    <text x="240" y="179" text-anchor="middle" font-size="7.5" fill="#5a9acc">HARVESTER</text>
+    <!-- Mesh lines on harvester -->
+    <line x1="200" y1="162" x2="280" y2="162" stroke="#2a5a8a" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <line x1="200" y1="170" x2="280" y2="170" stroke="#2a5a8a" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <!-- Water drips -->
+    <ellipse cx="220" cy="192" rx="3" ry="4" fill="#4ab4ff" opacity="0.7"/>
+    <ellipse cx="240" cy="195" rx="2" ry="3" fill="#4ab4ff" opacity="0.6"/>
+    <ellipse cx="260" cy="191" rx="3" ry="4" fill="#4ab4ff" opacity="0.7"/>
+    <!-- ATM water → electrolyzer -->
+    <path d="M240,190 Q240,240 310,340" fill="none" stroke="#4ab4ff" stroke-width="1.8" stroke-dasharray="3,3" marker-end="url(#arrowBlue)" opacity="0.65"/>
+
+    <!-- ═══ LABELS / BADGES ═══ -->
+    <!-- Performance badge -->
+    <rect x="10" y="295" width="120" height="65" rx="8" fill="rgba(10,30,60,0.9)" stroke="#3a7abc" stroke-width="1.5"/>
+    <text x="70" y="312" text-anchor="middle" font-size="8.5" fill="#7ecfff" font-weight="700">PERFORMANCE</text>
+    <line x1="18" y1="316" x2="122" y2="316" stroke="#2a5a8a" stroke-width="0.8"/>
+    <text x="70" y="327" text-anchor="middle" font-size="7.5" fill="#4aff9a">η &gt; 90% Faradaic eff.</text>
+    <text x="70" y="338" text-anchor="middle" font-size="7.5" fill="#4aff9a">1000+ hrs stability</text>
+    <text x="70" y="349" text-anchor="middle" font-size="7.5" fill="#ffe04a">No Cl₂ evolution</text>
+    <text x="70" y="360" text-anchor="middle" font-size="7.5" fill="#ffa04a">−CO₂ carbon cycle</text>
+
+    <!-- Seawater versatility note -->
+    <rect x="10" y="200" width="110" height="55" rx="8" fill="rgba(10,30,60,0.85)" stroke="#3a7abc" stroke-width="1.2"/>
+    <text x="65" y="217" text-anchor="middle" font-size="8" fill="#7ecfff" font-weight="700">WATER SOURCES</text>
+    <line x1="16" y1="220" x2="114" y2="220" stroke="#2a5a8a" stroke-width="0.8"/>
+    <text x="65" y="231" text-anchor="middle" font-size="7.5" fill="#cfe8ff">🌊 Seawater</text>
+    <text x="65" y="241" text-anchor="middle" font-size="7.5" fill="#cfe8ff">💧 Freshwater</text>
+    <text x="65" y="251" text-anchor="middle" font-size="7.5" fill="#cfe8ff">🌫 Atm. Moisture</text>
+
+    <!-- Outputs badge -->
+    <rect x="840" y="470" width="185" height="80" rx="8" fill="rgba(10,30,10,0.9)" stroke="#3a8a4a" stroke-width="1.5"/>
+    <text x="932" y="488" text-anchor="middle" font-size="8.5" fill="#4aff9a" font-weight="700">SYSTEM OUTPUTS</text>
+    <line x1="848" y1="492" x2="1018" y2="492" stroke="#2a5a2a" stroke-width="0.8"/>
+    <text x="932" y="503" text-anchor="middle" font-size="7.5" fill="#cfe8ff">⚡ Green electricity (fuel cell)</text>
+    <text x="932" y="514" text-anchor="middle" font-size="7.5" fill="#cfe8ff">🟢 Green H₂ for heating/fuel</text>
+    <text x="932" y="525" text-anchor="middle" font-size="7.5" fill="#cfe8ff">🧪 Methanol / Formate / HC</text>
+    <text x="932" y="536" text-anchor="middle" font-size="7.5" fill="#cfe8ff">💧 Treated water by-product</text>
+    <text x="932" y="547" text-anchor="middle" font-size="7.5" fill="#cfe8ff">🌿 Net CO₂ negative operation</text>
+
+    <!-- Title box -->
+    <rect x="760" y="140" width="268" height="55" rx="8" fill="rgba(10,20,50,0.85)" stroke="#3a7abc" stroke-width="1.5"/>
+    <text x="894" y="160" text-anchor="middle" font-size="10" fill="#7ecfff" font-weight="700">COASTAL DEPLOYMENT</text>
+    <text x="894" y="174" text-anchor="middle" font-size="8" fill="#5a9acc">Residential + Commercial Integration</text>
+    <text x="894" y="186" text-anchor="middle" font-size="7.5" fill="#4a8abc">Zero freshwater dependency · Carbon-negative</text>
+
+    <!-- SDG badge -->
+    <rect x="420" y="140" width="155" height="40" rx="8" fill="rgba(20,10,50,0.85)" stroke="#6a3aaa" stroke-width="1.5"/>
+    <text x="498" y="157" text-anchor="middle" font-size="8" fill="#c89aff" font-weight="700">UN SDGs Addressed</text>
+    <text x="498" y="170" text-anchor="middle" font-size="7.5" fill="#a07acc">SDG 7 · SDG 9 · SDG 13 · SDG 14</text>
+
+    <!-- Decorative: electricity bolt from fuel cell to house -->
+    <text x="730" y="348" font-size="14" fill="#ffe04a" filter="url(#glow)">⚡</text>
+
+    <!-- Scale/horizon markers -->
+    <line x1="330" y1="430" x2="1050" y2="430" stroke="rgba(100,200,100,0.12)" stroke-width="1.5"/>
+    <!-- Ground dots -->
+    <circle cx="430" cy="432" r="2" fill="rgba(100,200,100,0.25)"/>
+    <circle cx="530" cy="432" r="2" fill="rgba(100,200,100,0.25)"/>
+    <circle cx="630" cy="432" r="2" fill="rgba(100,200,100,0.25)"/>
+    <circle cx="730" cy="432" r="2" fill="rgba(100,200,100,0.25)"/>
+
+  </svg>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4ab4ff"></div> Water / H₂O flow</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4aff9a"></div> Green hydrogen (H₂)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffe04a"></div> Electrical energy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffa04a"></div> CO₂ capture &amp; chemicals</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#80e8ff"></div> Oxygen release</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c89aff"></div> ZIF-8 / Cu-Ru catalysis</div>
+  </div>
+
+  <!-- COMPONENT CARDS -->
+  <div class="components-grid" style="margin-top:20px;">
+    <div class="comp-card">
+      <h3>⚗️ FeMoS₂ — HER Catalyst</h3>
+      <p>Iron-doped molybdenum disulfide with carbon encapsulation drives the Hydrogen Evolution Reaction at low overpotential, even in corrosive seawater.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🟢 NiSe₂ — OER Catalyst</h3>
+      <p>Nickel selenide enables the Oxygen Evolution Reaction, generating O₂ while preventing chlorine gas formation — critical for seawater electrolysis.</p>
+    </div>
+    <div class="comp-card">
+      <h3>💎 BDD — Electron Highway</h3>
+      <p>Boron-Doped Diamond provides a stable, corrosion-resistant conductive backbone for long-term operation (&gt;1000 hrs) in harsh marine environments.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🔷 ZIF-8 — CO₂ Capture</h3>
+      <p>Metal-Organic Framework selectively adsorbs CO₂ from building emissions and atmospheric streams, concentrating it at catalytic sites for conversion.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🔴 Cu-Ru — CO₂ Conversion</h3>
+      <p>Copper initiates CO₂ reduction while Ruthenium drives hydrogenation, producing methanol, formate, and hydrocarbons — turning waste into value.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🏠 Residential Use Case</h3>
+      <p>Coastal home uses seawater + solar PV to power the electrolyzer. H₂ stored in tank feeds fuel cell for 24/7 electricity and heating. CO₂ from kitchen/HVAC captured and valorized.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🏢 Commercial Use Case</h3>
+      <p>Building-scale deployment with rooftop solar array and H₂ pipeline feeds. Higher CO₂ capture capacity from HVAC systems. Methanol by-product provides additional revenue stream.</p>
+    </div>
+    <div class="comp-card">
+      <h3>🌊 Seawater Advantage</h3>
+      <p>Eliminates freshwater dependency entirely. Operates across seawater, freshwater, and atmospheric moisture — transforming 71% of Earth's surface into H₂ production sites.</p>
+    </div>
+  </div>
+
+  <footer style="margin-top:20px;">
+    Based on: "A Paradigm Shift in Energy and Environmental Solutions" — Frank Levanti · MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru Composite Catalyst Thesis
+  </footer>
+</div>
+
+</body>
+</html>

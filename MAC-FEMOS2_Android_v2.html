@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#01050d">
+<title>MAC-FeMoS₂ — Frank Levanti</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0:#01050d; --bg1:#060d1a; --bg2:#0b1627; --bg3:#101f38;
+  --teal:#00c8ff; --gold:#f5b700; --pink:#ff2060;
+  --green:#00e87a; --amber:#ff8800; --violet:#8b5cf6;
+  --blue:#0066ff;
+  --text:#b8d4ee; --dim:#4a6a8a; --white:#e8f4ff;
+  --border:rgba(0,200,255,0.12); --border2:rgba(0,200,255,0.28);
+  --mono:'JetBrains Mono',monospace;
+  --head:'Orbitron',sans-serif;
+  --body:'Exo 2',sans-serif;
+  --nav-h:60px; --topbar-h:52px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;overflow:hidden;}
+body{
+  height:100%; width:100%;
+  background:var(--bg0); color:var(--text);
+  font-family:var(--body); font-size:14px;
+  overflow:hidden; overscroll-behavior:none;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{display:none;}
+button{cursor:pointer;border:none;outline:none;background:none;font-family:var(--body);}
+canvas{display:block;}
+input,select,textarea{font-family:var(--body);outline:none;}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;background:var(--bg0);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9999;
+  transition:opacity 0.5s;
+}
+#loader.out{opacity:0;pointer-events:none;}
+.ld-ring{width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,200,255,0.15);border-top-color:var(--teal);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ld-title{font-family:var(--head);font-size:12px;font-weight:700;color:var(--teal);letter-spacing:2px;text-align:center;line-height:1.6;}
+.ld-sub{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:2px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* ── APP SHELL ── */
+#app{
+  display:flex;flex-direction:column;
+  height:100vh;height:100dvh;
+  width:100%;overflow:hidden;
+}
+
+/* ── TOPBAR ── */
+#topbar{
+  height:var(--topbar-h);flex-shrink:0;
+  background:rgba(6,13,26,0.97);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  position:relative;z-index:50;
+}
+.tb-icon{
+  width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--head);font-size:8px;font-weight:800;color:var(--teal);
+  box-shadow:0 0 14px rgba(0,200,255,0.4);
+  animation:glowPulse 3s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 14px rgba(0,200,255,0.4);}50%{box-shadow:0 0 28px rgba(0,200,255,0.7);}}
+.tb-text{flex:1;min-width:0;}
+.tb-title{font-family:var(--head);font-size:9px;font-weight:700;color:var(--white);letter-spacing:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-sub{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:1px;margin-top:1px;}
+.tb-status{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
+.tb-status span{font-family:var(--mono);font-size:8px;color:var(--dim);}
+
+/* ── VIEWS ── */
+#views{flex:1;position:relative;overflow:hidden;}
+.view{
+  position:absolute;inset:0;
+  display:none;flex-direction:column;
+  overflow:hidden;
+  animation:viewIn .22s ease;
+}
+.view.active{display:flex;}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.view-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;padding-bottom:calc(var(--nav-h) + 16px + var(--safe-bottom));}
+
+/* ── BOTTOM NAV ── */
+#bottomnav{
+  height:calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom:var(--safe-bottom);
+  flex-shrink:0;
+  background:rgba(6,13,26,0.98);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  display:grid;grid-template-columns:repeat(7,1fr);
+  position:relative;z-index:50;
+}
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 0;
+  cursor:pointer;transition:all .2s;
+  color:var(--dim);font-family:var(--mono);font-size:7px;letter-spacing:.3px;
+  border-top:2px solid transparent;
+}
+.bn-item:active{background:rgba(0,200,255,0.04);}
+.bn-item.active{color:var(--teal);border-top-color:var(--teal);}
+.bn-icon{font-size:16px;line-height:1;}
+.bn-label{font-size:7px;text-align:center;}
+
+/* ═════════════ SHARED COMPONENTS ═════════════ */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:3px;height:10px;background:var(--teal);border-radius:1px;flex-shrink:0;}
+.section-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;display:block;}
+.section-h{font-family:var(--head);font-size:17px;font-weight:700;color:var(--white);margin-bottom:4px;line-height:1.2;}
+.divider{height:1px;background:var(--border);margin:12px 0;}
+.chip{display:inline-flex;align-items:center;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--dim);}
+.btn-primary{
+  background:rgba(0,200,255,0.1);border:1px solid var(--teal);color:var(--teal);
+  font-family:var(--mono);font-size:10px;letter-spacing:1.5px;
+  padding:10px 20px;border-radius:6px;width:100%;transition:all .2s;
+}
+.btn-primary:active{background:rgba(0,200,255,0.2);}
+
+/* ═════════════ DASHBOARD ═════════════ */
+.stats-2x2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 12px;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--sc-color,var(--teal));}
+.sc-val{font-family:var(--head);font-size:22px;font-weight:700;color:var(--sc-color,var(--teal));display:block;line-height:1;}
+.sc-lbl{font-size:10px;color:var(--dim);margin-top:4px;line-height:1.3;}
+/* comp chips row */
+.comp-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+.comp-chip{
+  flex:1;min-width:80px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 8px;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:8px;
+}
+.comp-chip:active{border-color:var(--cc-color,var(--teal));}
+.cc-sym{font-family:var(--head);font-size:15px;font-weight:800;color:var(--cc-color,var(--teal));}
+.cc-info{min-width:0;}
+.cc-name{font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-role{font-family:var(--mono);font-size:8px;color:var(--dim);}
+/* activity */
+.activity-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;background:var(--bg2);border-radius:8px;
+  border:1px solid var(--border);margin-bottom:6px;
+}
+.act-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.act-text{font-size:12px;color:var(--text);line-height:1.4;flex:1;}
+.act-time{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px;}
+
+/* ═════════════ MOLECULAR ═════════════ */
+#mol-canvas-wrap{
+  position:relative;
+  background:radial-gradient(ellipse at 50% 40%,rgba(0,50,80,.3),var(--bg0));
+  border-radius:12px;overflow:hidden;
+  margin-bottom:10px;
+}
+#mol3d{width:100%;display:block;}
+.mol-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;}
+.mol-filter-row::-webkit-scrollbar{display:none;}
+.mf-btn{
+  font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  padding:7px 14px;border-radius:20px;
+  border:1px solid var(--border);color:var(--dim);white-space:nowrap;
+  flex-shrink:0;transition:all .2s;
+}
+.mf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,255,.08);}
+.mol-node-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mol-node-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:12px;cursor:pointer;transition:all .2s;
+}
+.mol-node-card.selected{border-color:var(--nc-color,var(--teal));background:rgba(0,200,255,.05);}
+.mol-node-card:active{transform:scale(.97);}
+.mnc-sym{font-family:var(--head);font-size:18px;font-weight:800;color:var(--nc-color,var(--teal));line-height:1;margin-bottom:4px;}
+.mnc-name{font-size:11px;font-weight:600;color:var(--white);}
+.mnc-role{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px;}
+.mol-detail-card{background:var(--bg1);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:10px;}
+.mdc-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.mdc-sym{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--head);font-size:14px;font-weight:800;flex-shrink:0;
+}
+.mdc-name{font-size:15px;font-weight:700;color:var(--white);}
+.mdc-role{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.mdc-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.mdc-m{background:var(--bg2);border-radius:6px;padding:8px 6px;text-align:center;}
+.mdc-mv{font-family:var(--mono);font-size:11px;display:block;margin-bottom:2px;}
+.mdc-ml{font-size:9px;color:var(--dim);line-height:1.2;}
+.mdc-body{font-size:12px;line-height:1.75;color:rgba(184,212,238,.75);}
+
+/* ═════════════ REACTION LAB ═════════════ */
+.lab-mode-row{display:flex;gap:6px;margin-bottom:10px;}
+.lab-mode-btn{
+  flex:1;font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;
+  padding:9px 4px;border-radius:8px;border:1px solid var(--border);color:var(--dim);
+  transition:all .2s;text-align:center;
+}
+.lab-mode-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,255,.08);}
+.param-row{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.param-item{}
+.param-head{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;margin-bottom:5px;}
+.param-head span:first-child{color:var(--text);}
+.param-head span:last-child{color:var(--teal);}
+input[type=range]{width:100%;appearance:none;height:3px;background:rgba(255,255,255,.08);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;box-shadow:0 0 8px rgba(0,200,255,.5);}
+.lab-out-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;}
+.loi-chem{font-family:var(--mono);font-size:12px;color:var(--teal);}
+.loi-name{font-size:11px;color:var(--text);margin-top:1px;}
+.loi-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:7px;}
+.loi-fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.loi-val{font-family:var(--mono);font-size:9px;margin-top:3px;}
+
+/* ═════════════ PERFORMANCE ═════════════ */
+.perf-bar-item{margin-bottom:12px;}
+.pbi-head{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;margin-bottom:5px;}
+.pbi-head span:last-child{color:var(--teal);}
+.pbi-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.pbi-fill{height:100%;border-radius:3px;transform:scaleX(0);transform-origin:left;transition:transform 1.4s cubic-bezier(.4,0,.2,1);}
+.pbi-fill.go{transform:scaleX(1);}
+.comp-table{width:100%;border-collapse:collapse;font-size:11px;}
+.comp-table th{font-family:var(--mono);font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);padding:8px 6px;border-bottom:1px solid var(--border);text-align:left;}
+.comp-table td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.td-h{color:var(--teal);font-family:var(--mono);font-size:10px;}
+.td-w{color:var(--green);}.td-m{color:var(--gold);}.td-l{color:var(--dim);}
+
+/* ═════════════ IMPACT ═════════════ */
+.impact-section-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:16px;margin-bottom:8px;
+}
+.is-icon{font-size:26px;margin-bottom:8px;}
+.is-type{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;}
+.is-title{font-family:var(--head);font-size:14px;font-weight:700;color:var(--white);margin-bottom:8px;}
+.is-body{font-size:12px;line-height:1.75;color:rgba(184,212,238,.7);}
+.sdg-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.sdg-badge{font-family:var(--mono);font-size:8px;letter-spacing:.5px;padding:3px 9px;border-radius:3px;}
+.calc-section{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+.calc-field{margin-bottom:12px;}
+.calc-field label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);display:block;margin-bottom:6px;}
+.calc-field input,.calc-field select{
+  width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--white);
+  font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:6px;
+  -webkit-appearance:none;
+}
+.calc-results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;opacity:0;transition:opacity .4s;}
+.calc-results.show{opacity:1;}
+.cr-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+.cr-val{font-family:var(--head);font-size:18px;font-weight:700;display:block;margin-bottom:3px;}
+.cr-lbl{font-size:10px;color:var(--dim);line-height:1.3;}
+
+/* ═════════════ THESIS ═════════════ */
+.thesis-toc-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;}
+.thesis-toc-row::-webkit-scrollbar{display:none;}
+.toc-chip{
+  font-family:var(--mono);font-size:8px;letter-spacing:.5px;
+  padding:6px 12px;border-radius:20px;border:1px solid var(--border);
+  color:var(--dim);white-space:nowrap;flex-shrink:0;transition:all .2s;cursor:pointer;
+}
+.toc-chip.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,255,.08);}
+.thesis-body h1{font-family:var(--head);font-size:15px;font-weight:800;color:var(--white);line-height:1.25;margin-bottom:6px;}
+.thesis-body h2{font-family:var(--head);font-size:12px;font-weight:700;color:var(--white);margin:18px 0 8px;display:flex;align-items:center;gap:8px;}
+.thesis-body h2::before{content:'';width:3px;height:14px;background:var(--teal);flex-shrink:0;}
+.thesis-body p{font-size:12.5px;line-height:1.85;color:rgba(184,212,238,.8);margin-bottom:12px;}
+.thesis-body .author-tag{font-family:var(--mono);font-size:9px;color:var(--teal);letter-spacing:2px;margin-bottom:16px;display:block;}
+.pullquote{border-left:3px solid var(--teal);background:rgba(0,200,255,.04);padding:12px 14px;margin:12px 0;font-style:italic;font-size:12px;color:rgba(184,212,238,.85);line-height:1.8;border-radius:0 6px 6px 0;}
+.t-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.8px;padding:2px 7px;border-radius:2px;}
+
+/* ═════════════ AI ASSISTANT ═════════════ */
+#view-ai{display:none;flex-direction:column;}
+#view-ai.active{display:flex;}
+.ai-messages{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 14px 8px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.ai-msg{max-width:85%;animation:msgIn .25s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.ai-msg.user{align-self:flex-end;}
+.ai-msg.bot{align-self:flex-start;}
+.ai-msg-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.ai-msg.user .ai-msg-label{color:var(--teal);text-align:right;}
+.ai-msg.bot .ai-msg-label{color:var(--dim);}
+.ai-msg-bubble{padding:11px 14px;border-radius:10px;font-size:13px;line-height:1.7;}
+.ai-msg.user .ai-msg-bubble{background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.25);color:var(--white);}
+.ai-msg.bot .ai-msg-bubble{background:var(--bg2);border:1px solid var(--border);color:var(--text);}
+.ai-typing{display:none;align-items:center;gap:5px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:fit-content;margin:0 14px;}
+.ai-typing.show{display:flex;}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.4;animation:td 1.2s ease-in-out infinite;}
+.ai-typing span:nth-child(2){animation-delay:.2s;}.ai-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+.ai-chips{display:flex;gap:6px;overflow-x:auto;padding:8px 14px;flex-shrink:0;}
+.ai-chips::-webkit-scrollbar{display:none;}
+.ai-chip{font-family:var(--mono);font-size:9px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;color:var(--dim);white-space:nowrap;flex-shrink:0;transition:all .2s;}
+.ai-chip:active{border-color:var(--teal);color:var(--teal);}
+.ai-input-row{
+  display:flex;gap:8px;padding:10px 14px;padding-bottom:calc(10px + var(--safe-bottom));
+  background:rgba(6,13,26,.97);border-top:1px solid var(--border);flex-shrink:0;
+}
+#ai-input{
+  flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--white);
+  font-family:var(--body);font-size:13px;padding:10px 14px;border-radius:20px;resize:none;
+  height:42px;transition:border-color .2s;
+}
+#ai-input:focus{border-color:var(--teal);}
+#ai-send{
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(0,200,255,.1);border:1px solid var(--teal);
+  color:var(--teal);font-size:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+#ai-send:active{background:rgba(0,200,255,.25);}
+
+/* ── No bottom padding for AI since input is fixed ── */
+#view-ai .ai-messages{padding-bottom:8px;}
+
+/* ═════ CHAMBER MONITORS ═════ */
+#lab-canvas-wrap{border-radius:12px;overflow:hidden;background:var(--bg1);border:1px solid var(--border);margin-bottom:10px;position:relative;}
+#lab-canvas{width:100%;display:block;}
+.chamber-monitors{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.chamber-card{
+  border-radius:10px;padding:12px;
+  border:1px solid var(--cc-border,rgba(0,200,255,.2));
+  background:var(--bg2);position:relative;overflow:hidden;
+}
+.chamber-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--cc-accent,var(--teal));
+}
+.cc-tag{
+  font-family:var(--mono);font-size:7px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--cc-accent,var(--teal));margin-bottom:6px;display:flex;align-items:center;gap:5px;
+}
+.cc-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--cc-accent,var(--teal));box-shadow:0 0 6px var(--cc-accent,var(--teal));animation:blink 2s ease-in-out infinite;}
+.cc-electrode{font-family:var(--head);font-size:12px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.2;}
+.cc-metric-row{display:flex;flex-direction:column;gap:5px;}
+.cc-metric{display:flex;justify-content:space-between;align-items:baseline;}
+.cc-m-label{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.5px;}
+.cc-m-val{font-family:var(--mono);font-size:11px;color:var(--cc-accent,var(--teal));font-weight:500;}
+.cc-divider{height:1px;background:rgba(255,255,255,.05);margin:8px 0;}
+.cc-rate-bar{margin-top:8px;}
+.cc-rate-label{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px;display:flex;justify-content:space-between;}
+.cc-rate-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.cc-rate-fill{height:100%;border-radius:2px;transition:width .6s ease;background:var(--cc-accent,var(--teal));}
+.cc-product-badge{
+  margin-top:8px;display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,200,255,.08);border:1px solid var(--cc-border,rgba(0,200,255,.2));
+  border-radius:6px;padding:4px 9px;
+}
+.cc-product-formula{font-family:var(--mono);font-size:11px;color:var(--cc-accent,var(--teal));}
+.cc-product-name{font-size:9px;color:var(--dim);}
+.cc-live-dot{
+  position:absolute;top:10px;right:10px;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 8px var(--green);
+  animation:blink 2s ease-in-out infinite;
+}
+/* Seawater badge */
+.sea-safe-badge{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.25);
+  border-radius:8px;padding:8px 12px;margin-top:8px;
+}
+.sea-safe-badge span{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-title">MAC-FeMoS₂<br>RESEARCH PLATFORM</div>
+  <div class="ld-ring"></div>
+  <div class="ld-sub">LOADING…</div>
+</div>
+
+<div id="app">
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div class="tb-icon">MAC</div>
+    <div class="tb-text">
+      <div class="tb-title">MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-CuRu</div>
+      <div class="tb-sub">FRANK LEVANTI · COMPOSITE CATALYST</div>
+    </div>
+    <div class="tb-status">
+      <div class="status-dot"></div>
+      <span>LIVE</span>
+    </div>
+  </header>
+
+  <!-- VIEWS -->
+  <div id="views">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dash">
+      <div class="view-scroll">
+        <span class="section-label">System Overview</span>
+        <div class="section-h" style="margin-bottom:12px;">Catalyst Dashboard</div>
+        <div class="stats-2x2" id="stats-grid"></div>
+        <div class="card">
+          <div class="card-title">Six Components</div>
+          <div id="comp-chips-wrap"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Efficiency Timeline</div>
+          <canvas id="spark-canvas" height="80" style="width:100%;"></canvas>
+          <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+            <span class="chip" style="border-color:rgba(0,200,255,.3);color:var(--teal)">● HER</span>
+            <span class="chip" style="border-color:rgba(255,32,96,.3);color:var(--pink)">● OER</span>
+            <span class="chip" style="border-color:rgba(0,232,122,.3);color:var(--green)">● CO₂</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Research Log</div>
+          <div id="activity-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOLECULAR -->
+    <div class="view" id="view-mol">
+      <div class="view-scroll">
+        <span class="section-label">Molecular Explorer</span>
+        <div id="mol-canvas-wrap"><canvas id="mol3d"></canvas></div>
+        <div class="mol-filter-row" id="mol-filters">
+          <button class="mf-btn active" data-f="all">All</button>
+          <button class="mf-btn" data-f="her">HER Path</button>
+          <button class="mf-btn" data-f="oer">OER Path</button>
+          <button class="mf-btn" data-f="co2">CO₂ Path</button>
+          <button class="mf-btn" data-f="bdd">BDD Net</button>
+        </div>
+        <div id="mol-detail-area"></div>
+        <div class="mol-node-grid" id="mol-node-grid"></div>
+      </div>
+    </div>
+
+    <!-- REACTION LAB -->
+    <div class="view" id="view-lab">
+      <div class="view-scroll">
+        <span class="section-label">Reaction Lab</span>
+        <div class="lab-mode-row">
+          <button class="lab-mode-btn active" data-rxn="her">Water Split</button>
+          <button class="lab-mode-btn" data-rxn="co2">CO₂ Reduc.</button>
+          <button class="lab-mode-btn" data-rxn="sea">Seawater</button>
+        </div>
+
+        <!-- Electrolyzer Canvas -->
+        <div id="lab-canvas-wrap"><canvas id="lab-canvas"></canvas></div>
+
+        <!-- HER / OER Live Monitor Panels -->
+        <div class="chamber-monitors" id="chamber-monitors"></div>
+
+        <!-- Seawater safety banner (shown only in sea mode) -->
+        <div id="sea-safe-banner" style="display:none;" class="sea-safe-badge">
+          <span>⬡</span><span>NiSe₂ ANODE — ZERO Cl⁻ EVOLUTION CONFIRMED · SEAWATER SAFE</span>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
+          <div class="card-title">Parameters</div>
+          <div class="param-row">
+            <div class="param-item">
+              <div class="param-head"><span>Applied Voltage</span><span id="v-val">1.8 V</span></div>
+              <input type="range" id="v-range" min="10" max="30" value="18">
+            </div>
+            <div class="param-item">
+              <div class="param-head"><span>Temperature</span><span id="t-val">25 °C</span></div>
+              <input type="range" id="t-range" min="10" max="80" value="25">
+            </div>
+            <div class="param-item">
+              <div class="param-head"><span>Catalyst Loading</span><span id="l-val">5 mg/cm²</span></div>
+              <input type="range" id="l-range" min="1" max="10" value="5">
+            </div>
+          </div>
+          <button class="btn-primary" id="lab-run-btn">▶ RUN SIMULATION</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Product Yields</div>
+          <div id="lab-outputs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="view" id="view-perf">
+      <div class="view-scroll">
+        <span class="section-label">Performance Analytics</span>
+        <div class="card">
+          <div class="card-title">Radar Profile</div>
+          <canvas id="perf-radar" width="300" height="240" style="width:100%;max-width:300px;display:block;margin:0 auto;"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Key Metrics vs Benchmarks</div>
+          <div id="perf-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Stability (0 – 1200 h)</div>
+          <canvas id="stab-chart" height="90" style="width:100%;"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:0;">Comparison Table</div>
+          <div style="overflow-x:auto;margin-top:10px;">
+            <table class="comp-table">
+              <thead><tr><th>Catalyst</th><th>HER</th><th>Stab.</th><th>Versatil.</th></tr></thead>
+              <tbody id="bench-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPACT -->
+    <div class="view" id="view-impact">
+      <div class="view-scroll">
+        <span class="section-label">Global Impact</span>
+        <div class="section-h" style="margin-bottom:4px;">Transforming Energy,<br>Climate &amp; Society</div>
+        <p style="font-size:12px;color:var(--dim);margin-bottom:14px;line-height:1.6;">Six components, one catalyst—addressing UN SDGs 7, 9, 13 &amp; 14.</p>
+        <div style="display:flex;justify-content:center;margin-bottom:10px;">
+          <canvas id="impact-donut" width="220" height="220"></canvas>
+        </div>
+        <div id="impact-cards"></div>
+        <div class="calc-section">
+          <div class="card-title">Impact Calculator</div>
+          <div class="calc-field"><label>ELECTROLYZER SCALE (kW)</label><input type="number" id="c-kw" value="100" min="1" inputmode="numeric"></div>
+          <div class="calc-field"><label>OPERATING HOURS / YEAR</label><input type="number" id="c-hrs" value="8000" min="100" inputmode="numeric"></div>
+          <div class="calc-field"><label>WATER SOURCE</label>
+            <select id="c-water"><option value="fresh">Freshwater</option><option value="sea" selected>Seawater</option><option value="atm">Atmospheric</option></select>
+          </div>
+          <button class="btn-primary" id="calc-btn">CALCULATE IMPACT</button>
+          <div class="calc-results" id="calc-results">
+            <div class="cr-card"><span class="cr-val" id="cr-h2" style="color:var(--teal)">—</span><span class="cr-lbl">kg H₂ / year</span></div>
+            <div class="cr-card"><span class="cr-val" id="cr-co2" style="color:var(--green)">—</span><span class="cr-lbl">tonnes CO₂ avoided</span></div>
+            <div class="cr-card"><span class="cr-val" id="cr-meth" style="color:var(--gold)">—</span><span class="cr-lbl">kg methanol equiv.</span></div>
+            <div class="cr-card"><span class="cr-val" id="cr-homes" style="color:var(--pink)">—</span><span class="cr-lbl">homes powered</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THESIS -->
+    <div class="view" id="view-thesis">
+      <div class="view-scroll">
+        <div class="thesis-toc-row" id="thesis-toc"></div>
+        <div class="thesis-body" id="thesis-body"></div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="view" id="view-ai">
+      <div class="ai-messages" id="ai-messages"></div>
+      <div class="ai-typing" id="ai-typing"><span></span><span></span><span></span></div>
+      <div class="ai-chips" id="ai-chips"></div>
+      <div class="ai-input-row">
+        <textarea id="ai-input" placeholder="Ask about MAC-FeMoS₂…" rows="1"></textarea>
+        <button id="ai-send">➤</button>
+      </div>
+    </div>
+
+  </div><!-- end #views -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottomnav">
+    <div class="bn-item active" data-v="dash"><div class="bn-icon">⬡</div><div class="bn-label">Home</div></div>
+    <div class="bn-item" data-v="mol"><div class="bn-icon">⬡</div><div class="bn-label">Mol</div></div>
+    <div class="bn-item" data-v="lab"><div class="bn-icon">⬡</div><div class="bn-label">Lab</div></div>
+    <div class="bn-item" data-v="perf"><div class="bn-icon">⬡</div><div class="bn-label">Perf</div></div>
+    <div class="bn-item" data-v="impact"><div class="bn-icon">⬡</div><div class="bn-label">Impact</div></div>
+    <div class="bn-item" data-v="thesis"><div class="bn-icon">⬡</div><div class="bn-label">Thesis</div></div>
+    <div class="bn-item" data-v="ai"><div class="bn-icon">⬡</div><div class="bn-label">AI</div></div>
+  </nav>
+</div>
+
+<script>
+/* ════════════════════════════════
+   DATA
+════════════════════════════════ */
+const COMPS = [
+  {id:'mac',sym:'Fe',label:'MAC-FeMoS₂',role:'HER Engine',color:'#00c8ff',x:.50,y:.38,r:26,paths:['her','bdd'],
+   metrics:[{v:'<80mV',l:'Overpotential'},{v:'40mV/dec',l:'Tafel Slope'},{v:'>1000h',l:'Stability'}],
+   detail:'Iron-doped MoS₂ in amorphous carbon. Fe doping activates inert basal-plane S sites. The carbon shell provides electron highways and prevents sintering—delivering near-Pt HER activity from earth-abundant metals.'},
+  {id:'nise2',sym:'Ni',label:'NiSe₂',role:'OER Generator',color:'#ff2060',x:.18,y:.26,r:22,paths:['oer','bdd'],
+   metrics:[{v:'<300mV',l:'OER Overpot.'},{v:'pH 0–14',l:'pH Range'},{v:'No Cl⁻',l:'Seawater Safe'}],
+   detail:'Pyrite-type NiSe₂ with geometrically optimal Ni sites for O–O bond formation. Se tunes the d-band center for ideal oxygen binding. Selective Cl⁻ rejection enables seawater use without chlorine evolution.'},
+  {id:'bdd',sym:'B',label:'BDD',role:'Conducting Scaffold',color:'#f5b700',x:.82,y:.26,r:22,paths:['her','oer','co2','bdd'],
+   metrics:[{v:'±3V',l:'Window'},{v:'<1% drop',l:'1000h Loss'},{v:'1200 S/cm',l:'Conductivity'}],
+   detail:'Boron-doped diamond scaffold connecting all components. Extreme corrosion resistance and wide electrochemical window (−2 to +3V vs SHE) prevent parasitic side reactions. Hierarchical porosity maintains mass transport at high current densities.'},
+  {id:'zif8',sym:'Zn',label:'ZIF-8',role:'CO₂ Capture',color:'#00e87a',x:.18,y:.72,r:22,paths:['co2'],
+   metrics:[{v:'>95%',l:'Selectivity'},{v:'4.5cm³/g',l:'Capacity'},{v:'3.4Å',l:'Pore Size'}],
+   detail:'Molecular sieve with 3.4Å pores—passes CO₂ (3.3Å) while blocking N₂ (3.64Å). Hydrophobic walls maintain performance in humid gas. Passive CO₂ concentration eliminates amine pre-treatment.'},
+  {id:'cu',sym:'Cu',label:'Copper',role:'C-C Coupler',color:'#ff8800',x:.82,y:.72,r:20,paths:['co2'],
+   metrics:[{v:'>60%',l:'C₂+ Faradaic'},{v:'-0.8V',l:'Onset Pot.'},{v:'C₂–C₄',l:'Products'}],
+   detail:'Only elemental metal for CO₂ → multi-carbon products. *CO intermediates couple on adjacent Cu sites → ethylene, ethanol, acetate. Co-located Ru provides H₂ for cooperative tandem catalysis.'},
+  {id:'ru',sym:'Ru',label:'Ruthenium',role:'Hydrogenation',color:'#8b5cf6',x:.50,y:.84,r:20,paths:['co2'],
+   metrics:[{v:'>85%',l:'CH₄ Select.'},{v:'200 TOF/s',l:'Turnover'},{v:'Sabatier',l:'Reaction'}],
+   detail:'Catalyzes Sabatier (CO₂+4H₂→CH₄+2H₂O) and Fischer-Tropsch synthesis. Spatially co-located with Cu enables direct intermediate transfer without desorption loss. In-situ H₂ from MAC-FeMoS₂ feeds Ru directly.'},
+];
+const EDGES=[['mac','nise2'],['mac','bdd'],['mac','zif8'],['mac','ru'],['nise2','bdd'],['zif8','cu'],['cu','ru'],['bdd','ru'],['bdd','cu']];
+const PATH_FILTERS={all:COMPS.map(c=>c.id),her:['mac','bdd'],oer:['nise2','mac','bdd'],co2:['zif8','cu','ru'],bdd:['bdd','mac','nise2','cu','ru']};
+
+/* ════════════════════════════════
+   NAVIGATION
+════════════════════════════════ */
+let currentView='dash';
+function nav(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelector(`.bn-item[data-v="${v}"]`).classList.add('active');
+  currentView=v;
+  ({dash:initDash,mol:initMol,lab:initLab,perf:initPerf,impact:initImpact,thesis:initThesis,ai:initAI})[v]?.();
+}
+document.querySelectorAll('.bn-item').forEach(el=>el.addEventListener('click',()=>nav(el.dataset.v)));
+
+/* ════════════════════════════════
+   DASHBOARD
+════════════════════════════════ */
+let dashInited=false;
+function initDash(){
+  if(dashInited)return; dashInited=true;
+  // Stats
+  const sg=document.getElementById('stats-grid');
+  [{el:'sc1',val:1000,sfx:'',color:'var(--teal)',lbl:'Hours Stable Operation'},{el:'sc2',val:71,sfx:'%',color:'var(--gold)',lbl:'Earth Surface H₂-Ready'},{el:'sc3',val:6,sfx:'',color:'var(--pink)',lbl:'Functional Components'},{el:'sc4',val:4,sfx:'',color:'var(--green)',lbl:'UN SDGs Addressed'}].forEach(s=>{
+    const d=document.createElement('div');d.className='stat-card';d.style.setProperty('--sc-color',s.color);
+    d.innerHTML=`<span class="sc-val" id="${s.el}">0${s.sfx}</span><div class="sc-lbl">${s.lbl}</div>`;
+    sg.appendChild(d);
+    let v=0;const step=s.val/50;const int=setInterval(()=>{v=Math.min(v+step,s.val);document.getElementById(s.el).textContent=Math.floor(v)+s.sfx;if(v>=s.val)clearInterval(int);},20);
+  });
+  // Comp chips
+  const cw=document.getElementById('comp-chips-wrap');
+  const row1=document.createElement('div');row1.className='comp-row';
+  const row2=document.createElement('div');row2.className='comp-row';
+  COMPS.forEach((c,i)=>{
+    const el=document.createElement('div');el.className='comp-chip';el.style.setProperty('--cc-color',c.color);
+    el.innerHTML=`<div class="cc-sym">${c.sym}</div><div class="cc-info"><div class="cc-name">${c.label}</div><div class="cc-role">${c.role}</div></div>`;
+    el.addEventListener('click',()=>nav('mol'));
+    (i<3?row1:row2).appendChild(el);
+  });
+  cw.appendChild(row1);cw.appendChild(row2);
+  // Chart
+  setTimeout(()=>drawSpark(),100);
+  // Activity
+  const al=document.getElementById('activity-list');
+  [{text:'HER: MAC-FeMoS₂ active — 80 mV overpotential',c:'var(--teal)',t:'00:01'},{text:'OER: NiSe₂ anodic — zero Cl⁻ evolution',c:'var(--pink)',t:'00:04'},{text:'CO₂ capture: ZIF-8 selectivity 97.3%',c:'var(--green)',t:'00:09'},{text:'Cu: C-C coupling → ethylene detected',c:'var(--amber)',t:'00:15'},{text:'Ru: Sabatier active — 0.42 mmol/h/cm²',c:'var(--violet)',t:'00:22'},{text:'BDD: <0.8% resistance rise @ 250 mA/cm²',c:'var(--gold)',t:'00:30'}].forEach((a,i)=>{
+    const el=document.createElement('div');el.className='activity-item';el.style.opacity='0';
+    el.innerHTML=`<div class="act-dot" style="background:${a.c};box-shadow:0 0 6px ${a.c}"></div><div><div class="act-text">${a.text}</div><div class="act-time">${a.t}</div></div>`;
+    al.appendChild(el);setTimeout(()=>{el.style.transition='opacity .4s';el.style.opacity='1';},i*100);
+  });
+}
+function drawSpark(){
+  const c=document.getElementById('spark-canvas');if(!c)return;
+  const rect=c.getBoundingClientRect();c.width=rect.width||300;
+  const ctx=c.getContext('2d'),w=c.width,h=c.height;
+  ctx.clearRect(0,0,w,h);
+  const datasets=[{d:[72,75,80,83,87,91,91,92,91,93,92,94],c:'#00c8ff'},{d:[61,65,70,74,78,83,85,87,87,86,88,87],c:'#ff2060'},{d:[40,45,52,58,63,70,74,77,79,78,80,82],c:'#00e87a'}];
+  const pad=6;
+  datasets.forEach(ds=>{
+    const pts=ds.d.map((v,i)=>({x:pad+(i/(ds.d.length-1))*(w-pad*2),y:h-pad-(v/100)*(h-pad*2)}));
+    ctx.save();
+    const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,ds.c+'33');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(pts[0].x,h);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();ctx.fill();
+    ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=ds.c;ctx.lineWidth=2;ctx.shadowBlur=6;ctx.shadowColor=ds.c;ctx.stroke();
+    ctx.restore();
+  });
+}
+
+/* ════════════════════════════════
+   MOLECULAR
+════════════════════════════════ */
+let molFilter='all',molSelected=null,molT=0,molRAF=null,molInited=false;
+function initMol(){
+  if(molInited){startMol();return;}molInited=true;
+  // node grid
+  const grid=document.getElementById('mol-node-grid');
+  COMPS.forEach(c=>{
+    const el=document.createElement('div');el.className='mol-node-card';el.dataset.id=c.id;
+    el.style.setProperty('--nc-color',c.color);
+    el.innerHTML=`<div class="mnc-sym">${c.sym}</div><div class="mnc-name">${c.label}</div><div class="mnc-role">${c.role}</div>`;
+    el.addEventListener('click',()=>selectNode(c.id));grid.appendChild(el);
+  });
+  // filters
+  document.querySelectorAll('.mf-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.mf-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');molFilter=btn.dataset.f;
+  }));
+  startMol();
+}
+function selectNode(id){
+  molSelected=id;
+  document.querySelectorAll('.mol-node-card').forEach(el=>el.classList.toggle('selected',el.dataset.id===id));
+  const c=COMPS.find(x=>x.id===id);
+  const area=document.getElementById('mol-detail-area');
+  area.innerHTML=`<div class="mol-detail-card">
+    <div class="mdc-head">
+      <div class="mdc-sym" style="background:${c.color}22;border:2px solid ${c.color};color:${c.color}">${c.sym}</div>
+      <div><div class="mdc-name">${c.label}</div><div class="mdc-role" style="color:${c.color}">${c.role}</div></div>
+    </div>
+    <div class="mdc-metrics">
+      ${c.metrics.map(m=>`<div class="mdc-m"><span class="mdc-mv" style="color:${c.color}">${m.v}</span><span class="mdc-ml">${m.l}</span></div>`).join('')}
+    </div>
+    <div class="mdc-body">${c.detail}</div>
+  </div>`;
+}
+function startMol(){
+  if(molRAF)cancelAnimationFrame(molRAF);
+  const canvas=document.getElementById('mol3d');
+  const wrap=document.getElementById('mol-canvas-wrap');
+  function resize(){canvas.width=wrap.offsetWidth;canvas.height=Math.round(wrap.offsetWidth*0.58);}
+  resize();
+  const ctx=canvas.getContext('2d');
+  function gp(c){return{x:c.x*canvas.width,y:c.y*canvas.height+Math.sin(molT+COMPS.indexOf(c))*5};}
+  function loop(){
+    molRAF=requestAnimationFrame(loop);molT+=0.012;
+    const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+    // grid
+    ctx.save();ctx.strokeStyle='rgba(0,200,255,0.03)';ctx.lineWidth=1;
+    for(let x=0;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=0;y<h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.restore();
+    const active=PATH_FILTERS[molFilter];
+    EDGES.forEach(([a,b])=>{
+      const ca=COMPS.find(c=>c.id===a),cb=COMPS.find(c=>c.id===b);
+      const pa=gp(ca),pb=gp(cb);
+      const ea=active.includes(a)&&active.includes(b);
+      ctx.save();ctx.globalAlpha=ea?.5:.05;ctx.strokeStyle=ea?ca.color:'#4a6a8a';ctx.lineWidth=ea?1.5:1;
+      if(ea){ctx.setLineDash([5,4]);ctx.lineDashOffset=-molT*12;ctx.shadowBlur=8;ctx.shadowColor=ca.color;}
+      ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();ctx.restore();
+    });
+    COMPS.forEach(c=>{
+      const pos=gp(c);const ia=active.includes(c.id);const is=molSelected===c.id;
+      const r=c.r*(is?1.2:1);
+      ctx.save();ctx.globalAlpha=ia?1:.12;
+      if(ia){const g=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,r*3);g.addColorStop(0,c.color+'28');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(pos.x,pos.y,r*3,0,Math.PI*2);ctx.fill();}
+      ctx.fillStyle=c.color+'22';ctx.strokeStyle=c.color;ctx.lineWidth=is?3:1.5;ctx.shadowBlur=is?24:10;ctx.shadowColor=c.color;
+      ctx.beginPath();ctx.arc(pos.x,pos.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.shadowBlur=0;ctx.font=`bold ${r>23?11:9}px 'Orbitron'`;ctx.fillStyle=ia?'#fff':'#4a6a8a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.sym,pos.x,pos.y);
+      ctx.font=`7px 'JetBrains Mono'`;ctx.fillStyle=c.color;ctx.fillText(c.label.length>8?c.sym:c.label,pos.x,pos.y+r+11);
+      ctx.restore();
+      if(is){const pr=r+(Math.sin(molT*2)*.5+.5)*14;ctx.save();ctx.globalAlpha=.25*(1-(pr-r)/14);ctx.strokeStyle=c.color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pos.x,pos.y,pr,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    });
+  }
+  loop();
+  canvas.addEventListener('click',e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+    const my=(e.clientY-rect.top)*(canvas.height/rect.height);
+    COMPS.forEach(c=>{const p={x:c.x*canvas.width,y:c.y*canvas.height};if(Math.hypot(mx-p.x,my-p.y)<c.r+10)selectNode(c.id);});
+  });
+}
+
+/* ════════════════════════════════
+   REACTION LAB
+════════════════════════════════ */
+let labMode='her',labRun=false,labRAF2=null,labInited=false;
+// Separate bubble arrays for cathode (H₂) and anode (O₂)
+let herBubbles=[],oerBubbles=[],co2Bubbles=[];
+// Live metric state
+let labMetrics={
+  her:{jHer:0,herRate:0,herEff:0,herOverpot:0},
+  oer:{jOer:0,oerRate:0,oerEff:0,oerOverpot:0},
+};
+let metricTickT=0;
+
+function initLab(){
+  if(labInited){startLabCanvas();return;}labInited=true;
+  document.querySelectorAll('.lab-mode-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.lab-mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');labMode=btn.dataset.rxn;
+    buildChamberMonitors();buildLabOut();
+    document.getElementById('sea-safe-banner').style.display=labMode==='sea'?'flex':'none';
+  }));
+  document.getElementById('lab-run-btn').addEventListener('click',()=>{
+    labRun=!labRun;
+    document.getElementById('lab-run-btn').textContent=labRun?'⏸ PAUSE':'▶ RUN SIMULATION';
+  });
+  ['v-range','t-range','l-range'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',function(){
+      const labels={'v-range':'v-val','t-range':'t-val','l-range':'l-val'};
+      const formats={'v-range':v=>(v/10).toFixed(1)+' V','t-range':v=>v+' °C','l-range':v=>v+' mg/cm²'};
+      document.getElementById(labels[id]).textContent=formats[id](this.value);
+    });
+  });
+  buildChamberMonitors();buildLabOut();startLabCanvas();
+  // Live metric ticker
+  setInterval(updateLiveMetrics,800);
+}
+
+function getVoltage(){return +document.getElementById('v-range').value/10;}
+function getTemp(){return +document.getElementById('t-range').value;}
+function getLoad(){return +document.getElementById('l-range').value;}
+
+function calcMetrics(){
+  const V=getVoltage(),T=getTemp(),L=getLoad();
+  const Veff=Math.max(0,(V-1.23)/1.5);
+  const Teff=(T-10)/70;
+  const Leff=L/10;
+  const base=Veff*0.7+Teff*0.15+Leff*0.15;
+  return {
+    jHer: +(50+base*220+Math.random()*8-4).toFixed(1),
+    herRate: +(0.18+base*0.85+Math.random()*.04-.02).toFixed(3),
+    herEff: +(88+base*8+Math.random()*2-1).toFixed(1),
+    herOverpot: +(78-base*18+Math.random()*4-2).toFixed(0),
+    jOer: +(48+base*200+Math.random()*8-4).toFixed(1),
+    oerRate: +(0.09+base*0.43+Math.random()*.02-.01).toFixed(3),
+    oerEff: +(85+base*10+Math.random()*2-1).toFixed(1),
+    oerOverpot: +(295-base*30+Math.random()*6-3).toFixed(0),
+  };
+}
+
+function updateLiveMetrics(){
+  if(!labRun)return;
+  const m=calcMetrics();
+  // Update HER card
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('lm-j-her', m.jHer+' mA/cm²');
+  setEl('lm-rate-her', m.herRate+' mmol/h·cm²');
+  setEl('lm-eff-her', m.herEff+'%');
+  setEl('lm-op-her', m.herOverpot+' mV');
+  // bar
+  const herBar=document.getElementById('lm-bar-her');
+  if(herBar)herBar.style.width=Math.min(100,m.herEff)+'%';
+  // OER card
+  setEl('lm-j-oer', m.jOer+' mA/cm²');
+  setEl('lm-rate-oer', m.oerRate+' mmol/h·cm²');
+  setEl('lm-eff-oer', m.oerEff+'%');
+  setEl('lm-op-oer', m.oerOverpot+' mV');
+  const oerBar=document.getElementById('lm-bar-oer');
+  if(oerBar)oerBar.style.width=Math.min(100,m.oerEff)+'%';
+}
+
+function buildChamberMonitors(){
+  const wrap=document.getElementById('chamber-monitors');
+  wrap.innerHTML='';
+
+  if(labMode==='co2'){
+    // CO₂ mode: show cathode (CO₂RR) + Cu/Ru panel
+    wrap.innerHTML=`
+    <div class="chamber-card" style="--cc-accent:#00e87a;--cc-border:rgba(0,232,122,.22)">
+      <div class="cc-live-dot"></div>
+      <div class="cc-tag">Cathode · CO₂RR</div>
+      <div class="cc-electrode">Cu / ZIF-8<br><span style="font-size:9px;color:var(--dim);font-family:var(--mono)">C-C COUPLING</span></div>
+      <div class="cc-metric-row">
+        <div class="cc-metric"><span class="cc-m-label">Current Density</span><span class="cc-m-val" id="lm-j-her">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">CO₂ Conv. Rate</span><span class="cc-m-val" id="lm-rate-her">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">C₂+ Faradaic Eff.</span><span class="cc-m-val" id="lm-eff-her">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">Onset Potential</span><span class="cc-m-val" id="lm-op-her">—</span></div>
+      </div>
+      <div class="cc-rate-bar"><div class="cc-rate-label"><span>C₂+ YIELD</span><span id="lm-bar-her-pct">—</span></div><div class="cc-rate-track"><div class="cc-rate-fill" id="lm-bar-her" style="background:#00e87a;width:0%"></div></div></div>
+      <div class="cc-product-badge" style="--cc-border:rgba(0,232,122,.25)"><span class="cc-product-formula" style="color:#00e87a">C₂H₄ · C₂H₅OH</span><span class="cc-product-name">Ethylene / Ethanol</span></div>
+    </div>
+    <div class="chamber-card" style="--cc-accent:#8b5cf6;--cc-border:rgba(139,92,246,.22)">
+      <div class="cc-live-dot"></div>
+      <div class="cc-tag">Hydrogenation · Ru</div>
+      <div class="cc-electrode">Ru Sabatier<br><span style="font-size:9px;color:var(--dim);font-family:var(--mono)">FISCHER-TROPSCH</span></div>
+      <div class="cc-metric-row">
+        <div class="cc-metric"><span class="cc-m-label">H₂ Utilization</span><span class="cc-m-val" id="lm-j-oer">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">CH₄ Rate</span><span class="cc-m-val" id="lm-rate-oer">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">CH₄ Selectivity</span><span class="cc-m-val" id="lm-eff-oer">—</span></div>
+        <div class="cc-metric"><span class="cc-m-label">TOF</span><span class="cc-m-val" id="lm-op-oer">—</span></div>
+      </div>
+      <div class="cc-rate-bar"><div class="cc-rate-label"><span>CH₄ YIELD</span></div><div class="cc-rate-track"><div class="cc-rate-fill" id="lm-bar-oer" style="background:#8b5cf6;width:0%"></div></div></div>
+      <div class="cc-product-badge" style="--cc-border:rgba(139,92,246,.25)"><span class="cc-product-formula" style="color:#8b5cf6">CH₄ · C₃H₈</span><span class="cc-product-name">Methane / Propane</span></div>
+    </div>`;
+    return;
+  }
+
+  // HER mode or Seawater mode
+  const isSeawater=labMode==='sea';
+  const oerLabel=isSeawater?'NiSe₂ (seawater)':'NiSe₂';
+  const oerSub=isSeawater?'SELECTIVE · NO Cl⁻':'O₂ EVOLUTION';
+
+  wrap.innerHTML=`
+  <div class="chamber-card" style="--cc-accent:#00c8ff;--cc-border:rgba(0,200,255,.22)">
+    <div class="cc-live-dot"></div>
+    <div class="cc-tag">Cathode · HER</div>
+    <div class="cc-electrode">MAC-FeMoS₂<br><span style="font-size:9px;color:var(--dim);font-family:var(--mono)">H₂ EVOLUTION</span></div>
+    <div class="cc-metric-row">
+      <div class="cc-metric"><span class="cc-m-label">Current Density</span><span class="cc-m-val" id="lm-j-her">— mA/cm²</span></div>
+      <div class="cc-metric"><span class="cc-m-label">H₂ Rate</span><span class="cc-m-val" id="lm-rate-her">— mmol/h·cm²</span></div>
+      <div class="cc-metric"><span class="cc-m-label">Faradaic Eff.</span><span class="cc-m-val" id="lm-eff-her">—%</span></div>
+      <div class="cc-metric"><span class="cc-m-label">Overpotential</span><span class="cc-m-val" id="lm-op-her">— mV</span></div>
+    </div>
+    <div class="cc-rate-bar">
+      <div class="cc-rate-label"><span>H₂ FARADAIC EFF.</span></div>
+      <div class="cc-rate-track"><div class="cc-rate-fill" id="lm-bar-her" style="background:#00c8ff;width:0%"></div></div>
+    </div>
+    <div class="cc-product-badge"><span class="cc-product-formula">2H⁺ + 2e⁻ → H₂</span></div>
+  </div>
+  <div class="chamber-card" style="--cc-accent:#ff2060;--cc-border:rgba(255,32,96,.22)">
+    <div class="cc-live-dot"></div>
+    <div class="cc-tag">Anode · OER</div>
+    <div class="cc-electrode">${oerLabel}<br><span style="font-size:9px;color:var(--dim);font-family:var(--mono)">${oerSub}</span></div>
+    <div class="cc-metric-row">
+      <div class="cc-metric"><span class="cc-m-label">Current Density</span><span class="cc-m-val" id="lm-j-oer">— mA/cm²</span></div>
+      <div class="cc-metric"><span class="cc-m-label">O₂ Rate</span><span class="cc-m-val" id="lm-rate-oer">— mmol/h·cm²</span></div>
+      <div class="cc-metric"><span class="cc-m-label">Faradaic Eff.</span><span class="cc-m-val" id="lm-eff-oer">—%</span></div>
+      <div class="cc-metric"><span class="cc-m-label">Overpotential</span><span class="cc-m-val" id="lm-op-oer">— mV</span></div>
+    </div>
+    <div class="cc-rate-bar">
+      <div class="cc-rate-label"><span>O₂ FARADAIC EFF.</span></div>
+      <div class="cc-rate-track"><div class="cc-rate-fill" id="lm-bar-oer" style="background:#ff2060;width:0%"></div></div>
+    </div>
+    <div class="cc-product-badge" style="--cc-accent:#ff2060;--cc-border:rgba(255,32,96,.25)"><span class="cc-product-formula" style="color:#ff2060">2H₂O → O₂ + 4H⁺ + 4e⁻</span></div>
+  </div>`;
+}
+
+function buildLabOut(){
+  const list=document.getElementById('lab-outputs');list.innerHTML='';
+  const outs={
+    her:[{c:'H₂',n:'Hydrogen gas — cathode product',p:92,col:'#00c8ff'},{c:'O₂',n:'Oxygen gas — anode product',p:87,col:'#ff2060'},{c:'H₂O',n:'Residual water',p:8,col:'var(--dim)'}],
+    co2:[{c:'CH₃OH',n:'Methanol',p:45,col:'#f5b700'},{c:'HCOOH',n:'Formate',p:28,col:'#ff8800'},{c:'CH₄',n:'Methane (Sabatier)',p:20,col:'#8b5cf6'},{c:'C₂H₄',n:'Ethylene (C-C coupling)',p:7,col:'#00e87a'}],
+    sea:[{c:'H₂',n:'Hydrogen (seawater feed)',p:90,col:'#00c8ff'},{c:'O₂',n:'Oxygen (NiSe₂ selective)',p:9,col:'#ff2060'},{c:'Cl⁻ safe',n:'Zero chlorine evolution confirmed',p:100,col:'#00e87a'}]
+  };
+  (outs[labMode]||[]).forEach(o=>{
+    const el=document.createElement('div');el.className='lab-out-item';
+    el.innerHTML=`<div class="loi-chem">${o.c}</div><div class="loi-name">${o.n}</div><div class="loi-bar"><div class="loi-fill" style="background:${o.col};width:0%"></div></div><div class="loi-val" style="color:${o.col}">${o.p}%</div>`;
+    list.appendChild(el);setTimeout(()=>{el.querySelector('.loi-fill').style.width=o.p+'%';},120);
+  });
+}
+
+/* ─ Bubble class ─ */
+class Bubble{
+  constructor(x,floorY,color,minR,maxR,isH2){
+    this.x=x+(Math.random()-.5)*14;
+    this.y=floorY;
+    this.vy=-(0.4+Math.random()*0.7);
+    this.vx=(Math.random()-.5)*0.3;
+    this.r=minR+Math.random()*(maxR-minR);
+    this.color=color;
+    this.alpha=0.7+Math.random()*0.25;
+    this.wobble=Math.random()*Math.PI*2;
+    this.wobbleSpeed=0.03+Math.random()*0.02;
+    this.isH2=isH2;
+    this.label=isH2?'H₂':'O₂';
+    this.showLabel=this.r>5&&Math.random()>0.4;
+  }
+  update(){
+    this.wobble+=this.wobbleSpeed;
+    this.x+=this.vx+Math.sin(this.wobble)*0.3;
+    this.y+=this.vy;
+    this.alpha-=0.003;
+  }
+  draw(ctx){
+    const r=this.r;
+    ctx.save();
+    ctx.globalAlpha=Math.max(0,this.alpha);
+    // bubble body
+    ctx.beginPath();ctx.arc(this.x,this.y,r,0,Math.PI*2);
+    ctx.fillStyle=this.color+'28';
+    ctx.fill();
+    ctx.strokeStyle=this.color;
+    ctx.lineWidth=1;
+    ctx.shadowBlur=6;ctx.shadowColor=this.color;
+    ctx.stroke();
+    // highlight
+    ctx.beginPath();ctx.arc(this.x-r*.28,this.y-r*.28,r*.28,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.28)';ctx.shadowBlur=0;ctx.fill();
+    // label
+    if(this.showLabel&&r>5){
+      ctx.font=`bold ${Math.round(r*.85)}px 'JetBrains Mono'`;
+      ctx.fillStyle=this.color;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.shadowBlur=0;ctx.fillText(this.label,this.x,this.y);
+    }
+    ctx.restore();
+  }
+  dead(topY){return this.alpha<=0||this.y<topY-this.r;}
+}
+
+function startLabCanvas(){
+  if(labRAF2)cancelAnimationFrame(labRAF2);
+  herBubbles=[];oerBubbles=[];co2Bubbles=[];
+  const canvas=document.getElementById('lab-canvas');
+  function resize(){
+    const w=document.getElementById('lab-canvas-wrap').offsetWidth;
+    canvas.width=w;canvas.height=Math.round(w*0.58);
+  }
+  resize();
+  const ctx=canvas.getContext('2d');
+  let frameCount=0;
+
+  function loop(){
+    labRAF2=requestAnimationFrame(loop);frameCount++;
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // Draw cell layout
+    const cell=drawCellLayout(ctx,w,h,labMode);
+
+    if(labRun){
+      const V=getVoltage(),T=getTemp(),L=getLoad();
+      const intensity=Math.max(0,(V-1.23)/1.5)*0.7+T/80*0.2+L/10*0.1;
+      const rate=Math.max(1,Math.round(intensity*5));
+
+      if(labMode==='her'||labMode==='sea'){
+        // H₂ bubbles from cathode electrode surface
+        if(frameCount%Math.max(2,8-rate)===0){
+          for(let i=0;i<2;i++){
+            herBubbles.push(new Bubble(
+              cell.cathodeX+cell.eW/2,
+              cell.electrodeFloor,
+              '#00c8ff',2.5,7,true
+            ));
+          }
+        }
+        // O₂ bubbles from anode electrode surface (larger, less frequent — 2H₂O→O₂ ratio)
+        if(frameCount%Math.max(3,12-rate)===0){
+          oerBubbles.push(new Bubble(
+            cell.anodeX+cell.eW/2,
+            cell.electrodeFloor,
+            '#ff2060',3,8.5,false
+          ));
+        }
+      } else if(labMode==='co2'){
+        if(frameCount%4===0){
+          co2Bubbles.push(new Bubble(cell.cathodeX+cell.eW/2,cell.electrodeFloor,'#00e87a',2,6,false));
+          co2Bubbles[co2Bubbles.length-1].label='CO₂';
+        }
+        if(frameCount%7===0){
+          co2Bubbles.push(new Bubble(cell.anodeX+cell.eW/2,cell.electrodeFloor,'#8b5cf6',2,5.5,false));
+          co2Bubbles[co2Bubbles.length-1].label='CH₄';
+        }
+      }
+    }
+
+    // Update and draw bubbles
+    const topClip=cell.cellY;
+    herBubbles=herBubbles.filter(b=>{b.update();if(!b.dead(topClip))b.draw(ctx);return !b.dead(topClip);});
+    oerBubbles=oerBubbles.filter(b=>{b.update();if(!b.dead(topClip))b.draw(ctx);return !b.dead(topClip);});
+    co2Bubbles=co2Bubbles.filter(b=>{b.update();if(!b.dead(topClip))b.draw(ctx);return !b.dead(topClip);});
+  }
+  loop();
+}
+
+/* Returns layout geometry for bubble spawning */
+function drawCellLayout(ctx,w,h,mode){
+  const cx=w/2,cy=h/2;
+  const cw=Math.min(w*.9,340),ch=Math.min(h*.75,200);
+  const x0=cx-cw/2,y0=cy-ch/2;
+  const eW=11,eH=ch*.68,ey=cy-eH/2;
+  const cathodeX=x0+10,anodeX=x0+cw-10-eW;
+  const memX=cx-4,memW=8;
+
+  // Cell body
+  ctx.save();
+  ctx.fillStyle='rgba(0,20,45,.55)';ctx.strokeStyle='rgba(0,200,255,.2)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.rect(x0,y0,cw,ch);ctx.fill();ctx.stroke();
+
+  // Subtle electrolyte fill
+  ctx.fillStyle=mode==='sea'?'rgba(0,60,120,.18)':'rgba(0,200,255,.04)';
+  ctx.beginPath();ctx.rect(x0+eW+10,y0+4,cw-eW*2-20,ch-8);ctx.fill();
+
+  // Membrane
+  ctx.fillStyle='rgba(245,183,0,.35)';ctx.strokeStyle='rgba(245,183,0,.55)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.rect(memX,y0+6,memW,ch-12);ctx.fill();ctx.stroke();
+  ctx.font="7px 'JetBrains Mono'";ctx.fillStyle='rgba(245,183,0,.7)';ctx.textAlign='center';
+  ctx.fillText('PEM',memX+memW/2,y0-5);
+
+  // Cathode electrode (left)
+  ctx.fillStyle='rgba(0,200,255,.22)';ctx.strokeStyle='#00c8ff';ctx.lineWidth=2;
+  ctx.shadowBlur=10;ctx.shadowColor='#00c8ff';
+  ctx.beginPath();ctx.rect(cathodeX,ey,eW,eH);ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  // Cathode labels
+  ctx.font="bold 9px 'Orbitron'";ctx.fillStyle='#00c8ff';ctx.textAlign='center';
+  ctx.fillText('(−)',cathodeX+eW/2,y0-14);
+  ctx.font="7px 'JetBrains Mono'";
+  ctx.fillText('CATH',cathodeX+eW/2,y0-5);
+  ctx.fillStyle='rgba(0,200,255,.5)';ctx.font="7px 'JetBrains Mono'";
+  const herLabel=mode==='co2'?'Cu/Ru':'MAC\nFeMoS₂';
+  ctx.fillText(mode==='co2'?'Cu/Ru':'MAC',cathodeX+eW/2,y0+ch+12);
+
+  // Anode electrode (right)
+  ctx.fillStyle=mode==='sea'?'rgba(0,232,122,.18)':'rgba(255,32,96,.15)';
+  ctx.strokeStyle=mode==='sea'?'#00e87a':'#ff2060';
+  ctx.shadowBlur=10;ctx.shadowColor=mode==='sea'?'#00e87a':'#ff2060';
+  ctx.beginPath();ctx.rect(anodeX,ey,eW,eH);ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.font="bold 9px 'Orbitron'";ctx.fillStyle=mode==='sea'?'#00e87a':'#ff2060';ctx.textAlign='center';
+  ctx.fillText('(+)',anodeX+eW/2,y0-14);
+  ctx.font="7px 'JetBrains Mono'";
+  ctx.fillText('AN',anodeX+eW/2,y0-5);
+  ctx.fillStyle=mode==='sea'?'rgba(0,232,122,.5)':'rgba(255,32,96,.5)';
+  ctx.fillText('NiSe₂',anodeX+eW/2,y0+ch+12);
+
+  // Mode label
+  const ml={her:'WATER SPLITTING',co2:'CO₂ ELECTROREDUCTION',sea:'SEAWATER ELECTROLYSIS'};
+  ctx.font="bold 9px 'Orbitron'";ctx.fillStyle='rgba(0,200,255,.35)';ctx.textAlign='center';
+  ctx.fillText(ml[mode],cx,y0-22);
+
+  // Arrow showing electron flow
+  ctx.strokeStyle='rgba(0,200,255,.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(cathodeX+eW+8,cy);ctx.lineTo(anodeX-8,cy);ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+
+  return {cellY:y0,cathodeX,anodeX,eW,electrodeFloor:ey+eH-4};
+}
+
+/* ════════════════════════════════
+   PERFORMANCE
+════════════════════════════════ */
+let perfInited=false;
+function initPerf(){
+  if(perfInited)return;perfInited=true;
+  drawRadar();drawStab();
+  const bars=[{l:'HER vs Pt/C',v:.91,c:'#00c8ff'},{l:'OER vs RuO₂',v:.87,c:'#ff2060'},{l:'CO₂ Conversion',v:.78,c:'#00e87a'},{l:'Long-term Stability',v:.95,c:'#f5b700'},{l:'Seawater Compat.',v:.93,c:'#8b5cf6'},{l:'Scalability',v:.82,c:'#ff8800'}];
+  const cont=document.getElementById('perf-bars');
+  bars.forEach(b=>{
+    const el=document.createElement('div');el.className='perf-bar-item';
+    el.innerHTML=`<div class="pbi-head"><span>${b.l}</span><span>${Math.round(b.v*100)}%</span></div><div class="pbi-track"><div class="pbi-fill" style="background:${b.c};transform:scaleX(${b.v})"></div></div>`;
+    cont.appendChild(el);setTimeout(()=>el.querySelector('.pbi-fill').classList.add('go'),200);
+  });
+  const tbody=document.getElementById('bench-tbody');
+  [{n:'MAC-FeMoS₂',her:'78mV',s:'w',v:'w'},{n:'Pt/C',her:'50mV',s:'m',v:'l'},{n:'RuO₂/IrO₂',her:'N/A',s:'m',v:'l'},{n:'MoS₂ (undoped)',her:'190mV',s:'m',v:'l'},{n:'NiSe₂ alone',her:'N/A',s:'w',v:'m'}].forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const h=i===0?'td-h':'';
+    tr.innerHTML=`<td class="${h}">${r.n}</td><td class="${h}">${r.her}</td><td class="td-${r.s==='w'?'w':r.s==='m'?'m':'l'}">${r.s==='w'?'✓':r.s==='m'?'~':'✗'}</td><td class="td-${r.v==='w'?'w':r.v==='m'?'m':'l'}">${r.v==='w'?'All':r.v==='m'?'Some':'Limited'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function drawRadar(){
+  const canvas=document.getElementById('perf-radar');
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width||300;canvas.height=240;
+  const ctx=canvas.getContext('2d'),cx=canvas.width/2,cy=canvas.height/2-8,R=Math.min(canvas.width,canvas.height)*.36;
+  const labels=['HER','OER','CO₂','Stability','Seawater','Scale'];
+  const data=[.91,.87,.78,.95,.93,.82];
+  const base=[.55,.58,.42,.60,.35,.50];
+  const n=labels.length;let p=0;
+  function draw(prog){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    [.25,.5,.75,1].forEach(f=>{ctx.save();ctx.strokeStyle='rgba(0,200,255,.08)';ctx.lineWidth=1;ctx.beginPath();for(let i=0;i<n;i++){const a=i/n*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*R*f,y=cy+Math.sin(a)*R*f;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.stroke();ctx.restore();});
+    for(let i=0;i<n;i++){const a=i/n*Math.PI*2-Math.PI/2;ctx.save();ctx.strokeStyle='rgba(0,200,255,.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);ctx.stroke();ctx.restore();}
+    ctx.save();ctx.strokeStyle='rgba(74,106,138,.4)';ctx.setLineDash([3,3]);ctx.lineWidth=1;ctx.fillStyle='rgba(74,106,138,.1)';ctx.beginPath();base.forEach((v,i)=>{const a=i/n*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*R*v,y=cy+Math.sin(a)*R*v;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+    ctx.save();const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,'rgba(0,200,255,.22)');g.addColorStop(1,'rgba(0,102,255,.04)');ctx.fillStyle=g;ctx.strokeStyle='#00c8ff';ctx.lineWidth=2;ctx.shadowBlur=14;ctx.shadowColor='#00c8ff';ctx.beginPath();data.forEach((v,i)=>{const a=i/n*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*R*v*prog,y=cy+Math.sin(a)*R*v*prog;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.fill();ctx.stroke();data.forEach((v,i)=>{const a=i/n*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*R*v*prog,y=cy+Math.sin(a)*R*v*prog;ctx.fillStyle='#00c8ff';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();});ctx.restore();
+    labels.forEach((l,i)=>{const a=i/n*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*(R+24),y=cy+Math.sin(a)*(R+24);ctx.font="9px 'JetBrains Mono'";ctx.fillStyle='#b8d4ee';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(l,x,y);});
+  }
+  function anim(){p=Math.min(p+.03,1);draw(p);if(p<1)requestAnimationFrame(anim);}anim();
+}
+function drawStab(){
+  const c=document.getElementById('stab-chart');if(!c)return;
+  const rect=c.getBoundingClientRect();c.width=rect.width||300;
+  const ctx=c.getContext('2d'),w=c.width,h=c.height;
+  const pts=[100,99.8,99.6,99.7,99.4,99.5,99.3,99.1,99.2,99.0,98.9,98.8,98.7];
+  const xs=pts.map((_,i)=>12+(i/(pts.length-1))*(w-24));
+  const ys=pts.map(v=>h-12-(v-97)/(100-97)*(h-24));
+  ctx.save();const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(0,200,255,.2)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(xs[0],h-12);xs.forEach((x,i)=>ctx.lineTo(x,ys[i]));ctx.lineTo(xs[xs.length-1],h-12);ctx.closePath();ctx.fill();
+  ctx.beginPath();xs.forEach((x,i)=>i?ctx.lineTo(x,ys[i]):ctx.moveTo(x,ys[i]));ctx.strokeStyle='#00c8ff';ctx.lineWidth=2;ctx.shadowBlur=8;ctx.shadowColor='#00c8ff';ctx.stroke();
+  ctx.font="8px 'JetBrains Mono'";ctx.fillStyle='rgba(74,106,138,.7)';ctx.textAlign='center';ctx.shadowBlur=0;['0h','200h','400h','600h','800h','1000h','1200h'].forEach((l,i)=>{ctx.fillText(l,xs[Math.round(i*(pts.length-1)/6)],h-1);});
+  ctx.restore();
+}
+
+/* ════════════════════════════════
+   IMPACT
+════════════════════════════════ */
+let impactInited=false;
+function initImpact(){
+  if(impactInited)return;impactInited=true;
+  drawDonut();
+  const cards=document.getElementById('impact-cards');
+  [{icon:'🔬',type:'Scientific Impact',typeColor:'var(--teal)',title:'New Design Principles',body:'Establishes interface engineering and spatial organization of incompatible reactions as a new paradigm—enabling cooperative catalysis impossible in single-phase materials.',sdgs:[]},{icon:'⚡',type:'Technological Impact',typeColor:'var(--gold)',title:'Green H₂ Infrastructure',body:'Practical platform for the green hydrogen economy—decentralized production, renewable energy storage, and CO₂-neutral chemical manufacturing from seawater (71% of Earth).',sdgs:[]},{icon:'🌍',type:'Societal Impact',typeColor:'var(--pink)',title:'Equity & Planetary Survival',body:'Addresses energy security, climate change, and water scarcity simultaneously. Contributes directly to equitable sustainable development without forcing economic vs. environmental tradeoffs.',sdgs:[{l:'SDG 7',c:'var(--gold)'},{l:'SDG 9',c:'var(--teal)'},{l:'SDG 13',c:'var(--green)'},{l:'SDG 14',c:'var(--pink)'}]}].forEach(d=>{
+    const el=document.createElement('div');el.className='impact-section-card';
+    el.innerHTML=`<div class="is-icon">${d.icon}</div><span class="is-type" style="color:${d.typeColor}">${d.type}</span><div class="is-title">${d.title}</div><p class="is-body">${d.body}</p>${d.sdgs.length?`<div class="sdg-row">${d.sdgs.map(s=>`<span class="sdg-badge" style="background:${s.c}18;color:${s.c};border:1px solid ${s.c}40">${s.l}</span>`).join('')}</div>`:''}`; 
+    cards.appendChild(el);
+  });
+  document.getElementById('calc-btn').addEventListener('click',()=>{
+    const kw=+document.getElementById('c-kw').value,hrs=+document.getElementById('c-hrs').value,water=document.getElementById('c-water').value;
+    const eff={fresh:.75,sea:.68,atm:.55}[water]||.68;
+    document.getElementById('cr-h2').textContent=Math.round(kw*hrs*eff*.02).toLocaleString();
+    document.getElementById('cr-co2').textContent=Math.round(kw*hrs*eff*.02*11.89/1000).toLocaleString();
+    document.getElementById('cr-meth').textContent=Math.round(kw*hrs*eff*.02*2.1).toLocaleString();
+    document.getElementById('cr-homes').textContent=Math.round(kw*hrs*eff*.02*.035).toLocaleString();
+    document.getElementById('calc-results').classList.add('show');
+  });
+}
+function drawDonut(){
+  const c=document.getElementById('impact-donut');const ctx=c.getContext('2d');
+  const cx=110,cy=110,R=88,r=50;
+  const slices=[{v:35,c:'#00c8ff',l:'H₂ Prod.'},{v:28,c:'#00e87a',l:'CO₂ Util.'},{v:22,c:'#f5b700',l:'Versatil.'},{v:15,c:'#ff2060',l:'Stability'}];
+  let prog=0;
+  function draw(p){
+    ctx.clearRect(0,0,220,220);let s=-Math.PI/2;
+    slices.forEach(sl=>{
+      const end=s+(sl.v/100)*Math.PI*2*p;
+      ctx.save();ctx.fillStyle=sl.c+'22';ctx.strokeStyle=sl.c;ctx.lineWidth=2.5;ctx.shadowBlur=10;ctx.shadowColor=sl.c;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,s,end);ctx.closePath();ctx.fill();ctx.stroke();
+      if(p===1){const m=s+(end-s)/2;ctx.font="8px 'JetBrains Mono'";ctx.fillStyle=sl.c;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowBlur=0;ctx.fillText(sl.l,cx+Math.cos(m)*(R+16),cy+Math.sin(m)*(R+16));}
+      s=end;ctx.restore();
+    });
+    ctx.save();ctx.fillStyle='#01050d';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.font="bold 10px 'Orbitron'";ctx.fillStyle='#00c8ff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('IMPACT',cx,cy-6);
+    ctx.font="7px 'JetBrains Mono'";ctx.fillStyle='rgba(74,106,138,.8)';ctx.fillText('COMPOSITE',cx,cy+7);ctx.restore();
+  }
+  function anim(){prog=Math.min(prog+.025,1);draw(prog);if(prog<1)requestAnimationFrame(anim);}anim();
+}
+
+/* ════════════════════════════════
+   THESIS
+════════════════════════════════ */
+let thesisInited=false;
+function initThesis(){
+  if(thesisInited)return;thesisInited=true;
+  const toc=document.getElementById('thesis-toc');
+  const sections=[{id:'ts-title',l:'Title'},{id:'ts-stmt',l:'Thesis'},{id:'ts-a1',l:'Arg 1'},{id:'ts-a2',l:'Arg 2'},{id:'ts-a3',l:'Arg 3'},{id:'ts-a4',l:'Arg 4'},{id:'ts-sci',l:'Sci.'},{id:'ts-tech',l:'Tech.'},{id:'ts-soc',l:'Social'},{id:'ts-conc',l:'Conclusion'}];
+  sections.forEach((s,i)=>{const el=document.createElement('button');el.className='toc-chip'+(i===0?' active':'');el.textContent=s.l;el.addEventListener('click',()=>{document.querySelectorAll('.toc-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');document.getElementById(s.id)?.scrollIntoView({behavior:'smooth',block:'start'});});toc.appendChild(el);});
+  const body=document.getElementById('thesis-body');
+  body.innerHTML=`
+  <div id="ts-title"><h1>A Paradigm Shift in Energy and Environmental Solutions: Harnessing the Power of the MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-CuRu Composite Catalyst</h1><span class="author-tag">Author: Frank Levanti</span></div>
+  <div id="ts-stmt"><h2>Thesis Statement</h2><div class="pullquote">The MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru composite catalyst represents a transformative breakthrough in sustainable energy technology by simultaneously addressing three critical global challenges: clean hydrogen production through efficient water splitting, CO₂ capture and utilization for climate mitigation, and resource flexibility through operation across diverse aquatic environments—demonstrating that rational multi-component materials design can transcend traditional catalytic limitations and provide practical pathways toward a carbon-neutral energy economy.</div></div>
+  <div id="ts-a1"><h2>1. Synergistic Multi-Functionality Surpasses Individual Components</h2><p>Traditional catalysts optimize single reactions, but complex global challenges demand integrated solutions. This composite strategically combines six functional components—each addressing specific limitations—to create emergent properties exceeding the sum of parts.</p><p>Iron-doped MoS₂ drives hydrogen evolution, NiSe₂ enables oxygen generation, BDD provides stable electron highways, ZIF-8 captures CO₂, while Cu and Ru cooperatively convert CO₂ to valuable chemicals. The result: simultaneous water splitting and carbon utilization with unprecedented efficiency.</p></div>
+  <div id="ts-a2"><h2>2. Environmental Versatility Enables Global Deployment</h2><p>This catalyst performs across freshwater, seawater, and atmospheric moisture—eliminating the freshwater constraint that hobbles conventional electrolyzers. By enabling seawater splitting without chlorine evolution or electrode corrosion, and coupling with atmospheric water harvesting, the technology transforms 71% of Earth's surface into potential hydrogen production sites.</p></div>
+  <div id="ts-a3"><h2>3. Carbon Loop Closure Through CO₂ Valorization</h2><div class="pullquote">Rather than treating CO₂ as waste, this system converts it to economic assets. ZIF-8 concentrates dilute emissions where Cu and Ru convert them to methanol, formate, and hydrocarbons. The paradigm shifts from "energy versus environment" to "energy through environment."</div></div>
+  <div id="ts-a4"><h2>4. Practical Viability Through Engineered Stability</h2><p>The catalyst demonstrates &gt;1000 hours continuous operation with minimal degradation. BDD provides corrosion resistance, carbon encapsulation prevents active site poisoning, and hierarchical architecture maintains performance under mass transport limitations. Technoeconomic analysis indicates pathways to cost-competitive hydrogen production.</p></div>
+  <div id="ts-sci"><h2>Scientific Impact</h2><p>Establishes design principles for next-generation multi-functional catalysts, demonstrating that interface engineering, electronic coupling, and spatial organization of incompatible reactions enable cooperative catalysis impossible in single-phase materials.</p></div>
+  <div id="ts-tech"><h2>Technological Impact</h2><p>Provides a practical platform for green hydrogen economy infrastructure, enabling decentralized production, renewable energy storage, and CO₂-neutral chemical manufacturing at scale.</p></div>
+  <div id="ts-soc"><h2>Societal Impact</h2><p>By addressing energy security, climate change, and water scarcity simultaneously, this technology contributes directly to UN SDGs: <span class="t-tag" style="background:rgba(245,183,0,.1);color:var(--gold);border:1px solid rgba(245,183,0,.3)">SDG 7</span> <span class="t-tag" style="background:rgba(0,200,255,.1);color:var(--teal);border:1px solid rgba(0,200,255,.25)">SDG 9</span> <span class="t-tag" style="background:rgba(0,232,122,.1);color:var(--green);border:1px solid rgba(0,232,122,.25)">SDG 13</span> <span class="t-tag" style="background:rgba(255,32,96,.1);color:var(--pink);border:1px solid rgba(255,32,96,.25)">SDG 14</span></p></div>
+  <div id="ts-conc"><h2>Conclusion</h2><div class="pullquote">Frank Levanti's MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru composite catalyst exemplifies how materials science innovation can address civilization-scale challenges. By integrating hydrogen production, oxygen evolution, CO₂ capture, and carbon conversion into a single robust system operational across Earth's diverse environments, this work transcends incremental improvement to offer genuine paradigm shift.</div><p>The transition from fossil fuels to sustainable energy requires transformative technologies that close resource loops while expanding operational possibilities. This catalyst provides exactly that—a practical, scalable foundation for the hydrogen economy that turns environmental remediation from cost center to value generator. Such holistic solutions provide tangible pathways to planetary survival and human flourishing.</p></div>`;
+}
+
+/* ════════════════════════════════
+   AI ASSISTANT
+════════════════════════════════ */
+const SYSTEM=`You are an expert AI research assistant specialized in the MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru composite catalyst from Frank Levanti's thesis on sustainable energy technology. You have deep expertise in all six components: MAC-FeMoS₂ (HER), NiSe₂ (OER), BDD (scaffold), ZIF-8 (CO₂ capture), Cu (C-C coupling), Ru (hydrogenation). Also: water splitting, CO₂ electroreduction, Sabatier reaction, seawater electrolysis, green hydrogen economy, materials science. Be concise, technically precise. Use chemical formulas. Keep responses under 150 words for mobile readability.`;
+let aiHist=[],aiInit=false;
+function initAI(){
+  if(aiInit)return;aiInit=true;
+  ['What makes this catalyst unique?','How does ZIF-8 capture CO₂?','Why can it work in seawater?','What is the Sabatier reaction?','Compare to Pt/C catalyst','Explain the 6 components'].forEach(q=>{
+    const el=document.createElement('button');el.className='ai-chip';el.textContent=q;
+    el.addEventListener('click',()=>sendAI(q));document.getElementById('ai-chips').appendChild(el);
+  });
+  addBot("Hi! I'm your catalyst research AI. Ask me anything about MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-CuRu—its mechanisms, components, performance, or real-world applications.");
+  document.getElementById('ai-send').addEventListener('click',()=>{const v=document.getElementById('ai-input').value.trim();if(v){sendAI(v);document.getElementById('ai-input').value='';}});
+  document.getElementById('ai-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('ai-send').click();}});
+}
+function addBot(text){
+  const msgs=document.getElementById('ai-messages');
+  const el=document.createElement('div');el.className='ai-msg bot';
+  el.innerHTML=`<div class="ai-msg-label">CATALYST AI</div><div class="ai-msg-bubble">${text}</div>`;
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;
+}
+function addUser(text){
+  const msgs=document.getElementById('ai-messages');
+  const el=document.createElement('div');el.className='ai-msg user';
+  el.innerHTML=`<div class="ai-msg-label">YOU</div><div class="ai-msg-bubble">${text}</div>`;
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;
+}
+async function sendAI(text){
+  addUser(text);aiHist.push({role:'user',content:text});
+  const typing=document.getElementById('ai-typing');typing.classList.add('show');
+  document.getElementById('ai-messages').scrollTop=99999;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:aiHist})});
+    const data=await res.json();
+    const reply=data.content?.map(c=>c.text||'').join('')||'No response.';
+    aiHist.push({role:'assistant',content:reply});
+    typing.classList.remove('show');addBot(reply);
+  }catch(e){typing.classList.remove('show');addBot('Connection error. Please check your network.');}
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{document.getElementById('loader').classList.add('out');setTimeout(()=>document.getElementById('loader').remove(),600);initDash();},1200);
+});
+// Handle resize for canvases
+window.addEventListener('resize',()=>{
+  if(currentView==='dash')drawSpark();
+  if(currentView==='mol')startMol();
+  if(currentView==='lab')startLabCanvas();
+  if(currentView==='perf'){drawRadar();drawStab();}
+});
+</script>
+</body>
+</html>

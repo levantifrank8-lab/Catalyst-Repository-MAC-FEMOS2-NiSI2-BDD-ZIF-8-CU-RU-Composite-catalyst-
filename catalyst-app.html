@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru · Frank Levanti</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#050a14;color:#e2e8f0;font-family:monospace;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0f1e}::-webkit-scrollbar-thumb{background:#06b6d444;border-radius:2px}
+
+/* ── ANIMATIONS ── */
+@keyframes spin    {from{transform:rotate(0deg)}  to{transform:rotate(360deg)}}
+@keyframes spinR   {from{transform:rotate(0deg)}  to{transform:rotate(-360deg)}}
+@keyframes corePulse{0%,100%{box-shadow:0 0 40px #06b6d444,0 0 80px #06b6d422,inset 0 0 30px #06b6d411}50%{box-shadow:0 0 60px #06b6d466,0 0 110px #06b6d433,inset 0 0 40px #06b6d422}}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 8px #22c55e,0 0 16px #22c55e}50%{box-shadow:0 0 18px #22c55e,0 0 36px #22c55e}}
+@keyframes fadeIn  {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp {from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ping    {0%{transform:translate(-50%,-50%) scale(1);opacity:.7}100%{transform:translate(-50%,-50%) scale(2.6);opacity:0}}
+@keyframes dash    {to{stroke-dashoffset:-20}}
+@keyframes ticker  {0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+@keyframes flowDot {0%{offset-distance:0%}100%{offset-distance:100%}}
+@keyframes glow    {0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes scanline{0%{top:-60px}100%{top:110%}}
+
+/* ── FIXED BG CANVAS ── */
+#canvas-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+/* ── HEADER ── */
+header{position:relative;z-index:20;text-align:center;padding:24px 20px 12px;border-bottom:1px solid #06b6d422;background:linear-gradient(180deg,#050a14 60%,transparent)}
+.eyebrow{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:4px;color:#06b6d4;opacity:.65;margin-bottom:7px}
+h1{font-family:'Orbitron',monospace;font-size:clamp(11px,2vw,19px);font-weight:900;color:#f0f9ff;letter-spacing:2px;line-height:1.35;text-shadow:0 0 40px #06b6d466}
+.subtitle{font-size:10.5px;color:#94a3b8;margin-top:5px;letter-spacing:1px}
+.viability{display:inline-flex;align-items:center;gap:8px;margin-top:11px;background:#0f172a;border:1px solid #22c55e44;border-radius:20px;padding:4px 16px}
+.vdot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:dotPulse 2s infinite;flex-shrink:0}
+.vtext{font-size:8.5px;color:#22c55e;font-family:'Orbitron',monospace;letter-spacing:2px}
+
+/* ── TICKER ── */
+#ticker-wrap{overflow:hidden;background:#06b6d408;border-bottom:1px solid #06b6d411;padding:5px 0;position:relative;z-index:20}
+#ticker-inner{white-space:nowrap;animation:ticker 28s linear infinite;font-family:'Orbitron',monospace;font-size:8px;color:#06b6d488;letter-spacing:2px}
+#ticker-inner span{margin:0 40px}
+
+/* ── NAV ── */
+nav{display:flex;justify-content:center;flex-wrap:wrap;gap:4px;padding:9px 16px;position:relative;z-index:20;border-bottom:1px solid #06b6d411}
+.tab{background:none;border:1px solid transparent;cursor:pointer;font-family:'Orbitron',monospace;font-size:8.5px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;border-radius:4px;color:#475569;transition:all .2s}
+.tab.active{color:#06b6d4;background:#06b6d411;border-color:#06b6d444}
+.tab:hover:not(.active){color:#94a3b8}
+
+/* ── PANELS ── */
+.panel{display:none;position:relative;z-index:10;padding:18px 16px;animation:fadeIn .35s ease}
+.panel.active{display:block}
+.max-w{max-width:540px;margin:0 auto}
+
+/* ══════════════════════════════════════════
+   DIAGRAM TAB
+═══════════════════════════════════════════ */
+#orbit-wrap{position:relative;width:100%;max-width:500px;margin:0 auto;aspect-ratio:1}
+.orbit-ring{position:absolute;border-radius:50%}
+.ring1{left:11%;top:11%;width:78%;height:78%;border:1px dashed #06b6d41a;animation:spin 44s linear infinite}
+.ring2{left:19%;top:19%;width:62%;height:62%;border:1px dashed #06b6d40f;animation:spinR 66s linear infinite}
+.ring3{left:3%;top:3%;width:94%;height:94%;border:1px solid #06b6d40a}
+
+/* SVG connector layer */
+#svg-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+
+/* core */
+.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:110px;height:110px;display:flex;align-items:center;justify-content:center;z-index:6}
+.core-halo{position:absolute;border-radius:50%}
+.ch1{width:170px;height:170px;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid #06b6d41a;animation:spin 12s linear infinite}
+.ch2{width:140px;height:140px;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid #06b6d411;animation:spinR 18s linear infinite}
+.core-box{width:96px;height:96px;background:radial-gradient(circle at 40% 35%,#1a3655,#050a14);border:1.5px solid #06b6d4;border-radius:10px;animation:corePulse 3.2s ease-in-out infinite;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;z-index:2;cursor:default}
+.core-scan{position:absolute;left:0;width:100%;height:50px;background:linear-gradient(180deg,transparent,rgba(6,182,212,.06),transparent);animation:scanline 3s linear infinite;pointer-events:none}
+.core-grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 8px,rgba(6,182,212,.035) 8px,rgba(6,182,212,.035) 9px)}
+.core-text{font-family:'Orbitron',monospace;font-size:6.5px;color:#06b6d4;text-align:center;line-height:1.8;position:relative;z-index:1;letter-spacing:.3px}
+.core-dot{width:7px;height:7px;border-radius:50%;background:#06b6d4;box-shadow:0 0 12px #06b6d4,0 0 24px #06b6d4;margin-top:4px;animation:corePulse 1.8s ease-in-out infinite;position:relative;z-index:1}
+
+/* nodes */
+.node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .2s;z-index:8}
+.node:hover{transform:translate(-50%,-50%) scale(1.1)}
+.node-ping{position:absolute;top:50%;left:50%;width:60px;height:60px;border-radius:50%;border:1.5px solid;opacity:0;pointer-events:none}
+.node.selected .node-ping{animation:ping 1.6s ease-out infinite}
+.node-circle{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid;transition:all .3s}
+.node.selected .node-circle{width:74px;height:74px}
+.node-sym{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;text-align:center;line-height:1.1}
+.node-lbl{font-size:7px;color:#94a3b8;font-family:monospace;margin-top:1px;text-align:center}
+.node-role{font-size:7.5px;font-family:'Orbitron',monospace;letter-spacing:.4px;color:#475569;white-space:nowrap;transition:color .3s;text-align:center;max-width:90px}
+
+.flow-label{position:absolute;font-size:7.5px;font-family:'Orbitron',monospace;letter-spacing:1px;background:#050a14;padding:2px 8px;border-radius:4px;white-space:nowrap;z-index:9}
+.fl-top{left:50%;top:1.5%;transform:translateX(-50%);color:#06b6d4;border:1px solid #06b6d422}
+.fl-bot{left:50%;bottom:1.5%;transform:translateX(-50%);color:#3b82f6;border:1px solid #3b82f633}
+.hint{text-align:center;font-size:8.5px;color:#2d3f55;font-family:'Orbitron',monospace;letter-spacing:2px;margin-top:8px}
+
+/* detail panel */
+#detail{display:none;max-width:500px;margin:14px auto 0;border-radius:12px;padding:18px;animation:slideUp .3s ease}
+#detail.show{display:block}
+.det-head{display:flex;align-items:center;gap:12px;margin-bottom:13px;flex-wrap:wrap}
+.det-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;border:2px solid;flex-shrink:0}
+.det-name{font-family:'Orbitron',monospace;font-size:13px;font-weight:700}
+.det-subrole{font-size:9.5px;color:#64748b;letter-spacing:.8px;margin-top:2px}
+.det-tag{margin-left:auto;font-size:7.5px;padding:3px 9px;border-radius:4px;font-family:'Orbitron',monospace;letter-spacing:.8px;border:1px solid;white-space:nowrap}
+.det-desc{font-size:11.5px;color:#94a3b8;line-height:1.78;margin-bottom:14px}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.stat-cell{background:#0f172a;border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid}
+.stat-k{font-size:9px;color:#64748b;font-family:monospace}
+.stat-v{font-size:9.5px;font-family:'Orbitron',monospace;font-weight:700}
+.det-close{width:100%;background:none;border-radius:6px;padding:7px;font-size:8.5px;font-family:'Orbitron',monospace;letter-spacing:2px;color:#475569;cursor:pointer;border:1px solid #33415533;transition:all .2s}
+.det-close:hover{border-color:#475569;color:#94a3b8}
+
+/* ══════════════════════════════════════════
+   COMPONENTS TAB
+═══════════════════════════════════════════ */
+#comp-search-wrap{position:relative;margin-bottom:14px}
+#comp-search{width:100%;background:#0a0f1e;border:1px solid #06b6d433;border-radius:8px;padding:9px 14px 9px 36px;color:#e2e8f0;font-family:monospace;font-size:11px;outline:none;transition:border-color .2s}
+#comp-search:focus{border-color:#06b6d4}
+#comp-search::placeholder{color:#334155}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#06b6d466;font-size:13px;pointer-events:none}
+.comp-card{background:#0a0f1e;border-radius:10px;padding:13px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;border:1px solid;border-left:3px solid;transition:transform .2s,box-shadow .2s;margin-bottom:9px;animation:fadeIn .4s ease both}
+.comp-card:hover{transform:translateY(-2px)}
+.comp-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-family:'Orbitron',monospace;font-weight:700;flex-shrink:0;border:2px solid}
+.comp-name{font-family:'Orbitron',monospace;font-size:11.5px;font-weight:700;margin-bottom:2px}
+.comp-role{font-size:9.5px;color:#94a3b8;margin-bottom:3px}
+.comp-snippet{font-size:9px;color:#475569;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.comp-arrow{color:#2d3f55;font-size:16px;flex-shrink:0}
+.no-results{text-align:center;color:#334155;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:30px 0}
+
+/* ══════════════════════════════════════════
+   REACTIONS TAB
+═══════════════════════════════════════════ */
+.rxn-card{background:#0a0f1e;border:1px solid;border-radius:10px;padding:16px;margin-bottom:13px;animation:fadeIn .4s ease both}
+.rxn-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rxn-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-family:'Orbitron',monospace;font-weight:700;flex-shrink:0;border:1px solid}
+.rxn-title{font-family:'Orbitron',monospace;font-size:10px;color:#e2e8f0;font-weight:700}
+.rxn-cat{font-size:8.5px;margin-top:2px}
+.rxn-eq{border-radius:6px;padding:9px 13px;font-family:monospace;font-size:12px;letter-spacing:.5px;margin-bottom:9px;border:1px solid;overflow-x:auto;white-space:nowrap}
+.rxn-desc{font-size:11px;color:#64748b;line-height:1.65}
+
+/* ══════════════════════════════════════════
+   PROCESS FLOW TAB
+═══════════════════════════════════════════ */
+.pf-wrap{max-width:540px;margin:0 auto}
+.pf-header{text-align:center;margin-bottom:22px}
+.pf-title{font-family:'Orbitron',monospace;font-size:11px;color:#06b6d4;letter-spacing:3px;margin-bottom:6px}
+.pf-sub{font-size:10px;color:#475569}
+
+.pf-stream{display:flex;flex-direction:column;gap:0}
+.pf-node{display:flex;align-items:stretch;gap:14px;position:relative}
+.pf-spine{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0}
+.pf-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;border:2px solid;flex-shrink:0;z-index:2;position:relative}
+.pf-line{flex:1;width:2px;background:linear-gradient(180deg,var(--lc),transparent);min-height:28px;margin:0 auto}
+.pf-body{flex:1;background:#0a0f1e;border:1px solid;border-radius:10px;padding:13px 15px;margin-bottom:14px;position:relative;overflow:hidden}
+.pf-body-glow{position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;opacity:.07;pointer-events:none}
+.pf-step{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;margin-bottom:4px}
+.pf-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;margin-bottom:4px}
+.pf-role-badge{display:inline-block;font-size:7.5px;padding:2px 8px;border-radius:3px;border:1px solid;font-family:'Orbitron',monospace;letter-spacing:1px;margin-bottom:8px}
+.pf-eq{font-family:monospace;font-size:11px;margin-bottom:6px;padding:6px 10px;border-radius:5px;border:1px solid}
+.pf-desc{font-size:10.5px;color:#64748b;line-height:1.65}
+.pf-output{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pf-chip{font-size:8px;padding:2px 10px;border-radius:10px;border:1px solid;font-family:'Orbitron',monospace}
+
+/* ══════════════════════════════════════════
+   SPECS TAB
+═══════════════════════════════════════════ */
+.spec-section{margin-bottom:20px;animation:fadeIn .4s ease both}
+.spec-hd{font-family:'Orbitron',monospace;font-size:8.5px;letter-spacing:3px;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.spec-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.spec-table{background:#0a0f1e;border-radius:10px;overflow:hidden;border:1px solid}
+.spec-row{display:flex;justify-content:space-between;align-items:center;padding:9px 15px;border-bottom:1px solid #0f172a}
+.spec-row:last-child{border-bottom:none}
+.spec-k{font-size:9.5px;color:#475569;font-family:monospace}
+.spec-v{font-size:9.5px;font-family:'Orbitron',monospace;font-weight:700;text-align:right;max-width:56%}
+.spec-footer{background:linear-gradient(135deg,#06b6d411,#0a0f1e);border:1px solid #06b6d433;border-radius:10px;padding:16px;text-align:center;margin-top:10px}
+.sf-name{font-family:'Orbitron',monospace;font-size:10px;color:#06b6d4;letter-spacing:2px;margin-bottom:6px}
+.sf-sub{font-size:10px;color:#475569}
+.sf-sub2{font-size:8.5px;color:#2d3f55;margin-top:4px}
+</style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="eyebrow">FRANK LEVANTI · UNIFIED CATALYST PLATFORM</div>
+  <h1>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru</h1>
+  <div class="subtitle">Renewable Energy · CO₂ Utilization · Circular Chemistry</div>
+  <div class="viability">
+    <div class="vdot"></div>
+    <span class="vtext">&gt;1000 HRS CONTINUOUS · MINIMAL DEGRADATION</span>
+  </div>
+</header>
+
+<!-- ── TICKER ─────────────────────────────────────────────────────────────── -->
+<div id="ticker-wrap">
+  <div id="ticker-inner">
+    <span>HER: 2H⁺ + 2e⁻ → H₂</span>
+    <span>OER: 2H₂O → O₂ + 4H⁺ + 4e⁻</span>
+    <span>CO₂ + 4H₂ → CH₄ + 2H₂O</span>
+    <span>2CO₂ + 12H⁺ + 12e⁻ → C₂H₅OH + 3H₂O</span>
+    <span>BDD: Ultra-fast e⁻ transfer</span>
+    <span>ZIF-8: CO₂ adsorption &amp; enrichment</span>
+    <span>H₂O (fresh · sea · atmospheric)</span>
+    <span>HER: 2H⁺ + 2e⁻ → H₂</span>
+    <span>OER: 2H₂O → O₂ + 4H⁺ + 4e⁻</span>
+    <span>CO₂ + 4H₂ → CH₄ + 2H₂O</span>
+  </div>
+</div>
+
+<!-- ── NAV ────────────────────────────────────────────────────────────────── -->
+<nav>
+  <button class="tab active" data-tab="diagram">Diagram</button>
+  <button class="tab" data-tab="components">Components</button>
+  <button class="tab" data-tab="reactions">Reactions</button>
+  <button class="tab" data-tab="process">Process</button>
+  <button class="tab" data-tab="specs">Specs</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DIAGRAM
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="diagram" class="panel active">
+  <div id="orbit-wrap">
+    <div class="orbit-ring ring1"></div>
+    <div class="orbit-ring ring2"></div>
+    <div class="orbit-ring ring3"></div>
+    <svg id="svg-lines" viewBox="0 0 500 500" preserveAspectRatio="none"></svg>
+    <div class="flow-label fl-top">H₂O → H₂ + O₂</div>
+    <div class="flow-label fl-bot">CO₂ → C₂H₅OH / CH₄</div>
+    <div class="core">
+      <div class="core-halo ch1"></div>
+      <div class="core-halo ch2"></div>
+      <div class="core-box">
+        <div class="core-scan"></div>
+        <div class="core-grid"></div>
+        <div class="core-text">MAC-FeMoS₂<br>@NiSe₂-BDD<br>ZIF-8-Cu-Ru</div>
+        <div class="core-dot"></div>
+      </div>
+    </div>
+    <!-- nodes injected by JS -->
+  </div>
+  <p class="hint" id="hint-txt">TAP A NODE TO EXPLORE</p>
+  <div id="detail"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     COMPONENTS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="components" class="panel">
+  <div class="max-w">
+    <div id="comp-search-wrap">
+      <span class="search-icon">⌕</span>
+      <input id="comp-search" type="text" placeholder="Search components…" autocomplete="off"/>
+    </div>
+    <div id="comp-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     REACTIONS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="reactions" class="panel">
+  <div class="max-w" id="rxn-list"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     PROCESS FLOW
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="process" class="panel">
+  <div class="pf-wrap">
+    <div class="pf-header">
+      <div class="pf-title">ELECTROCHEMICAL PROCESS FLOW</div>
+      <div class="pf-sub">Step-by-step reaction pathway through the composite catalyst</div>
+    </div>
+    <div class="pf-stream" id="pf-stream"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SPECS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="specs" class="panel">
+  <div class="max-w" id="spec-list"></div>
+</div>
+
+<script>
+/* ── DATA ──────────────────────────────────────────────────────────────────── */
+const COMPONENTS = [
+  {id:1,label:"MAC-FeMoS₂",role:"The H₂ Engine",color:"#ef4444",glow:"#ef444466",symbol:"H₂",angle:210,
+   desc:"Iron-doped MoS₂ in an amorphous carbon matrix drives the Hydrogen Evolution Reaction (HER). The unique architecture maximizes active sites for ultra-efficient proton reduction, producing clean H₂ from water splitting.",
+   tag:"Water Splitting (HER)",
+   stats:[["Function","HER Catalyst"],["Material","Fe-doped MoS₂"],["Matrix","Amorphous Carbon"],["Output","Clean H₂"]]},
+  {id:2,label:"NiSe₂",role:"The O₂ Generator",color:"#ec4899",glow:"#ec489966",symbol:"O₂",angle:330,
+   desc:"Nickel diselenide serves as the Oxygen Evolution Reaction (OER) catalyst. Its high intrinsic activity and stability enable sustained oxygen generation at minimal overpotential, completing the water-splitting cycle.",
+   tag:"Water Splitting (OER)",
+   stats:[["Function","OER Catalyst"],["Material","NiSe₂"],["Output","O₂ Gas"],["Stability",">1000 hrs"]]},
+  {id:3,label:"BDD",role:"Foundation & Wire",color:"#06b6d4",glow:"#06b6d466",symbol:"e⁻",angle:30,
+   desc:"Boron-Doped Diamond acts as both the conductive substrate and electron-transfer highway. Its extreme electrochemical stability, wide potential window, and ultra-fast charge transport unify all catalyst components.",
+   tag:"BDD Foundation",
+   stats:[["Function","Conductive Support"],["Transfer","Ultra-fast e⁻"],["Window","Wide Potential"],["Role","Foundation & Wire"]]},
+  {id:4,label:"ZIF-8",role:"The CO₂ Manager",color:"#3b82f6",glow:"#3b82f666",symbol:"CO₂",angle:150,
+   desc:"Zeolitic Imidazolate Framework-8 provides exceptional CO₂ capture and selective concentration at the electrode surface. Its nanoporous architecture enriches the local CO₂ environment, dramatically boosting electroreduction efficiency.",
+   tag:"CO₂ Capture",
+   stats:[["Function","CO₂ Capture"],["Type","MOF / ZIF-8"],["Structure","Nanoporous"],["Target","CO₂ Enrichment"]]},
+  {id:5,label:"Cu",role:"The C-C Coupler",color:"#f97316",glow:"#f9731666",symbol:"C-C",angle:90,
+   desc:"Copper is the premier catalyst for CO₂ electroreduction via C-C coupling, converting captured CO₂ into high-value multicarbon products like ethanol (C₂H₅OH), ethylene, and other hydrocarbons with high selectivity.",
+   tag:"C-C Coupling",
+   stats:[["Function","CO₂ Reduction"],["Specialty","C-C Coupling"],["Products","C₂H₅OH, C₂H₄"],["Selectivity","High"]]},
+  {id:6,label:"Ru",role:"Hydrogenation Finisher",color:"#a855f7",glow:"#a855f766",symbol:"CH₄",angle:270,
+   desc:"Ruthenium catalyzes the final hydrogenation steps, converting CO₂ and H₂ into valuable fuels such as methane and methanol. Its synergy with Cu enables tunable product selectivity across the carbon-value chain.",
+   tag:"Hydrogenation",
+   stats:[["Function","Hydrogenation"],["Input","CO₂ + H₂"],["Output","CH₄, MeOH"],["Synergy","Cu + Ru"]]},
+];
+
+const REACTIONS = [
+  {title:"Water Splitting — HER",eq:"2H⁺ + 2e⁻ → H₂",catalyst:"MAC-FeMoS₂",color:"#ef4444",icon:"H₂",
+   desc:"Hydrogen Evolution Reaction driven by iron-doped MoS₂. Acidic or neutral water reduced to clean molecular hydrogen at the cathodic surface."},
+  {title:"Water Splitting — OER",eq:"2H₂O → O₂ + 4H⁺ + 4e⁻",catalyst:"NiSe₂",color:"#ec4899",icon:"O₂",
+   desc:"Oxygen Evolution Reaction on NiSe₂. The anodic half-reaction completes the full water-splitting cycle with minimal overpotential."},
+  {title:"CO₂ Capture",eq:"CO₂(g) → CO₂(ads) @ ZIF-8",catalyst:"ZIF-8",color:"#3b82f6",icon:"↓",
+   desc:"Zeolitic imidazolate framework selectively adsorbs and concentrates CO₂ directly at the electrode surface, dramatically boosting local concentration for downstream reduction."},
+  {title:"CO₂ Electroreduction + C-C Coupling",eq:"2CO₂ + 12H⁺ + 12e⁻ → C₂H₅OH + 3H₂O",catalyst:"Cu",color:"#f97316",icon:"C-C",
+   desc:"Copper mediates C-C bond formation, converting concentrated CO₂ into ethanol, ethylene, and other multicarbon products with high Faradaic efficiency."},
+  {title:"CO₂ Hydrogenation",eq:"CO₂ + 4H₂ → CH₄ + 2H₂O",catalyst:"Ru",color:"#a855f7",icon:"CH₄",
+   desc:"Ruthenium hydrogenates CO₂ using the H₂ produced at the HER site, generating synthetic natural gas and methanol in a closed-loop carbon cycle."},
+  {title:"Electron Transfer (BDD)",eq:"anode → BDD → cathode (all sites)",catalyst:"BDD",color:"#06b6d4",icon:"e⁻",
+   desc:"Boron-doped diamond substrate provides a unified conductive scaffold with ultra-fast electron shuttling across all active sites simultaneously."},
+];
+
+const PROCESS_STEPS = [
+  {step:"01",label:"Water Input",name:"H₂O Intake",color:"#0ea5e9",eq:"H₂O (fresh · sea · atmospheric)",
+   desc:"The catalyst accepts water from any source—freshwater, seawater, or atmospheric humidity—via the BDD electrode scaffold.",
+   outputs:["Fresh H₂O","Sea H₂O","Atm. H₂O"]},
+  {step:"02",label:"BDD Scaffold",name:"Electron Highway",color:"#06b6d4",eq:"BDD → ultra-fast e⁻ → all active sites",
+   desc:"Boron-doped diamond acts as the universal electron transfer layer. Every active component sits on this conductive foundation, enabling simultaneous reactions.",
+   outputs:["e⁻ to HER","e⁻ to OER","e⁻ to CO₂RR"]},
+  {step:"03",label:"Water Splitting",name:"HER + OER",color:"#ef4444",eq:"2H₂O → 2H₂ + O₂",
+   desc:"MAC-FeMoS₂ drives HER (H⁺ + e⁻ → H₂) while NiSe₂ simultaneously drives OER (H₂O → O₂). Clean hydrogen is produced continuously.",
+   outputs:["H₂ gas","O₂ gas"]},
+  {step:"04",label:"CO₂ Capture",name:"ZIF-8 Adsorption",color:"#3b82f6",eq:"CO₂(g) → CO₂(ads) @ ZIF-8 pores",
+   desc:"The MOF ZIF-8 selectively captures atmospheric or industrial CO₂, concentrating it locally at the electrode to enable efficient downstream electroreduction.",
+   outputs:["CO₂(ads)"]},
+  {step:"05",label:"C-C Coupling",name:"Cu Electroreduction",color:"#f97316",eq:"2CO₂ + 12H⁺ + 12e⁻ → C₂H₅OH + 3H₂O",
+   desc:"Copper catalyzes C-C bond formation, converting concentrated CO₂ into ethanol (C₂H₅OH), ethylene (C₂H₄), and other valuable multicarbon chemicals.",
+   outputs:["C₂H₅OH","C₂H₄","C₃+ products"]},
+  {step:"06",label:"Hydrogenation",name:"Ru Methanation",color:"#a855f7",eq:"CO₂ + 4H₂ → CH₄ + 2H₂O",
+   desc:"Ruthenium uses the H₂ generated in step 03 to hydrogenate remaining CO₂, producing synthetic methane and methanol—completing the circular carbon-energy loop.",
+   outputs:["CH₄","MeOH","H₂O → recycle"]},
+];
+
+const SPECS = [
+  {section:"Performance",color:"#22c55e",items:[
+    ["Operational Lifetime",">1000 continuous hours"],["Degradation Rate","Minimal"],
+    ["Water Sources","Fresh · Sea · Atmospheric"],["Operating Mode","Simultaneous multi-reaction"],
+    ["Temperature Range","Near-ambient"],["Architecture","Single electrode platform"]]},
+  {section:"Reactions Enabled",color:"#06b6d4",items:[
+    ["HER (H₂ production)","MAC-FeMoS₂ active site"],["OER (O₂ production)","NiSe₂ active site"],
+    ["CO₂ Capture","ZIF-8 MOF adsorption"],["CO₂ → C₂⁺ products","Cu C-C coupling"],
+    ["CO₂ → CH₄ / MeOH","Ru hydrogenation"],["e⁻ transport","BDD ultra-fast transfer"]]},
+  {section:"Architecture",color:"#a855f7",items:[
+    ["Support Material","Boron-Doped Diamond (BDD)"],["Electron Transfer","Ultra-fast via BDD wire"],
+    ["Integration","Single unified platform"],["MAC structure","Metal-Amorphous Carbon"],
+    ["MOF Layer","ZIF-8 nanoporous framework"],["Format","Composite electrode"]]},
+  {section:"Sustainability Impact",color:"#f97316",items:[
+    ["Energy Pathway","Renewable H₂ generation"],["Climate Action","CO₂ capture & utilization"],
+    ["Water Resource","Multi-source electrolysis"],["Key Products","H₂, O₂, C₂H₅OH, CH₄, MeOH"],
+    ["Carbon Cycle","Closed-loop CO₂ conversion"],["Paradigm","Energy + Climate + Water"]]},
+];
+
+/* ── PARTICLE CANVAS ─────────────────────────────────────────────────────── */
+(function(){
+  const cv=document.getElementById('canvas-bg');
+  const cx=cv.getContext('2d');
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  const C=['#06b6d4','#3b82f6','#a855f7','#ec4899'];
+  const pts=Array.from({length:100},()=>({
+    x:Math.random()*cv.width,y:Math.random()*cv.height,
+    r:Math.random()*1.4+.2,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,
+    a:Math.random()*.45+.08,c:C[Math.floor(Math.random()*4)]
+  }));
+  function draw(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=cv.width;if(p.x>cv.width)p.x=0;
+      if(p.y<0)p.y=cv.height;if(p.y>cv.height)p.y=0;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle=p.c+Math.floor(p.a*255).toString(16).padStart(2,'0');
+      cx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<85){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);
+        cx.strokeStyle=`rgba(6,182,212,${.065*(1-d/85)})`;cx.lineWidth=.4;cx.stroke();}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── TABS ────────────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── DIAGRAM ─────────────────────────────────────────────────────────────── */
+let selectedId=null;
+const orbitWrap=document.getElementById('orbit-wrap');
+const detail=document.getElementById('detail');
+const hintTxt=document.getElementById('hint-txt');
+const svgEl=document.getElementById('svg-lines');
+
+function nodePercent(angle){
+  const R=37,rad=angle*Math.PI/180;
+  return{x:50+R*Math.cos(rad),y:50+R*Math.sin(rad)};
+}
+
+// Draw SVG connector lines node → core
+function buildLines(){
+  svgEl.innerHTML='';
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  COMPONENTS.forEach(comp=>{
+    const gid='grad-'+comp.id;
+    const grad=document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+    grad.setAttribute('id',gid);grad.setAttribute('gradientUnits','userSpaceOnUse');
+    const s=document.createElementNS('http://www.w3.org/2000/svg','stop');
+    s.setAttribute('offset','0%');s.setAttribute('stop-color',comp.color);s.setAttribute('stop-opacity','0.6');
+    const e=document.createElementNS('http://www.w3.org/2000/svg','stop');
+    e.setAttribute('offset','100%');e.setAttribute('stop-color',comp.color);e.setAttribute('stop-opacity','0.1');
+    grad.appendChild(s);grad.appendChild(e);defs.appendChild(grad);
+  });
+  svgEl.appendChild(defs);
+
+  COMPONENTS.forEach(comp=>{
+    const pos=nodePercent(comp.angle);
+    const x1=pos.x/100*500, y1=pos.y/100*500;
+    const x2=250, y2=250;
+    const grad=document.getElementById('grad-'+comp.id);
+    if(grad){grad.setAttribute('x1',x1);grad.setAttribute('y1',y1);grad.setAttribute('x2',x2);grad.setAttribute('y2',y2);}
+
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke','url(#grad-'+comp.id+')');
+    line.setAttribute('stroke-width','1');
+    line.setAttribute('stroke-dasharray','4 4');
+    line.setAttribute('id','line-'+comp.id);
+    line.style.animation='dash 2s linear infinite';
+    svgEl.appendChild(line);
+  });
+}
+buildLines();
+
+// Build node elements
+COMPONENTS.forEach(comp=>{
+  const pos=nodePercent(comp.angle);
+  const node=document.createElement('div');
+  node.className='node';node.id='node-'+comp.id;
+  node.style.cssText=`left:${pos.x}%;top:${pos.y}%;--nc:${comp.color}`;
+  node.innerHTML=`
+    <div class="node-ping" style="border-color:${comp.color};width:66px;height:66px"></div>
+    <div class="node-circle" style="background:radial-gradient(circle at 35% 35%,${comp.color}30,#050a14);border-color:${comp.color}88;box-shadow:0 0 10px ${comp.glow}">
+      <span class="node-sym" style="color:${comp.color}">${comp.symbol}</span>
+      <span class="node-lbl">${comp.label}</span>
+    </div>
+    <div class="node-role">${comp.role}</div>`;
+  node.addEventListener('click',()=>selectNode(comp.id));
+  orbitWrap.appendChild(node);
+});
+
+function selectNode(id){
+  if(selectedId===id){clearDetail();return;}
+  selectedId=id;
+  COMPONENTS.forEach(c=>{
+    const n=document.getElementById('node-'+c.id);
+    const circ=n.querySelector('.node-circle');
+    n.classList.remove('selected');
+    circ.style.boxShadow=`0 0 10px ${c.glow}`;
+    circ.style.borderColor=c.color+'88';
+    // dim other lines
+    const ln=document.getElementById('line-'+c.id);
+    if(ln)ln.setAttribute('stroke-opacity','0.3');
+  });
+  const comp=COMPONENTS.find(c=>c.id===id);
+  const node=document.getElementById('node-'+id);
+  node.classList.add('selected');
+  const circ=node.querySelector('.node-circle');
+  circ.style.boxShadow=`0 0 24px ${comp.glow},0 0 48px ${comp.glow},inset 0 0 12px ${comp.glow}`;
+  circ.style.borderColor=comp.color;
+  const ln=document.getElementById('line-'+id);
+  if(ln){ln.setAttribute('stroke-opacity','1');ln.setAttribute('stroke-width','2');}
+  hintTxt.style.display='none';
+  renderDetail(comp);
+}
+
+function clearDetail(){
+  selectedId=null;
+  COMPONENTS.forEach(c=>{
+    const n=document.getElementById('node-'+c.id);
+    const circ=n.querySelector('.node-circle');
+    n.classList.remove('selected');
+    circ.style.boxShadow=`0 0 10px ${c.glow}`;
+    circ.style.borderColor=c.color+'88';
+    const ln=document.getElementById('line-'+c.id);
+    if(ln){ln.setAttribute('stroke-opacity','0.6');ln.setAttribute('stroke-width','1');}
+  });
+  detail.classList.remove('show');
+  detail.innerHTML='';
+  hintTxt.style.display='';
+}
+
+function renderDetail(comp){
+  const statRows=comp.stats.map(([k,v])=>`
+    <div class="stat-cell" style="border-color:${comp.color}33">
+      <span class="stat-k">${k}</span>
+      <span class="stat-v" style="color:${comp.color}">${v}</span>
+    </div>`).join('');
+  detail.style.cssText=`background:#0a0f1e;border:1px solid ${comp.color}44;box-shadow:0 0 28px ${comp.glow}`;
+  detail.innerHTML=`
+    <div class="det-head">
+      <div class="det-icon" style="background:radial-gradient(circle,${comp.color}22,#0a0f1e);border-color:${comp.color};color:${comp.color};box-shadow:0 0 16px ${comp.glow}">${comp.symbol}</div>
+      <div style="flex:1">
+        <div class="det-name" style="color:${comp.color}">${comp.label}</div>
+        <div class="det-subrole">${comp.role}</div>
+      </div>
+      <div class="det-tag" style="background:${comp.color}18;color:${comp.color};border-color:${comp.color}44">${comp.tag}</div>
+    </div>
+    <p class="det-desc">${comp.desc}</p>
+    <div class="det-grid">${statRows}</div>
+    <button class="det-close" onclick="clearDetail()">CLOSE ×</button>`;
+  detail.classList.add('show');
+  setTimeout(()=>detail.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+
+/* ── COMPONENTS LIST ─────────────────────────────────────────────────────── */
+const compList=document.getElementById('comp-list');
+function buildCompCards(filter=''){
+  compList.innerHTML='';
+  const filtered=COMPONENTS.filter(c=>
+    c.label.toLowerCase().includes(filter)||
+    c.role.toLowerCase().includes(filter)||
+    c.desc.toLowerCase().includes(filter)||
+    c.tag.toLowerCase().includes(filter)
+  );
+  if(!filtered.length){compList.innerHTML='<div class="no-results">NO RESULTS FOUND</div>';return;}
+  filtered.forEach((comp,i)=>{
+    const card=document.createElement('div');
+    card.className='comp-card';
+    card.style.cssText=`border-color:${comp.color}30;border-left-color:${comp.color};animation-delay:${i*.06}s`;
+    card.innerHTML=`
+      <div class="comp-icon" style="background:radial-gradient(circle,${comp.color}22,#0a0f1e);border-color:${comp.color}66;color:${comp.color};box-shadow:0 0 10px ${comp.glow}">${comp.symbol}</div>
+      <div style="flex:1;min-width:0">
+        <div class="comp-name" style="color:${comp.color}">${comp.label}</div>
+        <div class="comp-role">${comp.role}</div>
+        <div class="comp-snippet">${comp.desc}</div>
+      </div>
+      <div class="comp-arrow">›</div>`;
+    card.addEventListener('click',()=>{
+      document.querySelector('.tab[data-tab="diagram"]').click();
+      setTimeout(()=>selectNode(comp.id),50);
+    });
+    compList.appendChild(card);
+  });
+}
+buildCompCards();
+document.getElementById('comp-search').addEventListener('input',function(){
+  buildCompCards(this.value.trim().toLowerCase());
+});
+
+/* ── REACTIONS ───────────────────────────────────────────────────────────── */
+const rxnList=document.getElementById('rxn-list');
+REACTIONS.forEach((rxn,i)=>{
+  const card=document.createElement('div');
+  card.className='rxn-card';
+  card.style.cssText=`border-color:${rxn.color}30;animation-delay:${i*.07}s`;
+  card.innerHTML=`
+    <div class="rxn-head">
+      <div class="rxn-icon" style="background:${rxn.color}18;border-color:${rxn.color}55;color:${rxn.color}">${rxn.icon}</div>
+      <div>
+        <div class="rxn-title">${rxn.title}</div>
+        <div class="rxn-cat" style="color:${rxn.color}">Catalyst: ${rxn.catalyst}</div>
+      </div>
+    </div>
+    <div class="rxn-eq" style="background:#050a14;border-color:${rxn.color}22;color:${rxn.color}">${rxn.eq}</div>
+    <div class="rxn-desc">${rxn.desc}</div>`;
+  rxnList.appendChild(card);
+});
+
+/* ── PROCESS FLOW ────────────────────────────────────────────────────────── */
+const pfStream=document.getElementById('pf-stream');
+PROCESS_STEPS.forEach((step,i)=>{
+  const isLast=i===PROCESS_STEPS.length-1;
+  const chips=step.outputs.map(o=>`<span class="pf-chip" style="background:${step.color}18;color:${step.color};border-color:${step.color}44">${o}</span>`).join('');
+  const div=document.createElement('div');
+  div.className='pf-node';
+  div.style.animation=`fadeIn .4s ease ${i*.09}s both`;
+  div.innerHTML=`
+    <div class="pf-spine">
+      <div class="pf-circle" style="background:radial-gradient(circle,${step.color}22,#050a14);border-color:${step.color};color:${step.color};box-shadow:0 0 12px ${step.color}44">${step.step}</div>
+      ${!isLast?`<div class="pf-line" style="--lc:${step.color}44"></div>`:''}
+    </div>
+    <div class="pf-body" style="border-color:${step.color}33">
+      <div class="pf-body-glow" style="background:${step.color}"></div>
+      <div class="pf-step" style="color:${step.color}88">STEP ${step.step} · ${step.label}</div>
+      <div class="pf-name" style="color:${step.color}">${step.name}</div>
+      <div class="pf-role-badge" style="background:${step.color}18;color:${step.color}cc;border-color:${step.color}33">${step.label}</div>
+      <div class="pf-eq" style="background:#050a14;border-color:${step.color}22;color:${step.color}cc">${step.eq}</div>
+      <div class="pf-desc">${step.desc}</div>
+      <div class="pf-output">${chips}</div>
+    </div>`;
+  pfStream.appendChild(div);
+});
+
+/* ── SPECS ───────────────────────────────────────────────────────────────── */
+const specList=document.getElementById('spec-list');
+SPECS.forEach((sec,si)=>{
+  const rows=sec.items.map(([k,v])=>`
+    <div class="spec-row">
+      <span class="spec-k">${k}</span>
+      <span class="spec-v" style="color:${sec.color}">${v}</span>
+    </div>`).join('');
+  const div=document.createElement('div');
+  div.className='spec-section';
+  div.style.animationDelay=`${si*.1}s`;
+  div.innerHTML=`
+    <div class="spec-hd" style="color:${sec.color}">
+      <div class="spec-dot" style="background:${sec.color};box-shadow:0 0 8px ${sec.color}"></div>
+      ${sec.section.toUpperCase()}
+    </div>
+    <div class="spec-table" style="border-color:${sec.color}22">${rows}</div>`;
+  specList.appendChild(div);
+});
+const footer=document.createElement('div');
+footer.className='spec-footer';
+footer.innerHTML=`
+  <div class="sf-name">FRANK LEVANTI</div>
+  <div class="sf-sub">MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru Composite Catalyst</div>
+  <div class="sf-sub2">Unified Platform for Renewable Energy &amp; Circular Chemistry</div>`;
+specList.appendChild(footer);
+</script>
+</body>
+</html>

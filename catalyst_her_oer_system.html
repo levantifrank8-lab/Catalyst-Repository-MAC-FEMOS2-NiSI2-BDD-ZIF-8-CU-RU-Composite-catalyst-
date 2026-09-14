@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC-FeMoS₂ Composite System — Water-Splitting Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060810;
+  --bg2:#0a0e1a;
+  --panel:#0d1220;
+  --panel2:#10182b;
+  --line: rgba(120,170,255,0.14);
+  --cyan:#4de3ff;
+  --cyan-dim: rgba(77,227,255,0.18);
+  --amber:#ffb84d;
+  --amber-dim: rgba(255,184,77,0.18);
+  --violet:#b98bff;
+  --violet-dim: rgba(185,139,255,0.18);
+  --green:#5cf2a6;
+  --green-dim: rgba(92,242,166,0.18);
+  --copper:#ff9466;
+  --copper-dim: rgba(255,148,102,0.18);
+  --rose:#ff6fa3;
+  --rose-dim: rgba(255,111,163,0.18);
+  --text:#dce6f5;
+  --text-dim:#7d8bab;
+  --text-faint:#4c5674;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+  position:relative;
+}
+#field{position:fixed; inset:0; z-index:0; pointer-events:none;}
+
+.eyebrow{
+  font-family:'Space Mono',monospace;
+  font-size:0.68rem;
+  letter-spacing:0.32em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+h1,h2,h3,h4{font-family:'Orbitron',sans-serif; font-weight:700; letter-spacing:0.02em;}
+.mono{font-family:'Space Mono',monospace;}
+
+/* ============ NAV ============ */
+nav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(6,8,16,0.86);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:4px;
+  padding:0 14px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+nav::-webkit-scrollbar{display:none;}
+.brandmark{
+  font-family:'Orbitron',sans-serif; font-weight:900; font-size:0.82rem;
+  color:var(--cyan); letter-spacing:0.08em; white-space:nowrap;
+  padding:14px 16px 14px 4px; border-right:1px solid var(--line); margin-right:6px;
+}
+.navbtn{
+  background:none; border:none; color:var(--text-dim);
+  font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.08em;
+  text-transform:uppercase; padding:16px 12px; cursor:pointer; white-space:nowrap;
+  border-bottom:2px solid transparent; transition:all .2s;
+}
+.navbtn:hover{color:var(--text);}
+.navbtn.active{color:var(--cyan); border-bottom-color:var(--cyan);}
+
+section{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:64px 24px; display:none;}
+section.active{display:block; animation:fadein .5s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============ HERO ============ */
+#hero{display:flex; min-height:78vh; align-items:center; padding-top:40px;}
+.hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:48px; align-items:center; width:100%;}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;}}
+.hero-tag{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.2em;
+  color:var(--cyan); border:1px solid var(--cyan-dim); background:var(--cyan-dim);
+  padding:6px 12px; border-radius:2px; margin-bottom:22px; text-transform:uppercase;
+}
+.dot{width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.3;}}
+h1.title{font-size:clamp(2.1rem,4.6vw,3.6rem); line-height:1.08; color:#fff; margin-bottom:20px;}
+h1.title .accent{background:linear-gradient(90deg,var(--cyan),var(--green)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero-sub{font-size:1.02rem; color:var(--text-dim); max-width:52ch; line-height:1.65; margin-bottom:28px;}
+.hero-author{font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--text-faint); margin-bottom:30px;}
+.hero-author b{color:var(--text);}
+.hero-stats{display:flex; gap:28px; flex-wrap:wrap;}
+.hstat{border-left:2px solid var(--cyan-dim); padding-left:12px;}
+.hstat .n{font-family:'Orbitron',sans-serif; font-size:1.5rem; font-weight:700; color:var(--cyan);}
+.hstat .l{font-size:0.72rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em;}
+
+/* hero reactor visual */
+.reactor{position:relative; aspect-ratio:1/1; max-width:420px; margin:0 auto;}
+.reactor svg{width:100%; height:100%;}
+.cell-label{font-family:'Space Mono',monospace; font-size:9px; fill:var(--text-dim); letter-spacing:0.05em;}
+
+/* ============ SECTION HEADERS ============ */
+.sec-head{margin-bottom:44px; max-width:74ch;}
+.sec-head h2{font-size:clamp(1.5rem,3vw,2.1rem); color:#fff; margin:10px 0 14px;}
+.sec-head p{color:var(--text-dim); line-height:1.7; font-size:0.98rem;}
+.kicker{color:var(--cyan);}
+
+/* ============ CARDS / GRID ============ */
+.grid{display:grid; gap:18px;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:820px){.grid.cols-3,.grid.cols-2{grid-template-columns:1fr;}}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line); border-radius:6px; padding:22px;
+  position:relative; overflow:hidden;
+}
+.card::before{content:''; position:absolute; top:0; left:0; width:100%; height:2px;}
+.card.c-cyan::before{background:var(--cyan);} .card.c-amber::before{background:var(--amber);}
+.card.c-violet::before{background:var(--violet);} .card.c-green::before{background:var(--green);}
+.card.c-copper::before{background:var(--copper);} .card.c-rose::before{background:var(--rose);}
+
+.card h4{font-size:0.95rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.card .role{font-family:'Space Mono',monospace; font-size:0.66rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-faint); margin-bottom:10px;}
+.card p{color:var(--text-dim); font-size:0.87rem; line-height:1.6;}
+.tag{display:inline-block; font-family:'Space Mono',monospace; font-size:0.62rem; padding:3px 8px; border-radius:2px; letter-spacing:0.06em; text-transform:uppercase; margin-top:12px;}
+.tag.cyan{background:var(--cyan-dim); color:var(--cyan);}
+.tag.amber{background:var(--amber-dim); color:var(--amber);}
+.tag.violet{background:var(--violet-dim); color:var(--violet);}
+.tag.green{background:var(--green-dim); color:var(--green);}
+.tag.copper{background:var(--copper-dim); color:var(--copper);}
+.tag.rose{background:var(--rose-dim); color:var(--rose);}
+
+/* ============ HER/OER ENGINE ============ */
+.engine-wrap{
+  background:radial-gradient(ellipse at 50% 0%, rgba(77,227,255,0.06), transparent 60%), var(--panel);
+  border:1px solid var(--line); border-radius:8px; padding:30px; margin-bottom:26px;
+}
+.cell-diagram{width:100%; max-width:900px; margin:0 auto; display:block;}
+.legend-row{display:flex; gap:22px; flex-wrap:wrap; justify-content:center; margin-top:18px; font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--text-dim);}
+.legend-row span{display:inline-flex; align-items:center; gap:6px;}
+.legend-row i{width:9px; height:9px; border-radius:50%; display:inline-block;}
+
+.eq-block{
+  background:var(--bg2); border:1px solid var(--line); border-radius:6px; padding:18px 20px; margin:14px 0;
+  font-family:'Space Mono',monospace; font-size:0.92rem; color:var(--text);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+.eq-block .side-label{font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-faint);}
+.eq-block.her{border-left:3px solid var(--cyan);}
+.eq-block.oer{border-left:3px solid var(--amber);}
+.eq-block.overall{border-left:3px solid var(--green);}
+
+.electrode-panel{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:22px;}
+@media(max-width:760px){.electrode-panel{grid-template-columns:1fr;}}
+.electrode{background:var(--bg2); border:1px solid var(--line); border-radius:6px; padding:20px;}
+.electrode.cathode{border-top:3px solid var(--cyan);}
+.electrode.anode{border-top:3px solid var(--amber);}
+.electrode h4{font-size:0.85rem; margin-bottom:4px;}
+.electrode .sub{font-family:'Space Mono',monospace; font-size:0.64rem; color:var(--text-faint); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;}
+.electrode ul{list-style:none; margin-top:10px;}
+.electrode li{font-size:0.83rem; color:var(--text-dim); padding:6px 0 6px 16px; position:relative; line-height:1.5;}
+.electrode li::before{content:'—'; position:absolute; left:0; color:var(--text-faint);}
+
+/* ============ TABS (inner) ============ */
+.tabbar{display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap;}
+.tabbtn{
+  background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+  font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;
+  padding:9px 16px; border-radius:20px; cursor:pointer; transition:all .2s;
+}
+.tabbtn:hover{border-color:var(--cyan-dim); color:var(--text);}
+.tabbtn.active{background:var(--cyan-dim); border-color:var(--cyan); color:var(--cyan);}
+.tabpane{display:none;}
+.tabpane.active{display:block; animation:fadein .35s ease;}
+
+/* ============ SLIDER / CALC ============ */
+.calc-box{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:26px;}
+.calc-row{display:flex; align-items:center; gap:16px; margin-bottom:18px; flex-wrap:wrap;}
+.calc-row label{font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--text-dim); min-width:210px;}
+input[type=range]{flex:1; min-width:160px; accent-color:var(--cyan); height:4px;}
+.calc-val{font-family:'Orbitron',sans-serif; color:var(--cyan); font-size:0.92rem; min-width:90px; text-align:right;}
+.calc-out{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:22px;}
+@media(max-width:760px){.calc-out{grid-template-columns:repeat(2,1fr);}}
+.out-cell{background:var(--bg2); border:1px solid var(--line); border-radius:6px; padding:16px; text-align:center;}
+.out-cell .v{font-family:'Orbitron',sans-serif; font-size:1.3rem; color:var(--green); font-weight:700;}
+.out-cell .l{font-size:0.68rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; margin-top:4px;}
+
+/* ============ FLOW DIAGRAM (carbon loop) ============ */
+.flow-wrap{width:100%; overflow-x:auto;}
+.flow-svg{min-width:760px; width:100%;}
+.flow-node text{font-family:'Space Mono',monospace; font-size:10px; fill:var(--text);}
+.flow-node .lbl{font-size:8px; fill:var(--text-faint);}
+
+/* ============ TIMELINE (stability) ============ */
+.stab-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+@media(max-width:820px){.stab-grid{grid-template-columns:repeat(2,1fr);}}
+.stab-item{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px; text-align:center;}
+.stab-item .v{font-family:'Orbitron',sans-serif; font-size:1.5rem; color:var(--violet);}
+.stab-item .l{font-size:0.7rem; color:var(--text-dim); margin-top:6px;}
+
+/* ============ SDG ============ */
+.sdg-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media(max-width:760px){.sdg-grid{grid-template-columns:repeat(2,1fr);}}
+.sdg-card{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px;}
+.sdg-num{font-family:'Orbitron',sans-serif; font-size:1.6rem; color:var(--green); font-weight:900;}
+.sdg-card h5{font-size:0.82rem; margin:6px 0 8px;}
+.sdg-card p{font-size:0.78rem; color:var(--text-dim); line-height:1.5;}
+
+footer{border-top:1px solid var(--line); padding:34px 24px; text-align:center; position:relative; z-index:1;}
+footer p{font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--text-faint); letter-spacing:0.06em;}
+
+.divider{height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); margin:40px 0;}
+
+.callout{
+  border:1px solid var(--green-dim); background:var(--green-dim); border-radius:6px;
+  padding:16px 20px; font-size:0.86rem; color:var(--text); line-height:1.6; margin-top:18px;
+}
+.callout b{color:var(--green);}
+</style>
+</head>
+<body>
+
+<canvas id="field"></canvas>
+
+<nav id="nav">
+  <div class="brandmark">MAC-FeMoS₂ SYSTEM</div>
+  <button class="navbtn active" data-sec="hero">Overview</button>
+  <button class="navbtn" data-sec="architecture">Architecture</button>
+  <button class="navbtn" data-sec="engine">HER / OER Engine</button>
+  <button class="navbtn" data-sec="versatility">Environments</button>
+  <button class="navbtn" data-sec="carbon">Carbon Loop</button>
+  <button class="navbtn" data-sec="stability">Stability &amp; Economics</button>
+  <button class="navbtn" data-sec="impact">Impact</button>
+</nav>
+
+<!-- ============ HERO / OVERVIEW ============ -->
+<section id="hero" class="active">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-tag"><span class="dot"></span> COMPOSITE ELECTROCATALYST · THESIS SYSTEM</div>
+      <h1 class="title">Splitting water into <span class="accent">electricity-grade hydrogen</span>, at civilization scale.</h1>
+      <p class="hero-sub">An interactive walkthrough of the <b style="color:var(--text)">MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru</b> composite catalyst — a six-component system engineered to run the hydrogen and oxygen evolution reactions (HER/OER) simultaneously with integrated CO₂ capture and valorization, across freshwater, seawater, and atmospheric moisture.</p>
+      <div class="hero-author">By <b>Frank Levanti</b> — Composite Electrocatalyst Thesis</div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="n">6</div><div class="l">Functional Components</div></div>
+        <div class="hstat"><div class="n">71%</div><div class="l">Of Earth's Surface Addressable</div></div>
+        <div class="hstat"><div class="n">1000+</div><div class="l">Hours Continuous Operation</div></div>
+        <div class="hstat"><div class="n">2</div><div class="l">Reaction Loops, 1 Reactor</div></div>
+      </div>
+    </div>
+
+    <div class="reactor">
+      <svg viewBox="0 0 400 400">
+        <defs>
+          <radialGradient id="glowC" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#4de3ff" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#4de3ff" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="glowA" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffb84d" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#ffb84d" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- cell body -->
+        <rect x="60" y="40" width="280" height="320" rx="10" fill="none" stroke="rgba(120,170,255,0.25)" stroke-width="1.5"/>
+        <line x1="200" y1="40" x2="200" y2="360" stroke="rgba(120,170,255,0.3)" stroke-width="1" stroke-dasharray="4 4"/>
+        <!-- cathode glow -->
+        <circle cx="130" cy="200" r="80" fill="url(#glowC)"/>
+        <circle cx="270" cy="200" r="80" fill="url(#glowA)"/>
+        <!-- electrodes -->
+        <rect x="115" y="90" width="30" height="220" rx="4" fill="#0d1220" stroke="#4de3ff" stroke-width="1.5"/>
+        <rect x="255" y="90" width="30" height="220" rx="4" fill="#0d1220" stroke="#ffb84d" stroke-width="1.5"/>
+        <text x="130" y="335" text-anchor="middle" class="cell-label" fill="#4de3ff">MAC-FeMoS₂ (HER)</text>
+        <text x="270" y="335" text-anchor="middle" class="cell-label" fill="#ffb84d">NiSe₂ (OER)</text>
+        <!-- bubbles cathode (H2) -->
+        <g id="bubblesC"></g>
+        <g id="bubblesA"></g>
+        <!-- wires to top -->
+        <path d="M130 90 L130 55 L200 30 L270 55 L270 90" fill="none" stroke="rgba(220,230,245,0.4)" stroke-width="1.5"/>
+        <circle cx="200" cy="30" r="5" fill="none" stroke="#5cf2a6" stroke-width="1.5"/>
+        <text x="200" y="20" text-anchor="middle" class="cell-label" fill="#5cf2a6">e⁻</text>
+        <!-- H2/O2 labels top -->
+        <text x="130" y="80" text-anchor="middle" class="cell-label" fill="#4de3ff" font-size="10">H₂</text>
+        <text x="270" y="80" text-anchor="middle" class="cell-label" fill="#ffb84d" font-size="10">O₂</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="architecture">
+  <div class="sec-head">
+    <span class="eyebrow kicker">01 · SYSTEM ARCHITECTURE</span>
+    <h2>Six components. One cooperative catalyst.</h2>
+    <p>Traditional catalysts optimize a single reaction. This composite strategically layers six functional materials — each solving a distinct limitation — so their combined behavior exceeds what any one part could do alone. This is the same architecture powering the <span class="kicker">HELIX-D</span> deployment framework and <span class="kicker">NEXUS-H</span> fleet layer.</p>
+  </div>
+
+  <div class="grid cols-3">
+    <div class="card c-cyan">
+      <div class="role">Cathode · Hydrogen Engine</div>
+      <h4>MAC-FeMoS₂</h4>
+      <p>Iron-doped molybdenum disulfide encapsulated in amorphous carbon. Fe-doping tunes the S edge-site binding energy toward the thermoneutral point for H* adsorption, driving the Hydrogen Evolution Reaction (HER) with low overpotential.</p>
+      <span class="tag cyan">Drives HER</span>
+    </div>
+    <div class="card c-amber">
+      <div class="role">Anode · Oxygen Generator</div>
+      <h4>NiSe₂</h4>
+      <p>Nickel diselenide provides the active sites for the four-electron Oxygen Evolution Reaction (OER), the kinetically sluggish half of water splitting, converting OH⁻ to O₂ and closing the electron circuit.</p>
+      <span class="tag amber">Drives OER</span>
+    </div>
+    <div class="card c-violet">
+      <div class="role">Substrate · Electron Highway</div>
+      <h4>Boron-Doped Diamond (BDD)</h4>
+      <p>A conductive, corrosion-resistant scaffold that anchors both catalytic layers. Boron doping gives diamond semiconducting behavior, enabling ultrafast electron transfer while resisting the corrosive conditions of seawater electrolysis.</p>
+      <span class="tag violet">Structural + Conductive</span>
+    </div>
+    <div class="card c-green">
+      <div class="role">Capture Layer</div>
+      <h4>ZIF-8</h4>
+      <p>A zeolitic imidazolate framework with high surface area and CO₂-selective micropores. It concentrates dilute CO₂ from mixed gas streams directly at the catalytic site, feeding the carbon valorization loop.</p>
+      <span class="tag green">Selective CO₂ Capture</span>
+    </div>
+    <div class="card c-copper">
+      <div class="role">Reduction Initiator</div>
+      <h4>Copper (Cu)</h4>
+      <p>Initiates CO₂ reduction and uniquely enables C–C coupling, the step that builds multi-carbon products (ethylene, ethanol) rather than stopping at single-carbon CO.</p>
+      <span class="tag copper">CO₂ → C–C Bonds</span>
+    </div>
+    <div class="card c-rose">
+      <div class="role">Hydrogenation Finisher</div>
+      <h4>Ruthenium (Ru)</h4>
+      <p>Drives hydrogenation of reduction intermediates toward methanol and long-chain hydrocarbons via Sabatier/Fischer-Tropsch-type pathways, using H₂ generated on-site.</p>
+      <span class="tag rose">Finishes Fuel Synthesis</span>
+    </div>
+  </div>
+
+  <div class="callout"><b>Emergent property:</b> Because HER, OER, CO₂ capture, and CO₂ conversion are spatially organized on one conductive scaffold, the reactor runs water splitting and carbon utilization concurrently — turning an electrolyzer into a combined hydrogen + chemical factory instead of two separate plants.</div>
+</section>
+
+<!-- ============ HER / OER ENGINE ============ -->
+<section id="engine">
+  <div class="sec-head">
+    <span class="eyebrow kicker">02 · THE ELECTRICITY-FROM-WATER ENGINE</span>
+    <h2>How HER and OER actually generate usable hydrogen fuel</h2>
+    <p>Electrical current, supplied by renewable generation, drives two coupled half-reactions at opposite electrodes. Splitting the labor across MAC-FeMoS₂ and NiSe₂ is what lets the system hit low overpotentials on both sides at once — the main efficiency bottleneck in conventional electrolyzers.</p>
+  </div>
+
+  <div class="engine-wrap">
+    <svg class="cell-diagram" viewBox="0 0 900 340">
+      <!-- tank -->
+      <rect x="120" y="40" width="660" height="260" rx="10" fill="rgba(13,18,32,0.6)" stroke="rgba(120,170,255,0.25)"/>
+      <!-- water fill -->
+      <rect x="126" y="120" width="648" height="174" fill="rgba(77,227,255,0.05)"/>
+      <line x1="126" y1="120" x2="774" y2="120" stroke="rgba(120,170,255,0.2)" stroke-dasharray="3 3"/>
+      <text x="750" y="112" class="cell-label" text-anchor="end">electrolyte</text>
+
+      <!-- membrane -->
+      <line x1="450" y1="55" x2="450" y2="285" stroke="rgba(220,230,245,0.35)" stroke-width="2" stroke-dasharray="2 4"/>
+      <text x="450" y="45" text-anchor="middle" class="cell-label">ion-exchange membrane</text>
+
+      <!-- cathode electrode -->
+      <rect x="260" y="70" width="26" height="200" rx="4" fill="#0d1220" stroke="#4de3ff" stroke-width="1.6"/>
+      <text x="273" y="290" text-anchor="middle" class="cell-label" fill="#4de3ff" font-size="10">MAC-FeMoS₂ / BDD</text>
+      <text x="273" y="303" text-anchor="middle" class="cell-label" fill="#7d8bab" font-size="9">cathode (reduction)</text>
+
+      <!-- anode electrode -->
+      <rect x="614" y="70" width="26" height="200" rx="4" fill="#0d1220" stroke="#ffb84d" stroke-width="1.6"/>
+      <text x="627" y="290" text-anchor="middle" class="cell-label" fill="#ffb84d" font-size="10">NiSe₂ / BDD</text>
+      <text x="627" y="303" text-anchor="middle" class="cell-label" fill="#7d8bab" font-size="9">anode (oxidation)</text>
+
+      <!-- power source -->
+      <path d="M273 70 L273 40 L450 20 L627 40 L627 70" fill="none" stroke="rgba(220,230,245,0.45)" stroke-width="1.5"/>
+      <rect x="425" y="8" width="50" height="22" rx="3" fill="#0d1220" stroke="#5cf2a6"/>
+      <text x="450" y="23" text-anchor="middle" class="cell-label" fill="#5cf2a6" font-size="9">RENEWABLE e⁻</text>
+
+      <!-- bubble streams -->
+      <g id="engBubC"></g>
+      <g id="engBubA"></g>
+
+      <!-- gas collection labels -->
+      <text x="273" y="60" text-anchor="middle" class="cell-label" fill="#4de3ff" font-size="11">H₂ ↑</text>
+      <text x="627" y="60" text-anchor="middle" class="cell-label" fill="#ffb84d" font-size="11">O₂ ↑</text>
+
+      <!-- ion flow -->
+      <text x="450" y="180" text-anchor="middle" class="cell-label" fill="#b98bff" font-size="10">OH⁻ / H⁺ transport →</text>
+    </svg>
+    <div class="legend-row">
+      <span><i style="background:#4de3ff"></i>H₂ evolution (cathode)</span>
+      <span><i style="background:#ffb84d"></i>O₂ evolution (anode)</span>
+      <span><i style="background:#5cf2a6"></i>electron flow (external circuit)</span>
+      <span><i style="background:#b98bff"></i>ion transport (electrolyte)</span>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="reactions">Reaction Set</button>
+    <button class="tabbtn" data-tab="electrodes">Electrode Detail</button>
+    <button class="tabbtn" data-tab="calc">Output Calculator</button>
+  </div>
+
+  <div class="tabpane active" id="tab-reactions">
+    <div class="eq-block her">
+      <div><span class="side-label">Cathode — HER (alkaline)</span><br>4H₂O + 4e⁻ → 2H₂ + 4OH⁻</div>
+      <span class="tag cyan">MAC-FeMoS₂</span>
+    </div>
+    <div class="eq-block oer">
+      <div><span class="side-label">Anode — OER (alkaline)</span><br>4OH⁻ → O₂ + 2H₂O + 4e⁻</div>
+      <span class="tag amber">NiSe₂</span>
+    </div>
+    <div class="eq-block overall">
+      <div><span class="side-label">Overall cell reaction</span><br>2H₂O → 2H₂ + O₂ &nbsp;(ΔG° ≈ +237 kJ/mol → E°cell = 1.23 V)</div>
+      <span class="tag green">Water Splitting</span>
+    </div>
+    <p style="color:var(--text-dim); font-size:0.85rem; line-height:1.7; margin-top:14px;">In practice the applied cell voltage exceeds the 1.23 V thermodynamic minimum because of activation, ohmic, and mass-transport overpotentials on each electrode. The purpose of MAC-FeMoS₂ and NiSe₂ is to push both half-reactions' activation overpotentials down simultaneously, which is what keeps total electrical input — and therefore the cost per kilogram of H₂ — low.</p>
+  </div>
+
+  <div class="tabpane" id="tab-electrodes">
+    <div class="electrode-panel">
+      <div class="electrode cathode">
+        <h4>Cathode — MAC-FeMoS₂ on BDD</h4>
+        <div class="sub">Hydrogen Evolution Reaction (HER)</div>
+        <ul>
+          <li>Fe-doping shifts the Mo-edge ΔG(H*) toward zero, the ideal binding energy for the Sabatier volcano peak.</li>
+          <li>Amorphous carbon encapsulation increases active edge-site density and prevents sulfur leaching / active-site poisoning.</li>
+          <li>BDD substrate supplies a low-resistance, corrosion-immune electron pathway even in chloride-rich seawater.</li>
+          <li>Net effect: low HER overpotential sustained over long operating windows.</li>
+        </ul>
+      </div>
+      <div class="electrode anode">
+        <h4>Anode — NiSe₂ on BDD</h4>
+        <div class="sub">Oxygen Evolution Reaction (OER)</div>
+        <ul>
+          <li>Se substitution modifies Ni's d-band center, stabilizing the OOH* intermediate that is normally the OER's rate-limiting step.</li>
+          <li>Operates without generating chlorine gas in seawater, avoiding the corrosive Cl₂/hypochlorite byproducts that destroy conventional anodes.</li>
+          <li>BDD anchoring resists the highly oxidizing anodic environment where most catalyst supports degrade fastest.</li>
+          <li>Net effect: the four-electron OER — normally the main efficiency bottleneck — proceeds at competitive current density.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="tab-calc">
+    <div class="calc-box">
+      <div class="calc-row">
+        <label>Applied cell voltage (V)</label>
+        <input type="range" id="rV" min="1.4" max="2.2" step="0.01" value="1.75">
+        <span class="calc-val" id="vV">1.75 V</span>
+      </div>
+      <div class="calc-row">
+        <label>Current density (mA/cm²)</label>
+        <input type="range" id="rI" min="10" max="500" step="5" value="150">
+        <span class="calc-val" id="vI">150 mA/cm²</span>
+      </div>
+      <div class="calc-row">
+        <label>Active electrode area (m²)</label>
+        <input type="range" id="rA" min="0.5" max="50" step="0.5" value="5">
+        <span class="calc-val" id="vA">5.0 m²</span>
+      </div>
+      <div class="calc-row">
+        <label>Faradaic efficiency (%)</label>
+        <input type="range" id="rF" min="70" max="99" step="1" value="92">
+        <span class="calc-val" id="vF">92%</span>
+      </div>
+      <div class="calc-out">
+        <div class="out-cell"><div class="v" id="outPower">—</div><div class="l">Electrical input (kW)</div></div>
+        <div class="out-cell"><div class="v" id="outH2">—</div><div class="l">H₂ output (kg/day)</div></div>
+        <div class="out-cell"><div class="v" id="outO2">—</div><div class="l">O₂ output (kg/day)</div></div>
+        <div class="out-cell"><div class="v" id="outSpec">—</div><div class="l">Specific energy (kWh/kg H₂)</div></div>
+      </div>
+      <p style="color:var(--text-faint); font-size:0.72rem; margin-top:16px; font-family:'Space Mono',monospace;">Model: Faraday's law, n=2 e⁻/H₂ molecule, applied to combined electrode area. Illustrative of the composite's design targets — not a substitute for pilot-scale validation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ENVIRONMENTAL VERSATILITY ============ -->
+<section id="versatility">
+  <div class="sec-head">
+    <span class="eyebrow kicker">03 · DEPLOYMENT ENVIRONMENTS</span>
+    <h2>Built to run where the water actually is</h2>
+    <p>Conventional electrolyzers require purified freshwater. Because BDD resists corrosion and NiSe₂ avoids chlorine evolution, this catalyst runs across freshwater, seawater, and atmospheric-moisture-harvested water — unlocking deployment in coastal, arid, and remote settings.</p>
+  </div>
+  <div class="grid cols-3">
+    <div class="card c-cyan">
+      <h4>Freshwater</h4>
+      <p>Baseline operating condition. Lowest ionic resistance, highest efficiency reference point for the system.</p>
+      <span class="tag cyan">Reference case</span>
+    </div>
+    <div class="card c-amber">
+      <h4>Seawater</h4>
+      <p>NiSe₂'s selectivity suppresses competing chlorine evolution at the anode, while BDD resists chloride-induced corrosion — enabling direct seawater splitting without pre-desalination.</p>
+      <span class="tag amber">No chlorine byproduct</span>
+    </div>
+    <div class="card c-violet">
+      <h4>Atmospheric Moisture</h4>
+      <p>Coupled with atmospheric water harvesting, the reactor can be supplied in arid or remote regions with no local liquid water source.</p>
+      <span class="tag violet">Off-grid capable</span>
+    </div>
+  </div>
+  <div class="callout"><b>Deployment implication:</b> Removing the freshwater constraint expands the theoretical hydrogen-production footprint to roughly 71% of Earth's surface — the fraction covered by ocean, coastline, and moisture-bearing atmosphere.</div>
+</section>
+
+<!-- ============ CARBON LOOP ============ -->
+<section id="carbon">
+  <div class="sec-head">
+    <span class="eyebrow kicker">04 · CARBON LOOP CLOSURE</span>
+    <h2>CO₂ as feedstock, not waste</h2>
+    <p>ZIF-8 concentrates dilute CO₂ at the catalytic surface; Cu initiates reduction and C–C coupling; Ru drives hydrogenation to finished fuels. This runs in parallel with HER/OER, so the same reactor that makes hydrogen also converts captured carbon into sellable chemicals.</p>
+  </div>
+
+  <div class="flow-wrap">
+    <svg class="flow-svg" viewBox="0 0 760 200">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7d8bab"/></marker>
+      </defs>
+      <!-- nodes -->
+      <g class="flow-node"><rect x="10" y="80" width="120" height="46" rx="6" fill="#0d1220" stroke="#5cf2a6"/><text x="70" y="100" text-anchor="middle">CO₂ (dilute)</text><text x="70" y="114" text-anchor="middle" class="lbl">mixed gas stream</text></g>
+
+      <line x1="130" y1="103" x2="188" y2="103" stroke="#7d8bab" marker-end="url(#arrow)"/>
+      <g class="flow-node"><rect x="190" y="80" width="140" height="46" rx="6" fill="#0d1220" stroke="#5cf2a6"/><text x="260" y="100" text-anchor="middle">ZIF-8 capture</text><text x="260" y="114" text-anchor="middle" class="lbl">selective adsorption</text></g>
+
+      <line x1="330" y1="103" x2="388" y2="103" stroke="#7d8bab" marker-end="url(#arrow)"/>
+      <g class="flow-node"><rect x="390" y="80" width="140" height="46" rx="6" fill="#0d1220" stroke="#ff9466"/><text x="460" y="100" text-anchor="middle">Cu reduction</text><text x="460" y="114" text-anchor="middle" class="lbl">C–C coupling</text></g>
+
+      <line x1="530" y1="103" x2="588" y2="103" stroke="#7d8bab" marker-end="url(#arrow)"/>
+      <g class="flow-node"><rect x="590" y="80" width="150" height="46" rx="6" fill="#0d1220" stroke="#ff6fa3"/><text x="665" y="100" text-anchor="middle">Ru hydrogenation</text><text x="665" y="114" text-anchor="middle" class="lbl">Sabatier / Fischer-Tropsch</text></g>
+
+      <!-- H2 feed from HER -->
+      <line x1="590" y1="60" x2="590" y2="80" stroke="#4de3ff" marker-end="url(#arrow)"/>
+      <text x="590" y="50" text-anchor="middle" class="cell-label" fill="#4de3ff">H₂ from cathode</text>
+
+      <!-- outputs -->
+      <line x1="665" y1="126" x2="665" y2="165" stroke="#7d8bab" marker-end="url(#arrow)"/>
+      <text x="665" y="182" text-anchor="middle" class="cell-label" fill="#dce6f5">Methanol · Formate · Hydrocarbons</text>
+    </svg>
+  </div>
+
+  <div class="eq-block overall" style="margin-top:10px;">
+    <div><span class="side-label">Representative valorization pathway</span><br>CO₂ + 3H₂ → CH₃OH + H₂O</div>
+    <span class="tag green">Cu + Ru</span>
+  </div>
+
+  <div class="callout"><b>Economic reframe:</b> ZIF-8 capture + Cu/Ru conversion turns CO₂ handling from a cost center (sequestration) into a revenue stream (methanol, formate, hydrocarbons) — while consuming H₂ produced in the same reactor.</div>
+</section>
+
+<!-- ============ STABILITY & ECONOMICS ============ -->
+<section id="stability">
+  <div class="sec-head">
+    <span class="eyebrow kicker">05 · PRACTICAL VIABILITY</span>
+    <h2>Durability and cost, not just chemistry</h2>
+    <p>A catalyst only matters if it survives industrial operation. BDD's corrosion resistance, carbon encapsulation against active-site poisoning, and a hierarchical pore architecture together sustain performance under real mass-transport conditions.</p>
+  </div>
+  <div class="stab-grid">
+    <div class="stab-item"><div class="v">&gt;1000 h</div><div class="l">Continuous operation, minimal degradation</div></div>
+    <div class="stab-item"><div class="v">BDD</div><div class="l">Corrosion resistance under anodic + chloride stress</div></div>
+    <div class="stab-item"><div class="v">C-shell</div><div class="l">Carbon encapsulation prevents active-site poisoning</div></div>
+    <div class="stab-item"><div class="v">Hierarchical</div><div class="l">Pore architecture sustains mass transport at scale</div></div>
+  </div>
+  <div class="divider"></div>
+  <p style="color:var(--text-dim); font-size:0.9rem; line-height:1.7; max-width:70ch;">Techno-economic analysis indicates a pathway to cost-competitive hydrogen production relative to conventional electrolysis, and life-cycle assessment favors this system over fossil-based hydrogen production routes on emissions intensity — reinforced by the added CO₂-valorization revenue stream.</p>
+</section>
+
+<!-- ============ IMPACT ============ -->
+<section id="impact">
+  <div class="sec-head">
+    <span class="eyebrow kicker">06 · IMPLICATIONS</span>
+    <h2>From lab chemistry to civilization-scale infrastructure</h2>
+    <p>The thesis argues that interface engineering, electronic coupling, and spatial organization of otherwise-incompatible reactions enable cooperative catalysis unreachable by single-phase materials — with direct downstream impact on energy, industry, climate, and water systems.</p>
+  </div>
+
+  <div class="grid cols-3">
+    <div class="card c-cyan"><h4>Scientific Impact</h4><p>Establishes design principles for next-generation multi-functional catalysts built from cooperating, spatially organized components rather than a single active phase.</p></div>
+    <div class="card c-amber"><h4>Technological Impact</h4><p>A practical platform for green hydrogen infrastructure: decentralized production, renewable energy storage, and CO₂-neutral chemical manufacturing in one reactor.</p></div>
+    <div class="card c-green"><h4>Societal Impact</h4><p>Addresses energy security, climate change, and water scarcity simultaneously — without forcing tradeoffs between economic growth and environmental protection.</p></div>
+  </div>
+
+  <div class="divider"></div>
+  <h3 style="font-size:1.05rem; margin-bottom:18px; color:#fff;">UN Sustainable Development Goals addressed</h3>
+  <div class="sdg-grid">
+    <div class="sdg-card"><div class="sdg-num">07</div><h5>Affordable &amp; Clean Energy</h5><p>Decentralized, renewable-driven hydrogen production.</p></div>
+    <div class="sdg-card"><div class="sdg-num">09</div><h5>Industry, Innovation &amp; Infrastructure</h5><p>New catalytic infrastructure for the hydrogen economy.</p></div>
+    <div class="sdg-card"><div class="sdg-num">13</div><h5>Climate Action</h5><p>CO₂ valorization converts emissions into value instead of waste.</p></div>
+    <div class="sdg-card"><div class="sdg-num">14</div><h5>Life Below Water</h5><p>Chlorine-free seawater splitting avoids marine-toxic byproducts.</p></div>
+  </div>
+
+  <div class="divider"></div>
+  <blockquote style="border-left:2px solid var(--cyan); padding-left:20px; color:var(--text-dim); font-size:0.95rem; line-height:1.75; max-width:74ch;">
+    The transition from fossil fuels to sustainable energy requires not just better solar panels or batteries, but transformative technologies that close resource loops while expanding operational possibilities. This catalyst provides exactly that — a practical, scalable foundation for the hydrogen economy that turns environmental remediation from cost center to value generator.
+  </blockquote>
+</section>
+
+<footer>
+  <p>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru COMPOSITE ELECTROCATALYST SYSTEM · THESIS BY FRANK LEVANTI</p>
+</footer>
+
+<script>
+// ---------- particle field ----------
+const canvas = document.getElementById('field');
+const ctx = canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize); resize();
+for(let i=0;i<60;i++){particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,c:Math.random()>0.5?'77,227,255':'92,242,166'});}
+function loop(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${p.c},0.5)`; ctx.fill();
+  });
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ---------- nav switching ----------
+const navBtns=document.querySelectorAll('.navbtn');
+const sections=document.querySelectorAll('section');
+navBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    navBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    sections.forEach(s=>s.classList.remove('active'));
+    document.getElementById(btn.dataset.sec).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// ---------- inner tabs (engine section) ----------
+const tabBtns=document.querySelectorAll('.tabbtn');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const bar=btn.closest('.tabbar');
+    bar.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const panes=bar.parentElement.querySelectorAll('.tabpane');
+    panes.forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- bubble animations (hero + engine) ----------
+function makeBubbles(groupId,x,colorHex,count){
+  const g=document.getElementById(groupId);
+  if(!g) return [];
+  const bubbles=[];
+  for(let i=0;i<count;i++){
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('r',(1+Math.random()*2).toFixed(1));
+    c.setAttribute('fill',colorHex);
+    c.setAttribute('opacity','0.8');
+    g.appendChild(c);
+    bubbles.push({el:c,x:x+(Math.random()*16-8),y:200+Math.random()*100,speed:0.4+Math.random()*0.6,baseX:x});
+  }
+  return bubbles;
+}
+let heroBubC=makeBubbles('bubblesC',130,'#4de3ff',8);
+let heroBubA=makeBubbles('bubblesA',270,'#ffb84d',8);
+let engBubC=makeBubbles('engBubC',273,'#4de3ff',10);
+let engBubA=makeBubbles('engBubA',627,'#ffb84d',10);
+
+function animateBubbleSet(set,topY){
+  set.forEach(b=>{
+    b.y-=b.speed;
+    if(b.y<topY){b.y=200+Math.random()*80; b.x=b.baseX+(Math.random()*14-7);}
+    b.el.setAttribute('cx',b.x);
+    b.el.setAttribute('cy',b.y);
+  });
+}
+function bubbleLoop(){
+  animateBubbleSet(heroBubC,95);
+  animateBubbleSet(heroBubA,95);
+  animateBubbleSet(engBubC,75);
+  animateBubbleSet(engBubA,75);
+  requestAnimationFrame(bubbleLoop);
+}
+bubbleLoop();
+
+// ---------- output calculator ----------
+const rV=document.getElementById('rV'), rI=document.getElementById('rI'), rA=document.getElementById('rA'), rF=document.getElementById('rF');
+const vV=document.getElementById('vV'), vI=document.getElementById('vI'), vA=document.getElementById('vA'), vF=document.getElementById('vF');
+const outPower=document.getElementById('outPower'), outH2=document.getElementById('outH2'), outO2=document.getElementById('outO2'), outSpec=document.getElementById('outSpec');
+
+function calc(){
+  const V=parseFloat(rV.value), I_mA=parseFloat(rI.value), A_m2=parseFloat(rA.value), F_eff=parseFloat(rF.value)/100;
+  vV.textContent=V.toFixed(2)+' V';
+  vI.textContent=I_mA.toFixed(0)+' mA/cm²';
+  vA.textContent=A_m2.toFixed(1)+' m²';
+  vF.textContent=(F_eff*100).toFixed(0)+'%';
+
+  const area_cm2 = A_m2 * 10000;
+  const I_A = (I_mA/1000) * area_cm2; // total current in amps
+  const P_kW = (V * I_A) / 1000;
+
+  // Faraday's law: moles H2 = I*t*eff / (n*F), n=2, F=96485
+  const t_s = 86400; // 1 day
+  const F_const = 96485;
+  const molH2 = (I_A * t_s * F_eff) / (2 * F_const);
+  const kgH2 = molH2 * 2.016 / 1000;
+  const molO2 = molH2/2;
+  const kgO2 = molO2 * 32 / 1000;
+
+  const energy_kWh_day = P_kW * 24;
+  const specEnergy = kgH2>0 ? (energy_kWh_day/kgH2) : 0;
+
+  outPower.textContent = P_kW.toFixed(1);
+  outH2.textContent = kgH2.toFixed(1);
+  outO2.textContent = kgO2.toFixed(1);
+  outSpec.textContent = specEnergy.toFixed(1);
+}
+[rV,rI,rA,rF].forEach(el=>el.addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Periodic Table → MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru → Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050708; --panel:#0c1216; --line:#1c2830;
+    --cyan:#4de3ec; --cyan-dim:#173338;
+    --amber:#f4b445; --amber-dim:#3a2e14;
+    --violet:#b98cf0; --violet-dim:#2c2240;
+    --green:#79e0a0; --green-dim:#173324;
+    --white-e:#eef6f8; --white-dim:#2a3336;
+    --text:#d8e6ec; --muted:#7c93a0; --muted-dim:#465158;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:
+      radial-gradient(ellipse at 15% 0%, #0a1418 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 30%, #12100a 0%, transparent 40%),
+      var(--bg);
+    color:var(--text);font-family:'Rajdhani',sans-serif;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:0 26px;}
+  ::selection{background:var(--cyan);color:#000;}
+
+  header{padding:44px 0 20px;}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pd 2s infinite;}
+  @keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
+  h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(24px,4vw,42px);line-height:1.1;margin:14px 0 10px;}
+  h1 span{color:var(--cyan);}
+  .sub{color:var(--muted);max-width:680px;font-size:15.5px;line-height:1.55;}
+  .byline{margin-top:16px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted-dim);display:flex;gap:18px;flex-wrap:wrap;}
+  .byline b{color:var(--muted);}
+
+  /* ---------- LAYOUT ---------- */
+  .stage{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:30px;align-items:start;}
+  @media(max-width:980px){.stage{grid-template-columns:1fr;}}
+
+  /* ---------- PERIODIC TABLE ---------- */
+  .pt-panel{
+    background:linear-gradient(180deg,var(--panel),#080c0f);
+    border:1px solid var(--line);border-radius:14px;padding:18px 16px 14px;
+    position:sticky;top:20px;
+  }
+  @media(max-width:980px){.pt-panel{position:static;}}
+  .pt-panel h3{margin:0 0 12px;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  #ptGrid{display:grid;grid-template-columns:repeat(18,1fr);grid-template-rows:repeat(10,1fr);gap:2.5px;aspect-ratio:18/10;}
+  .tile{
+    display:flex;align-items:center;justify-content:center;
+    background:#0a0e11;border:1px solid rgba(255,255,255,0.04);
+    border-radius:3px;font-family:'Space Mono',monospace;
+    font-size:clamp(6.5px,0.85vw,10px);color:var(--muted-dim);
+    opacity:.35;transition:all .5s ease;position:relative;cursor:default;
+  }
+  .tile.dim-lit{opacity:.65;color:var(--muted);}
+  .tile.lit{opacity:1;color:#05090a;font-weight:700;box-shadow:0 0 10px var(--tc,var(--cyan));z-index:2;}
+  .tile .z{position:absolute;top:1px;left:2px;font-size:5px;opacity:.7;}
+  .pt-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .pt-legend span{display:flex;align-items:center;gap:5px;}
+  .pt-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* ---------- STEP PANEL ---------- */
+  .step-panel{
+    background:linear-gradient(180deg,var(--panel),#080c0f);
+    border:1px solid var(--line);border-radius:14px;padding:24px;
+    min-height:560px;display:flex;flex-direction:column;
+  }
+  .step-tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--role,var(--cyan));text-transform:uppercase;}
+  .step-title{font-family:'Orbitron',sans-serif;font-weight:800;font-size:22px;margin:10px 0 14px;line-height:1.25;}
+  .equation{
+    font-family:'Space Mono',monospace;font-size:15px;background:#050708;border:1px solid var(--line);
+    border-radius:9px;padding:12px 14px;margin-bottom:16px;color:var(--role,var(--cyan));
+    overflow-x:auto;white-space:nowrap;
+  }
+  .step-body{color:var(--muted);font-size:14.5px;line-height:1.65;flex:1;}
+  .step-body strong{color:var(--text);}
+  .elem-list{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px;}
+  .echip{
+    display:flex;align-items:center;gap:7px;background:#050708;border:1px solid var(--line);
+    border-radius:20px;padding:5px 12px 5px 6px;font-family:'Space Mono',monospace;font-size:11.5px;
+  }
+  .echip .sym{
+    width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:10px;background:var(--role,var(--cyan));color:#05090a;
+  }
+  .echip .en{color:var(--muted);}
+
+  .nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;gap:14px;}
+  .nav-btn{
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;
+    background:#050708;border:1px solid var(--line);color:var(--text);
+    padding:10px 18px;border-radius:8px;cursor:pointer;transition:.2s;
+  }
+  .nav-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .nav-btn:disabled{opacity:.3;cursor:default;}
+  .nav-btn:disabled:hover{border-color:var(--line);color:var(--text);}
+  .dots{display:flex;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:.25s;}
+  .dot.active{background:var(--role,var(--cyan));box-shadow:0 0 6px var(--role,var(--cyan));width:20px;border-radius:5px;}
+
+  /* ---------- FORMULA STRIP (final assembly) ---------- */
+  .formula-strip{
+    margin-top:60px;text-align:center;padding:34px 20px;
+    background:linear-gradient(180deg,#0b1013,#070a0c);border:1px solid var(--line);border-radius:16px;
+  }
+  .formula-strip .flabel{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
+  .formula-big{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(16px,3.4vw,32px);margin-top:14px;line-height:1.4;word-break:break-word;}
+  .formula-big .f-mac{color:var(--cyan);} .formula-big .f-nise{color:var(--amber);}
+  .formula-big .f-bdd{color:var(--white-e);} .formula-big .f-zif{color:var(--green);}
+  .formula-big .f-cu, .formula-big .f-ru{color:var(--violet);}
+  .formula-big .f-at{color:var(--muted-dim);font-size:0.7em;}
+
+  /* ---------- SECTION HEADS ---------- */
+  section{margin-top:64px;}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;}
+  .section-num{font-family:'Space Mono',monospace;color:var(--muted-dim);font-size:13px;}
+  .section-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:20px;}
+  .section-title span{color:var(--cyan);}
+
+  /* ---------- DESIGN DIAGRAM ---------- */
+  .design-grid{display:grid;grid-template-columns:0.8fr 1.2fr;gap:30px;align-items:center;}
+  @media(max-width:900px){.design-grid{grid-template-columns:1fr;}}
+  svg#miniRig{width:100%;max-width:320px;height:auto;}
+  .design-copy p{color:var(--muted);font-size:14.5px;line-height:1.7;margin:0 0 14px;}
+  .design-copy b{color:var(--text);}
+
+  .flow-steps{display:flex;flex-direction:column;gap:0;margin-top:10px;}
+  .flow-step{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--line);}
+  .flow-step:first-child{border-top:none;}
+  .flow-step .fnum{font-family:'Orbitron',sans-serif;font-weight:800;font-size:14px;color:var(--cyan);width:26px;flex-shrink:0;}
+  .flow-step .ftxt b{display:block;color:var(--text);font-size:14.5px;margin-bottom:3px;}
+  .flow-step .ftxt span{color:var(--muted);font-size:13.5px;line-height:1.55;}
+
+  footer{margin:70px 0 40px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-dim);}
+
+  /* ---------- ANIMATION LAYER ---------- */
+  #field{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;}
+  body{position:relative;}
+  .wrap{position:relative;z-index:1;}
+
+  @keyframes tilePulse{0%,100%{box-shadow:0 0 8px var(--tc);}50%{box-shadow:0 0 18px var(--tc),0 0 4px var(--tc);}}
+  .tile.lit{animation:tilePulse 1.8s ease-in-out infinite;}
+  .tile{animation:tileIn .5s ease both;}
+  @keyframes tileIn{from{opacity:0;transform:scale(.5);}to{opacity:.35;transform:scale(1);}}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  header{animation:fadeUp .7s ease both;}
+  .stage{animation:fadeUp .8s ease .15s both;}
+
+  .step-inner{transition:opacity .3s ease, transform .3s ease;}
+  .step-inner.leaving{opacity:0;transform:translateY(8px);}
+
+  .reveal-on-scroll{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal-on-scroll.shown{opacity:1;transform:translateY(0);}
+
+  .flow-step{opacity:0;transform:translateX(-14px);transition:opacity .5s ease, transform .5s ease;}
+  .flow-step.shown{opacity:1;transform:translateX(0);}
+
+  .formula-big span{display:inline-block;opacity:0;transform:translateY(10px) scale(.9);transition:opacity .5s ease, transform .5s ease;}
+  .formula-big span.shown{opacity:1;transform:translateY(0) scale(1);}
+  .formula-strip.pulse{animation:stripGlow 2.4s ease-in-out infinite;}
+  @keyframes stripGlow{0%,100%{box-shadow:0 0 0 rgba(77,227,236,0);}50%{box-shadow:0 0 30px rgba(77,227,236,.08);}}
+
+  .autoplay-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .play-btn{
+    width:30px;height:30px;border-radius:50%;background:#050708;border:1px solid var(--line);
+    color:var(--cyan);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;flex-shrink:0;transition:.2s;
+  }
+  .play-btn:hover{border-color:var(--cyan);}
+  .progress-track{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:var(--cyan);border-radius:2px;}
+  .progress-fill.animating{transition:width 4.2s linear;}
+
+  .rig-anim .bubble{opacity:0;}
+  .rig-anim .co2p{fill:#79e0a0;}
+  .rig-anim .elec-arc{stroke:#4de3ec;stroke-width:1.6;fill:none;stroke-dasharray:5 5;filter:drop-shadow(0 0 4px #4de3ec);}
+  .waterfill-mini{transition:y 1.6s cubic-bezier(.4,0,.2,1), height 1.6s cubic-bezier(.4,0,.2,1);}
+
+  /* ---------- MARKETPLACE ---------- */
+  .market-note{color:var(--muted);font-size:13.5px;max-width:720px;margin:-8px 0 24px;line-height:1.6;}
+  .market-group-label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+  .market-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:900px){.market-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:640px){.market-grid{grid-template-columns:repeat(2,1fr);}}
+  .market-card{
+    background:linear-gradient(180deg,var(--panel),#080c0f);border:1px solid var(--line);border-radius:12px;
+    padding:14px 15px;position:relative;overflow:hidden;transition:border-color .3s;
+  }
+  .market-card:hover{border-color:var(--mc,var(--cyan));}
+  .market-card .mtop{display:flex;align-items:center;justify-content:space-between;}
+  .market-card .msym{
+    width:26px;height:26px;border-radius:50%;background:var(--mc,var(--cyan));color:#05090a;
+    display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;
+  }
+  .market-card .mname{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-align:right;line-height:1.3;}
+  .market-card .mprice{font-family:'Orbitron',sans-serif;font-weight:700;font-size:18px;margin-top:12px;color:var(--text);}
+  .market-card .mprice .munit{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--muted-dim);font-weight:400;margin-left:3px;}
+  .market-card .mdelta{font-family:'Space Mono',monospace;font-size:10.5px;margin-top:5px;}
+  .mdelta.up{color:var(--green);} .mdelta.down{color:#e88a8a;} .mdelta.flat{color:var(--muted-dim);}
+  .market-disclaimer{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted-dim);margin-top:16px;line-height:1.6;}
+
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
+</style>
+</head>
+<body>
+<canvas id="field"></canvas>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Element-Level Design Trace</div>
+    <h1>From the <span>Periodic Table</span><br>to a Sealed Reactor</h1>
+    <p class="sub">Thirteen elements, six functional materials, one composite formula, one physical device. This is the build order behind MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru — from raw atoms to a transparent case that turns seawater, freshwater, or air moisture into electricity.</p>
+    <div class="byline">
+      <div><b>Author</b> Frank Levanti</div>
+      <div><b>Elements used</b> 13</div>
+      <div><b>Functional domains</b> 6</div>
+    </div>
+  </header>
+
+  <div class="stage">
+    <!-- ============ PERIODIC TABLE ============ -->
+    <div class="pt-panel">
+      <h3>Periodic Table — Source Elements</h3>
+      <div id="ptGrid"></div>
+      <div class="pt-legend">
+        <span><i style="background:#4de3ec"></i>HER (MAC-FeMoS₂)</span>
+        <span><i style="background:#f4b445"></i>OER (NiSe₂)</span>
+        <span><i style="background:#eef6f8"></i>Substrate (BDD)</span>
+        <span><i style="background:#79e0a0"></i>Capture (ZIF-8)</span>
+        <span><i style="background:#b98cf0"></i>Conversion (Cu·Ru)</span>
+      </div>
+    </div>
+
+    <!-- ============ STEP PANEL ============ -->
+    <div class="step-panel" id="stepPanel">
+      <div class="step-inner" id="stepInner">
+        <div class="step-tag" id="stepTag">00 / ORIGIN</div>
+        <div class="step-title" id="stepTitle">The Periodic Table as a Parts Bin</div>
+        <div class="equation" id="stepEq">13 elements · 6 functional domains · 1 sealed cell</div>
+        <div class="step-body" id="stepBody"></div>
+        <div class="elem-list" id="stepElems"></div>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn">← Prev</button>
+        <div class="dots" id="dots"></div>
+        <button class="nav-btn" id="nextBtn">Next →</button>
+      </div>
+      <div class="autoplay-row">
+        <div class="play-btn" id="playBtn">▶</div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FINAL FORMULA STRIP ============ -->
+  <div class="formula-strip reveal-on-scroll" id="formulaStrip">
+    <div class="flabel">Assembled Composite</div>
+    <div class="formula-big" id="formulaBig">
+      <span class="f-mac">MAC-FeMoS₂</span><span class="f-at">@</span><span class="f-nise">NiSe₂</span><span class="f-at">-</span><span class="f-bdd">BDD</span><span class="f-at">-</span><span class="f-zif">ZIF-8</span><span class="f-at">-</span><span class="f-cu">Cu</span><span class="f-at">-</span><span class="f-ru">Ru</span>
+    </div>
+  </div>
+
+  <!-- ============ DESIGN SECTION ============ -->
+  <section class="reveal-on-scroll">
+    <div class="section-head">
+      <div class="section-num">07</div>
+      <div class="section-title">Formula → <span>Physical Layout</span></div>
+    </div>
+    <div class="design-grid">
+      <svg id="miniRig" class="rig-anim" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="30" width="240" height="320" rx="20" fill="rgba(140,190,205,0.04)" stroke="rgba(180,220,230,0.35)" stroke-width="1.2"/>
+        <clipPath id="miniClip"><rect x="30" y="30" width="240" height="320" rx="20"/></clipPath>
+        <g clip-path="url(#miniClip)">
+          <rect id="miniWater" class="waterfill-mini" x="30" y="330" width="240" height="20" fill="#123640" opacity="0.5"/>
+        </g>
+        <rect x="168" y="50" width="10" height="280" rx="5" fill="rgba(238,246,248,0.14)" stroke="rgba(238,246,248,0.35)" stroke-width="0.8"/>
+        <text x="188" y="46" class="lbl" font-family="Space Mono" font-size="7.5" fill="#7c93a0">BDD</text>
+        <rect x="65" y="100" width="55" height="200" rx="8" fill="rgba(77,227,236,0.10)" stroke="#4de3ec" stroke-width="1.1"/>
+        <text x="92" y="96" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="9" fill="#4de3ec">MAC-FeMoS₂</text>
+        <rect x="185" y="100" width="55" height="200" rx="8" fill="rgba(244,180,69,0.10)" stroke="#f4b445" stroke-width="1.1"/>
+        <text x="212" y="96" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="9" fill="#f4b445">NiSe₂</text>
+        <circle cx="130" cy="58" r="10" fill="rgba(121,224,160,0.12)" stroke="#79e0a0" stroke-width="1"/>
+        <circle cx="170" cy="58" r="10" fill="rgba(121,224,160,0.12)" stroke="#79e0a0" stroke-width="1"/>
+        <text x="150" y="40" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="9" fill="#79e0a0">ZIF-8</text>
+        <circle cx="150" cy="330" r="20" fill="rgba(185,140,240,0.12)" stroke="#b98cf0" stroke-width="1.2"/>
+        <text x="150" y="365" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="9" fill="#b98cf0">Cu · Ru</text>
+        <path d="M 20 15 Q 8 15 8 30 L 8 60" stroke="rgba(180,220,230,0.35)" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <text x="0" y="10" font-family="Space Mono" font-size="7" fill="#7c93a0">INTAKE</text>
+        <g id="miniBubbleH"></g>
+        <g id="miniBubbleO"></g>
+        <g id="miniCo2"></g>
+        <path id="miniElecArc" class="elec-arc" d="M 150 350 L 150 372 L 270 372 L 270 340"/>
+        <circle id="miniElecPulse" cx="150" cy="350" r="3" fill="#4de3ec" opacity="0"/>
+      </svg>
+      <div class="design-copy">
+        <p>The formula's own notation dictates the floor plan. The <b>"@"</b> between MAC-FeMoS₂ and NiSe₂ means the hydrogen and oxygen domains are built as a single interfaced heterostructure — in the case, that becomes two electrode blocks facing each other across a shared <b>BDD</b> backbone, which does double duty as the corrosion-proof structural spine and the electron highway connecting them.</p>
+        <p>The <b>"-"</b> chain that follows — <b>BDD-ZIF-8-Cu-Ru</b> — describes a sequence of support, capture, then conversion. That sequence is read top to bottom in the case: <b>ZIF-8</b> nodules sit in the headspace where incoming water and dissolved air first pass through, and the <b>Cu-Ru</b> core sits at the base where whatever CO₂ that ZIF-8 has captured collects and gets converted.</p>
+        <p>Everything is sealed inside a single transparent, corrosion-resistant enclosure with one intake port — the same case shown filling with water in the reactor visualization.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROTOTYPE OPERATION ============ -->
+  <section class="reveal-on-scroll">
+    <div class="section-head">
+      <div class="section-num">08</div>
+      <div class="section-title">Design → <span>Working Prototype</span></div>
+    </div>
+    <div class="flow-steps" id="flowSteps">
+      <div class="flow-step">
+        <div class="fnum">01</div>
+        <div class="ftxt"><b>Water intake</b><span>The sealed case draws from whichever source is available on site — seawater, freshwater, or atmospheric moisture condensed by a coupled harvester — and fills to its operating level around the electrode stack.</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="fnum">02</div>
+        <div class="ftxt"><b>Water splitting</b><span>A renewable DC input drives the reaction: MAC-FeMoS₂ reduces water to hydrogen at the cathode (HER) while NiSe₂ oxidizes water to oxygen at the anode (OER), with BDD carrying current between them without corroding, even in saline electrolyte.</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="fnum">03</div>
+        <div class="ftxt"><b>Parallel carbon capture</b><span>While water splits, ZIF-8 in the headspace adsorbs CO₂ from the intake stream or entrained air and concentrates it toward the base of the case.</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="fnum">04</div>
+        <div class="ftxt"><b>CO₂ conversion</b><span>Captured CO₂ reaches the Cu-Ru core, where copper couples carbon centers together and ruthenium hydrogenates the result into methanol, formate, or light hydrocarbons — a sellable by-product stream, not waste.</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="fnum">05</div>
+        <div class="ftxt"><b>Electricity delivery</b><span>Collected H₂ and O₂ are recombined through a fuel-cell stage to deliver power on demand. A single sealed unit is sized for a residential kW-scale load; racked banks of units scale the same design up to a commercial facility's baseload.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MARKETPLACE ============ -->
+  <section class="reveal-on-scroll">
+    <div class="section-head">
+      <div class="section-num">09</div>
+      <div class="section-title">Marketplace — <span>Dollar Value</span></div>
+    </div>
+    <p class="market-note">Reference prices as of September 2026. Commodity and precious-metal markets move fast — these are order-of-magnitude snapshots, not live quotes. The numbers below tick with small simulated variance purely to visualize how volatile each input is; they are not connected to a real feed.</p>
+
+    <div class="market-group-label">Raw Material Cost — per kg</div>
+    <div class="market-grid" id="materialGrid"></div>
+
+    <div class="market-group-label" style="margin-top:26px;">Output Revenue — per kg / kWh</div>
+    <div class="market-grid" id="revenueGrid"></div>
+
+    <div class="market-disclaimer">Ruthenium dominates raw input cost by orders of magnitude versus every other element in the stack, but it's a catalyst, not a consumable — it isn't used up by the reaction, so that cost is closer to a one-time capital outlay than a running expense. Outputs (H₂, O₂, electricity, methanol, formate) are the recurring revenue side.</div>
+  </section>
+
+  <footer>
+    <div>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru — Frank Levanti</div>
+    <div>ELEMENT-TO-PROTOTYPE STORYLINE · ILLUSTRATIVE</div>
+  </footer>
+
+</div>
+
+<script>
+const ELEMENTS = [[1, "H", "Hydrogen", 1, 1, "nonmetal"], [2, "He", "Helium", 18, 1, "noble"], [3, "Li", "Lithium", 1, 2, "alkali"], [4, "Be", "Beryllium", 2, 2, "alkaline"], [5, "B", "Boron", 13, 2, "metalloid"], [6, "C", "Carbon", 14, 2, "nonmetal"], [7, "N", "Nitrogen", 15, 2, "nonmetal"], [8, "O", "Oxygen", 16, 2, "nonmetal"], [9, "F", "Fluorine", 17, 2, "halogen"], [10, "Ne", "Neon", 18, 2, "noble"], [11, "Na", "Sodium", 1, 3, "alkali"], [12, "Mg", "Magnesium", 2, 3, "alkaline"], [13, "Al", "Aluminium", 13, 3, "posttrans"], [14, "Si", "Silicon", 14, 3, "metalloid"], [15, "P", "Phosphorus", 15, 3, "nonmetal"], [16, "S", "Sulfur", 16, 3, "nonmetal"], [17, "Cl", "Chlorine", 17, 3, "halogen"], [18, "Ar", "Argon", 18, 3, "noble"], [19, "K", "Potassium", 1, 4, "alkali"], [20, "Ca", "Calcium", 2, 4, "alkaline"], [21, "Sc", "Scandium", 3, 4, "transition"], [22, "Ti", "Titanium", 4, 4, "transition"], [23, "V", "Vanadium", 5, 4, "transition"], [24, "Cr", "Chromium", 6, 4, "transition"], [25, "Mn", "Manganese", 7, 4, "transition"], [26, "Fe", "Iron", 8, 4, "transition"], [27, "Co", "Cobalt", 9, 4, "transition"], [28, "Ni", "Nickel", 10, 4, "transition"], [29, "Cu", "Copper", 11, 4, "transition"], [30, "Zn", "Zinc", 12, 4, "transition"], [31, "Ga", "Gallium", 13, 4, "posttrans"], [32, "Ge", "Germanium", 14, 4, "metalloid"], [33, "As", "Arsenic", 15, 4, "metalloid"], [34, "Se", "Selenium", 16, 4, "nonmetal"], [35, "Br", "Bromine", 17, 4, "halogen"], [36, "Kr", "Krypton", 18, 4, "noble"], [37, "Rb", "Rubidium", 1, 5, "alkali"], [38, "Sr", "Strontium", 2, 5, "alkaline"], [39, "Y", "Yttrium", 3, 5, "transition"], [40, "Zr", "Zirconium", 4, 5, "transition"], [41, "Nb", "Niobium", 5, 5, "transition"], [42, "Mo", "Molybdenum", 6, 5, "transition"], [43, "Tc", "Technetium", 7, 5, "transition"], [44, "Ru", "Ruthenium", 8, 5, "transition"], [45, "Rh", "Rhodium", 9, 5, "transition"], [46, "Pd", "Palladium", 10, 5, "transition"], [47, "Ag", "Silver", 11, 5, "transition"], [48, "Cd", "Cadmium", 12, 5, "transition"], [49, "In", "Indium", 13, 5, "posttrans"], [50, "Sn", "Tin", 14, 5, "posttrans"], [51, "Sb", "Antimony", 15, 5, "metalloid"], [52, "Te", "Tellurium", 16, 5, "metalloid"], [53, "I", "Iodine", 17, 5, "halogen"], [54, "Xe", "Xenon", 18, 5, "noble"], [55, "Cs", "Caesium", 1, 6, "alkali"], [56, "Ba", "Barium", 2, 6, "alkaline"], [57, "La", "Lanthanum", 3, 8, "lanthanide"], [58, "Ce", "Cerium", 4, 8, "lanthanide"], [59, "Pr", "Praseodymium", 5, 8, "lanthanide"], [60, "Nd", "Neodymium", 6, 8, "lanthanide"], [61, "Pm", "Promethium", 7, 8, "lanthanide"], [62, "Sm", "Samarium", 8, 8, "lanthanide"], [63, "Eu", "Europium", 9, 8, "lanthanide"], [64, "Gd", "Gadolinium", 10, 8, "lanthanide"], [65, "Tb", "Terbium", 11, 8, "lanthanide"], [66, "Dy", "Dysprosium", 12, 8, "lanthanide"], [67, "Ho", "Holmium", 13, 8, "lanthanide"], [68, "Er", "Erbium", 14, 8, "lanthanide"], [69, "Tm", "Thulium", 15, 8, "lanthanide"], [70, "Yb", "Ytterbium", 16, 8, "lanthanide"], [71, "Lu", "Lutetium", 17, 8, "lanthanide"], [72, "Hf", "Hafnium", 4, 6, "transition"], [73, "Ta", "Tantalum", 5, 6, "transition"], [74, "W", "Tungsten", 6, 6, "transition"], [75, "Re", "Rhenium", 7, 6, "transition"], [76, "Os", "Osmium", 8, 6, "transition"], [77, "Ir", "Iridium", 9, 6, "transition"], [78, "Pt", "Platinum", 10, 6, "transition"], [79, "Au", "Gold", 11, 6, "transition"], [80, "Hg", "Mercury", 12, 6, "transition"], [81, "Tl", "Thallium", 13, 6, "posttrans"], [82, "Pb", "Lead", 14, 6, "posttrans"], [83, "Bi", "Bismuth", 15, 6, "posttrans"], [84, "Po", "Polonium", 16, 6, "metalloid"], [85, "At", "Astatine", 17, 6, "halogen"], [86, "Rn", "Radon", 18, 6, "noble"], [87, "Fr", "Francium", 1, 7, "alkali"], [88, "Ra", "Radium", 2, 7, "alkaline"], [89, "Ac", "Actinium", 3, 9, "actinide"], [90, "Th", "Thorium", 4, 9, "actinide"], [91, "Pa", "Protactinium", 5, 9, "actinide"], [92, "U", "Uranium", 6, 9, "actinide"], [93, "Np", "Neptunium", 7, 9, "actinide"], [94, "Pu", "Plutonium", 8, 9, "actinide"], [95, "Am", "Americium", 9, 9, "actinide"], [96, "Cm", "Curium", 10, 9, "actinide"], [97, "Bk", "Berkelium", 11, 9, "actinide"], [98, "Cf", "Californium", 12, 9, "actinide"], [99, "Es", "Einsteinium", 13, 9, "actinide"], [100, "Fm", "Fermium", 14, 9, "actinide"], [101, "Md", "Mendelevium", 15, 9, "actinide"], [102, "No", "Nobelium", 16, 9, "actinide"], [103, "Lr", "Lawrencium", 17, 9, "actinide"], [104, "Rf", "Rutherfordium", 4, 7, "transition"], [105, "Db", "Dubnium", 5, 7, "transition"], [106, "Sg", "Seaborgium", 6, 7, "transition"], [107, "Bh", "Bohrium", 7, 7, "transition"], [108, "Hs", "Hassium", 8, 7, "transition"], [109, "Mt", "Meitnerium", 9, 7, "transition"], [110, "Ds", "Darmstadtium", 10, 7, "transition"], [111, "Rg", "Roentgenium", 11, 7, "transition"], [112, "Cn", "Copernicium", 12, 7, "transition"], [113, "Nh", "Nihonium", 13, 7, "posttrans"], [114, "Fl", "Flerovium", 14, 7, "posttrans"], [115, "Mc", "Moscovium", 15, 7, "posttrans"], [116, "Lv", "Livermorium", 16, 7, "posttrans"], [117, "Ts", "Tennessine", 17, 7, "halogen"], [118, "Og", "Oganesson", 18, 7, "noble"]];
+
+const ROLE_COLOR = { her:"#4de3ec", oer:"#f4b445", sub:"#eef6f8", cap:"#79e0a0", conv:"#b98cf0" };
+
+const STEPS = [
+  {
+    tag:"00 / ORIGIN", role:null, highlight:["Fe","Mo","S","C","Ni","Se","B","Zn","N","H","Cu","Ru"],
+    title:"The Periodic Table as a Parts Bin",
+    eq:"13 elements · 6 functional domains · 1 sealed cell",
+    body:"Every functional piece of this reactor starts as a raw entry on the periodic table. Thirteen elements — spanning the transition-metal block, two metalloids, and a few light nonmetals — are drawn out individually, then doped, paired, or framework-bound into six materials, which are then stacked into one sealed case. None of the chemistry is exotic in isolation; the design is in which elements sit next to which, and in what geometry.",
+    elems:[]
+  },
+  {
+    tag:"01 / CATHODE", role:"her", highlight:["Fe","Mo","S","C"],
+    title:"Fe + Mo + S + C → MAC-FeMoS₂",
+    eq:"Fe (dopant) + MoS₂ (host lattice) + C (shell) → MAC-FeMoS₂",
+    body:"<strong>Molybdenum</strong> and <strong>sulfur</strong> form MoS₂, a layered semiconductor whose exposed sulfur edges are already known hydrogen-evolution sites. Doping <strong>iron</strong> into that lattice shifts the electronic structure at neighboring Mo centers, lowering the energy needed to bind and release a hydrogen atom. A shell of amorphous <strong>carbon</strong> — the 'MAC' in the name — wraps the doped particles to protect active sites from fouling and improve electrical contact. Result: the cathode material driving hydrogen evolution (HER).",
+    elems:[["Fe",26,"her","Dopant — tunes Mo active-site electronics"],["Mo",42,"her","Host lattice — forms the MoS₂ sheet"],["S",16,"her","Chalcogenide — the HER-active edge site"],["C",6,"her","Amorphous shell — protects & conducts"]]
+  },
+  {
+    tag:"02 / ANODE", role:"oer", highlight:["Ni","Se"],
+    title:"Ni + Se → NiSe₂",
+    eq:"Ni + Se₂ → NiSe₂",
+    body:"<strong>Nickel</strong> provides the metal center where two oxygen atoms are stitched together into O₂ during the oxygen evolution reaction (OER). Pairing it with <strong>selenium</strong> instead of oxygen gives the compound better conductivity than a nickel oxide would, and more resistance to over-oxidation at the anodic potentials this reaction demands — including in chloride-rich seawater.",
+    elems:[["Ni",28,"oer","Active site — forms the O–O bond"],["Se",34,"oer","Chalcogenide anode host, conductive & stable"]]
+  },
+  {
+    tag:"03 / SUBSTRATE", role:"sub", highlight:["B","C"],
+    title:"B + C → Boron-Doped Diamond",
+    eq:"B (dopant) + C (diamond lattice) → BDD",
+    body:"Pure diamond is <strong>carbon</strong> in its most electrically insulating form. Substituting a small fraction of <strong>boron</strong> into that lattice turns it into a conductive, p-type material — without giving up diamond's defining trait: the widest electrochemical stability window of any known electrode surface, and near-total resistance to corrosion. That makes BDD the backbone that physically and electrically connects the cathode and anode, and it's the reason this cell can run in seawater without chlorine forming at the anode.",
+    elems:[["B",5,"sub","Dopant — makes diamond conductive"],["C",6,"sub","Diamond lattice — corrosion-proof backbone"]]
+  },
+  {
+    tag:"04 / SORBENT", role:"cap", highlight:["Zn","N","C","H"],
+    title:"Zn + N + C + H → ZIF-8",
+    eq:"Zn²⁺ + 2-methylimidazole (C₄H₅N₂) → ZIF-8",
+    body:"ZIF-8 is a zeolitic imidazolate framework: <strong>zinc</strong> ions sit at each vertex of a porous cage, held together by 2-methylimidazole linkers built from <strong>carbon</strong>, <strong>hydrogen</strong>, and <strong>nitrogen</strong>. The nitrogen atoms are what actually coordinate to zinc; the resulting cage has pores sized to selectively adsorb CO₂ out of a mixed gas or water stream and concentrate it at the site where conversion happens next.",
+    elems:[["Zn",30,"cap","Framework node — cage vertex"],["N",7,"cap","Linker donor atom — binds to Zn"],["C",6,"cap","Linker backbone"],["H",1,"cap","Linker backbone"]]
+  },
+  {
+    tag:"05 / CONVERSION I", role:"conv", highlight:["Cu"],
+    title:"Cu — The C–C Coupler",
+    eq:"n CO₂ + Cu → *CO(ads) chains",
+    body:"Most CO₂-reduction catalysts stall at carbon monoxide. <strong>Copper</strong> is one of the few metals that can hold multiple adsorbed *CO intermediates close enough together to couple them into carbon–carbon bonds — the step that opens the door to multi-carbon products instead of single-carbon dead ends.",
+    elems:[["Cu",29,"conv","Initiates reduction, couples C–C bonds"]]
+  },
+  {
+    tag:"06 / CONVERSION II", role:"conv", highlight:["Ru"],
+    title:"Ru — The Hydrogenation Finisher",
+    eq:"Cu-coupled intermediates + Ru + H → CH₃OH, HCOOH, CₙHₘ",
+    body:"Once copper has coupled the carbon centers, <strong>ruthenium</strong> finishes the job — hydrogenating those intermediates into stable, storable molecules: methanol, formate, and light hydrocarbons. This is the step that turns captured CO₂ into a sellable co-product instead of a stored liability.",
+    elems:[["Ru",44,"conv","Hydrogenation — finishes the product"]]
+  },
+  {
+    tag:"07 / ASSEMBLY", role:null, highlight:["Fe","Mo","S","C","Ni","Se","B","Zn","N","H","Cu","Ru"],
+    title:"Six Materials, One Formula",
+    eq:"MAC-FeMoS₂ @ NiSe₂ - BDD - ZIF-8 - Cu - Ru",
+    body:"The notation encodes the architecture. <strong>'@'</strong> marks a direct interface — MAC-FeMoS₂ and NiSe₂ are built as a single heterostructure, hydrogen and oxygen domains facing each other. The <strong>'-'</strong> chain that follows reads as a sequence: BDD carries current to and from that interface, ZIF-8 captures CO₂ nearby, and Cu-Ru converts what ZIF-8 hands it. Thirteen elements, six roles, one composite.",
+    elems:[]
+  },
+  {
+    tag:"08 / DEVICE", role:null, highlight:[],
+    title:"Formula Becomes Floor Plan",
+    eq:"Composite formula → transparent sealed case",
+    body:"Scroll down — the design and operation sections below translate this exact atomic build order into the physical layout of the sealed case: electrode placement, water intake, CO₂ capture zone, and the conversion core at the base.",
+    elems:[]
+  }
+];
+
+let idx = 0;
+let autoTimer = null;
+let playing = false;
+
+function buildGrid(){
+  const grid = document.getElementById('ptGrid');
+  grid.innerHTML = '';
+  ELEMENTS.forEach(([z,sym,name,group,period,cat], i)=>{
+    const t = document.createElement('div');
+    t.className = 'tile';
+    t.dataset.sym = sym;
+    t.style.gridColumn = group;
+    t.style.gridRow = period;
+    t.style.animationDelay = (i*6) + 'ms';
+    t.title = `${name} (Z=${z})`;
+    t.innerHTML = `<span class="z">${z}</span>${sym}`;
+    grid.appendChild(t);
+  });
+}
+
+function buildDots(){
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  STEPS.forEach((s,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===idx?' active':'');
+    if(s.role) d.style.setProperty('--role', ROLE_COLOR[s.role]);
+    d.addEventListener('click', ()=>{ stopAutoplay(); idx=i; render(); });
+    dotsEl.appendChild(d);
+  });
+}
+
+function render(){
+  const inner = document.getElementById('stepInner');
+  inner.classList.add('leaving');
+  setTimeout(()=>{ renderContent(); inner.classList.remove('leaving'); }, 220);
+}
+
+function renderContent(){
+  const s = STEPS[idx];
+  const roleColor = s.role ? ROLE_COLOR[s.role] : '#4de3ec';
+
+  document.getElementById('stepTag').textContent = s.tag;
+  document.getElementById('stepTag').style.setProperty('--role', roleColor);
+  document.getElementById('stepTitle').textContent = s.title;
+  document.getElementById('stepEq').textContent = s.eq;
+  document.getElementById('stepEq').style.setProperty('--role', roleColor);
+  document.getElementById('stepBody').innerHTML = s.body;
+
+  const elemsEl = document.getElementById('stepElems');
+  elemsEl.innerHTML = '';
+  s.elems.forEach(([sym,z,role,desc])=>{
+    const chip = document.createElement('div');
+    chip.className = 'echip';
+    chip.title = desc;
+    chip.style.setProperty('--role', ROLE_COLOR[role]);
+    chip.innerHTML = `<span class="sym">${sym}</span><span class="en">Z=${z} — ${desc}</span>`;
+    elemsEl.appendChild(chip);
+  });
+
+  // update periodic table highlighting
+  document.querySelectorAll('#ptGrid .tile').forEach(t=>{
+    t.classList.remove('lit','dim-lit');
+    t.style.removeProperty('--tc');
+    if(s.highlight.includes(t.dataset.sym)){
+      t.classList.add('lit');
+      const per = STEPS[idx];
+      let c = roleColor;
+      if(idx===0 || idx===7){
+        // multi-role step: color by which functional group the element belongs to
+        const map = {Fe:'her',Mo:'her',S:'her',C:'sub',Ni:'oer',Se:'oer',B:'sub',Zn:'cap',N:'cap',H:'cap',Cu:'conv',Ru:'conv'};
+        c = ROLE_COLOR[map[t.dataset.sym]] || roleColor;
+      }
+      t.style.setProperty('--tc', c);
+    } else if(idx===0 || idx===7){
+      t.classList.add('dim-lit');
+    }
+  });
+
+  document.getElementById('prevBtn').disabled = idx===0;
+  document.getElementById('nextBtn').disabled = idx===STEPS.length-1;
+  document.getElementById('stepPanel').style.setProperty('--role', roleColor);
+  buildDots();
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=>{ stopAutoplay(); if(idx>0){idx--; render();} });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ stopAutoplay(); if(idx<STEPS.length-1){idx++; render();} });
+
+/* ---------------- autoplay ---------------- */
+const playBtn = document.getElementById('playBtn');
+const progressFill = document.getElementById('progressFill');
+const STEP_DURATION = 4200;
+
+function startProgress(){
+  progressFill.classList.remove('animating');
+  progressFill.style.width = '0%';
+  void progressFill.offsetWidth;
+  progressFill.classList.add('animating');
+  progressFill.style.width = '100%';
+}
+function stopProgress(){
+  progressFill.classList.remove('animating');
+  progressFill.style.width = '0%';
+}
+function startAutoplay(){
+  playing = true;
+  playBtn.textContent = '❚❚';
+  startProgress();
+  autoTimer = setInterval(()=>{
+    idx = (idx+1) % STEPS.length;
+    render();
+    startProgress();
+  }, STEP_DURATION);
+}
+function stopAutoplay(){
+  playing = false;
+  playBtn.textContent = '▶';
+  stopProgress();
+  if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+}
+playBtn.addEventListener('click', ()=>{ playing ? stopAutoplay() : startAutoplay(); });
+
+/* ---------------- scroll reveals ---------------- */
+const revealObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('shown');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.reveal-on-scroll').forEach(el=>revealObserver.observe(el));
+
+/* stagger the flow-steps as their parent section reveals */
+document.querySelectorAll('.flow-step').forEach((el,i)=>{
+  el.style.transitionDelay = (i*90)+'ms';
+});
+const flowObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      document.querySelectorAll('.flow-step').forEach(el=>el.classList.add('shown'));
+      flowObserver.disconnect();
+    }
+  });
+}, { threshold: 0.15 });
+const flowSteps = document.getElementById('flowSteps');
+if(flowSteps) flowObserver.observe(flowSteps);
+
+/* stagger-reveal the formula segments once the strip scrolls into view */
+document.querySelectorAll('#formulaBig span').forEach((el,i)=>{
+  el.style.transitionDelay = (i*110)+'ms';
+});
+const formulaObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      document.querySelectorAll('#formulaBig span').forEach(el=>el.classList.add('shown'));
+      document.getElementById('formulaStrip').classList.add('pulse');
+      formulaObserver.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+const formulaStrip = document.getElementById('formulaStrip');
+if(formulaStrip) formulaObserver.observe(formulaStrip);
+
+/* ---------------- background particle field ---------------- */
+const fieldCanvas = document.getElementById('field');
+const fctx = fieldCanvas.getContext('2d');
+function resizeField(){ fieldCanvas.width = innerWidth; fieldCanvas.height = innerHeight; }
+resizeField(); addEventListener('resize', resizeField);
+const fieldParticles = Array.from({length:55}, ()=>({
+  x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+  r:Math.random()*1.3+0.3, s:Math.random()*0.22+0.05,
+  c: Math.random()<0.5 ? '77,227,236' : '244,180,69'
+}));
+function drawField(){
+  fctx.clearRect(0,0,fieldCanvas.width,fieldCanvas.height);
+  fieldParticles.forEach(p=>{
+    p.y -= p.s;
+    if(p.y < -5) p.y = innerHeight+5;
+    fctx.beginPath();
+    fctx.fillStyle = `rgba(${p.c},0.32)`;
+    fctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    fctx.fill();
+  });
+  requestAnimationFrame(drawField);
+}
+drawField();
+
+/* ---------------- mini rig continuous animation ---------------- */
+const nsSVG = 'http://www.w3.org/2000/svg';
+const miniBubbleH = document.getElementById('miniBubbleH');
+const miniBubbleO = document.getElementById('miniBubbleO');
+const miniCo2 = document.getElementById('miniCo2');
+
+function spawnMiniBubble(layer, xBase, color){
+  const el = document.createElementNS(nsSVG,'circle');
+  const x = xBase + (Math.random()*10-5);
+  const startY = 295;
+  el.setAttribute('cx', x); el.setAttribute('cy', startY);
+  el.setAttribute('r', 1 + Math.random()*1.4);
+  el.setAttribute('fill', color);
+  layer.appendChild(el);
+  const t0 = performance.now(); const dur = 1500 + Math.random()*700;
+  function step(t){
+    const dt = (t-t0)/dur;
+    if(dt>=1){ el.remove(); return; }
+    const y = startY - dt*195;
+    const op = dt<0.15? dt/0.15 : (dt>0.8? (1-dt)/0.2 : 1);
+    el.setAttribute('cy', y);
+    el.setAttribute('opacity', Math.max(0,op*0.85));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function spawnMiniCo2(){
+  const el = document.createElementNS(nsSVG,'circle');
+  const side = Math.random()<0.5 ? 130 : 170;
+  el.setAttribute('cx', side); el.setAttribute('cy', 62);
+  el.setAttribute('r', 1.6); el.setAttribute('fill', '#79e0a0');
+  miniCo2.appendChild(el);
+  const t0 = performance.now(); const dur = 1600;
+  function step(t){
+    const dt = (t-t0)/dur;
+    if(dt>=1){ el.remove(); return; }
+    el.setAttribute('cx', side + (150-side)*dt);
+    el.setAttribute('cy', 62 + (325-62)*dt);
+    el.setAttribute('opacity', dt<0.1? dt/0.1 : (dt>0.85? (1-dt)/0.15 : 0.85));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+let lastMH=0,lastMO=0,lastMC=0;
+function miniLoop(t){
+  if(t-lastMH>420){ spawnMiniBubble(miniBubbleH,92,'#4de3ec'); lastMH=t; }
+  if(t-lastMO>520){ spawnMiniBubble(miniBubbleO,212,'#f4b445'); lastMO=t; }
+  if(t-lastMC>1500){ spawnMiniCo2(); lastMC=t; }
+  requestAnimationFrame(miniLoop);
+}
+requestAnimationFrame(miniLoop);
+
+/* rise the mini reactor's water level once, on load */
+setTimeout(()=>{
+  const mw = document.getElementById('miniWater');
+  mw.setAttribute('y','100'); mw.setAttribute('height','250');
+}, 400);
+
+/* electricity pulse along the mini reactor's output arc */
+const miniElecPulse = document.getElementById('miniElecPulse');
+const miniElecPath = document.getElementById('miniElecArc');
+const miniPathLen = miniElecPath.getTotalLength();
+function miniPulseStep(t){
+  const dt = (t/1300) % 1;
+  const pt = miniElecPath.getPointAtLength(dt*miniPathLen);
+  miniElecPulse.setAttribute('cx', pt.x);
+  miniElecPulse.setAttribute('cy', pt.y);
+  miniElecPulse.setAttribute('opacity', 0.9);
+  requestAnimationFrame(miniPulseStep);
+}
+requestAnimationFrame(miniPulseStep);
+
+/* ---------------- marketplace ---------------- */
+const MATERIALS = [
+  ["Fe","Iron",0.15,"$/kg","#eef6f8"],
+  ["S","Sulfur",0.10,"$/kg","#eef6f8"],
+  ["C","Carbon (graphite)",1.20,"$/kg","#eef6f8"],
+  ["B","Boron (compound)",3.00,"$/kg","#eef6f8"],
+  ["N","Nitrogen (industrial gas)",0.10,"$/kg","#eef6f8"],
+  ["H","Hydrogen (industrial gas)",1.50,"$/kg","#eef6f8"],
+  ["Zn","Zinc",3.10,"$/kg","#79e0a0"],
+  ["Ni","Nickel",17.20,"$/kg","#f4b445"],
+  ["Cu","Copper",11.00,"$/kg","#b98cf0"],
+  ["Se","Selenium",20.00,"$/kg","#f4b445"],
+  ["Mo","Molybdenum",75.00,"$/kg","#4de3ec"],
+  ["Ru","Ruthenium",60000.00,"$/kg","#b98cf0"]
+];
+const REVENUE = [
+  ["H₂","Green hydrogen",6.00,"$/kg","#4de3ec"],
+  ["O₂","Industrial oxygen",0.15,"$/kg","#f4b445"],
+  ["kWh","Delivered electricity",0.15,"$/kWh","#4de3ec"],
+  ["CH₃OH","Methanol",0.45,"$/kg","#b98cf0"],
+  ["HCOOH","Formate / formic acid",0.80,"$/kg","#b98cf0"]
+];
+
+function buildMarketGrid(containerId, data){
+  const grid = document.getElementById(containerId);
+  data.forEach(([sym,name,base,unit,color])=>{
+    const card = document.createElement('div');
+    card.className = 'market-card';
+    card.style.setProperty('--mc', color);
+    card.dataset.base = base;
+    card.dataset.current = base;
+    card.innerHTML = `
+      <div class="mtop">
+        <div class="msym">${sym.length>3?sym.slice(0,3):sym}</div>
+        <div class="mname">${name}</div>
+      </div>
+      <div class="mprice"><span class="mval">$${formatPrice(base)}</span><span class="munit">${unit}</span></div>
+      <div class="mdelta flat">— steady</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function formatPrice(v){
+  if(v >= 1000) return v.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(v >= 10) return v.toFixed(2);
+  return v.toFixed(2);
+}
+
+function tickMarket(containerId){
+  const grid = document.getElementById(containerId);
+  grid.querySelectorAll('.market-card').forEach(card=>{
+    const base = parseFloat(card.dataset.base);
+    let cur = parseFloat(card.dataset.current);
+    const drift = (Math.random()-0.5) * base * 0.012;
+    cur = cur + drift;
+    // pull back toward base so it doesn't wander off illustratively
+    cur = cur + (base - cur) * 0.15;
+    card.dataset.current = cur;
+    const pctFromBase = ((cur - base)/base) * 100;
+    card.querySelector('.mval').textContent = '$' + formatPrice(cur);
+    const deltaEl = card.querySelector('.mdelta');
+    if(Math.abs(pctFromBase) < 0.05){
+      deltaEl.textContent = '— steady';
+      deltaEl.className = 'mdelta flat';
+    } else if(pctFromBase > 0){
+      deltaEl.textContent = '▲ ' + pctFromBase.toFixed(2) + '%';
+      deltaEl.className = 'mdelta up';
+    } else {
+      deltaEl.textContent = '▼ ' + Math.abs(pctFromBase).toFixed(2) + '%';
+      deltaEl.className = 'mdelta down';
+    }
+  });
+}
+
+buildMarketGrid('materialGrid', MATERIALS);
+buildMarketGrid('revenueGrid', REVENUE);
+setInterval(()=>{ tickMarket('materialGrid'); tickMarket('revenueGrid'); }, 2200);
+
+/* ---------------- init ---------------- */
+buildGrid();
+renderContent();
+startAutoplay();
+</script>
+</body>
+</html>

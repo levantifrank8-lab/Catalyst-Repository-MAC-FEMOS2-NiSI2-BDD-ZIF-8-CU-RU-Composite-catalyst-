@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC-FeMoS₂ Catalyst · Frank Levanti</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Exo+2:wght@200;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #020408;
+    --deep: #040d18;
+    --panel: #071425;
+    --card: #0a1e35;
+    --border: #0e2d4a;
+    --cyan: #00d4ff;
+    --cyan-dim: #0090b0;
+    --green: #00ff88;
+    --green-dim: #00a055;
+    --orange: #ff6e2d;
+    --gold: #ffd166;
+    --purple: #b86fff;
+    --red: #ff4466;
+    --text: #c8e0f0;
+    --muted: #4a7a9b;
+    --bright: #eaf6ff;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--void);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── STAR FIELD ── */
+  #stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .star {
+    position:absolute; border-radius:50%; background:#fff;
+    animation: twinkle var(--d,3s) ease-in-out infinite;
+    animation-delay: var(--dl,0s);
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:var(--lo,.1)} 50%{opacity:var(--hi,.8)}
+  }
+
+  /* ── SCAN LINE ── */
+  body::after {
+    content:''; position:fixed; inset:0; z-index:999; pointer-events:none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,.015) 2px, rgba(0,212,255,.015) 4px);
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(2,4,8,.9);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 2rem; height: 56px;
+  }
+  .nav-logo {
+    font-family:'Orbitron',monospace; font-size:.75rem; letter-spacing:.2em;
+    color:var(--cyan); text-transform:uppercase;
+  }
+  .nav-logo span { color:var(--green); }
+  .nav-links { display:flex; gap:2rem; }
+  .nav-links a {
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    color:var(--muted); text-decoration:none; letter-spacing:.15em;
+    text-transform:uppercase; transition:color .2s;
+    cursor:pointer;
+  }
+  .nav-links a:hover, .nav-links a.active { color:var(--cyan); }
+  .nav-status {
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    color:var(--green); letter-spacing:.1em;
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .pulse-dot {
+    width:6px; height:6px; border-radius:50%; background:var(--green);
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%,100%{box-shadow:0 0 4px var(--green)} 50%{box-shadow:0 0 12px var(--green), 0 0 24px var(--green)}
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position:relative; z-index:1; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 80px 2rem 4rem;
+    overflow:hidden;
+  }
+  .hero-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: grid-shift 20s linear infinite;
+  }
+  @keyframes grid-shift {
+    from{background-position:0 0} to{background-position:60px 60px}
+  }
+  .hero-glow {
+    position:absolute; width:600px; height:600px; border-radius:50%;
+    background: radial-gradient(circle, rgba(0,212,255,.08) 0%, transparent 70%);
+    animation: glow-drift 8s ease-in-out infinite alternate;
+  }
+  @keyframes glow-drift {
+    from{transform:translate(-100px,-50px)} to{transform:translate(100px,50px)}
+  }
+
+  .hero-eyebrow {
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    letter-spacing:.3em; color:var(--cyan); text-transform:uppercase;
+    margin-bottom:1.5rem;
+    animation: fade-up .8s .2s both;
+  }
+  .hero-title {
+    font-family:'Orbitron',monospace; font-weight:900;
+    font-size:clamp(1.8rem,5vw,4.5rem);
+    line-height:1.1; color:var(--bright);
+    text-shadow: 0 0 40px rgba(0,212,255,.4);
+    margin-bottom:.75rem;
+    animation: fade-up .8s .4s both;
+  }
+  .hero-title .accent { color:var(--cyan); }
+  .hero-formula {
+    font-family:'Space Mono',monospace; font-size:clamp(.75rem,1.5vw,1rem);
+    color:var(--gold); letter-spacing:.05em; margin-bottom:2rem;
+    animation: fade-up .8s .6s both;
+  }
+  .hero-sub {
+    max-width:680px; font-size:clamp(.85rem,1.5vw,1rem);
+    color:var(--muted); line-height:1.7; margin-bottom:3rem;
+    animation: fade-up .8s .8s both;
+  }
+  .hero-ctas {
+    display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;
+    animation: fade-up .8s 1s both;
+  }
+  .btn {
+    font-family:'Space Mono',monospace; font-size:.7rem;
+    letter-spacing:.15em; text-transform:uppercase;
+    padding: .75rem 2rem; border:none; cursor:pointer;
+    transition: all .2s; text-decoration:none;
+  }
+  .btn-primary {
+    background:var(--cyan); color:var(--void);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .btn-primary:hover { background:var(--bright); box-shadow:0 0 30px var(--cyan); }
+  .btn-outline {
+    background:transparent; color:var(--cyan);
+    border:1px solid var(--cyan);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .btn-outline:hover { background:rgba(0,212,255,.1); box-shadow:0 0 20px rgba(0,212,255,.3); }
+
+  .hero-metrics {
+    display:flex; gap:3rem; margin-top:4rem; flex-wrap:wrap; justify-content:center;
+    animation: fade-up .8s 1.2s both;
+  }
+  .metric { text-align:center; }
+  .metric-val {
+    font-family:'Orbitron',monospace; font-size:2rem; font-weight:700;
+    color:var(--green); line-height:1;
+  }
+  .metric-label {
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-top:.25rem;
+  }
+
+  @keyframes fade-up {
+    from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)}
+  }
+
+  /* ── SECTION SHARED ── */
+  section { position:relative; z-index:1; padding: 5rem 2rem; }
+  .section-header {
+    text-align:center; margin-bottom:3.5rem;
+  }
+  .section-tag {
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    letter-spacing:.25em; color:var(--cyan); text-transform:uppercase;
+    margin-bottom:.75rem; display:block;
+  }
+  .section-title {
+    font-family:'Orbitron',monospace; font-size:clamp(1.4rem,3vw,2.5rem);
+    font-weight:700; color:var(--bright);
+  }
+
+  /* ── COMPONENTS GRID ── */
+  #components { background: linear-gradient(180deg, var(--void) 0%, var(--deep) 100%); }
+  .components-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap:1.5px; max-width:1200px; margin:0 auto;
+    background:var(--border);
+  }
+  .comp-card {
+    background:var(--card); padding:2rem;
+    cursor:pointer; transition:all .3s;
+    position:relative; overflow:hidden;
+  }
+  .comp-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:var(--c, var(--cyan));
+    transform:scaleX(0); transform-origin:left;
+    transition:transform .3s;
+  }
+  .comp-card:hover::before { transform:scaleX(1); }
+  .comp-card:hover {
+    background:var(--panel);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.5);
+  }
+  .comp-card.active {
+    background:var(--panel);
+    box-shadow: 0 0 0 1px var(--c, var(--cyan)), inset 0 0 30px rgba(0,212,255,.05);
+  }
+  .comp-card.active::before { transform:scaleX(1); }
+  .comp-symbol {
+    font-family:'Orbitron',monospace; font-size:2.5rem; font-weight:900;
+    color:var(--c, var(--cyan)); line-height:1; margin-bottom:.75rem;
+    text-shadow: 0 0 20px var(--c, var(--cyan));
+  }
+  .comp-name {
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    color:var(--muted); letter-spacing:.15em; text-transform:uppercase;
+    margin-bottom:.5rem;
+  }
+  .comp-title {
+    font-size:1.1rem; font-weight:600; color:var(--bright); margin-bottom:.75rem;
+  }
+  .comp-desc { font-size:.85rem; color:var(--text); line-height:1.65; }
+  .comp-badge {
+    display:inline-block; margin-top:1rem;
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    padding:.25rem .75rem; letter-spacing:.1em;
+    background:rgba(0,0,0,.4); border:1px solid;
+    border-color:var(--c, var(--cyan)); color:var(--c, var(--cyan));
+    text-transform:uppercase;
+  }
+
+  /* ── DETAIL PANEL ── */
+  #detail-panel {
+    max-width:1200px; margin:0 auto 2rem;
+    background:var(--panel); border:1px solid var(--border);
+    padding:2.5rem; display:none; position:relative;
+  }
+  #detail-panel.visible { display:block; animation: slide-in .3s ease; }
+  @keyframes slide-in {
+    from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)}
+  }
+  .detail-close {
+    position:absolute; top:1rem; right:1rem;
+    font-family:'Space Mono',monospace; font-size:.7rem;
+    color:var(--muted); cursor:pointer; padding:.25rem .75rem;
+    border:1px solid var(--border); background:transparent;
+    transition:all .2s;
+  }
+  .detail-close:hover { color:var(--red); border-color:var(--red); }
+  .detail-grid { display:grid; grid-template-columns:1fr 2fr; gap:2rem; }
+  @media(max-width:700px){.detail-grid{grid-template-columns:1fr}}
+  .detail-stats { display:flex; flex-direction:column; gap:1rem; }
+  .stat-row { display:flex; justify-content:space-between; align-items:center;
+    padding:.75rem; background:rgba(0,0,0,.3); border-left:3px solid var(--cyan); }
+  .stat-label { font-family:'Space Mono',monospace; font-size:.65rem; color:var(--muted); text-transform:uppercase; }
+  .stat-val { font-family:'Orbitron',monospace; font-size:.9rem; color:var(--cyan); }
+  .detail-body h3 { font-family:'Orbitron',monospace; font-size:1.2rem; color:var(--bright); margin-bottom:1rem; }
+  .detail-body p { font-size:.9rem; line-height:1.75; color:var(--text); margin-bottom:1rem; }
+  .detail-body ul { list-style:none; display:flex; flex-direction:column; gap:.5rem; }
+  .detail-body li { font-size:.85rem; color:var(--text); padding-left:1rem; position:relative; }
+  .detail-body li::before { content:'▶'; position:absolute; left:0; color:var(--cyan); font-size:.6rem; top:.2rem; }
+
+  /* ── PERFORMANCE ── */
+  #performance { background:var(--deep); }
+  .perf-container { max-width:1100px; margin:0 auto; }
+  .perf-tabs {
+    display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:2.5rem;
+    overflow-x:auto;
+  }
+  .perf-tab {
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    letter-spacing:.1em; text-transform:uppercase;
+    padding:.75rem 1.5rem; cursor:pointer; color:var(--muted);
+    border-bottom:2px solid transparent; transition:all .2s;
+    white-space:nowrap; background:transparent; border-top:none; border-left:none; border-right:none;
+  }
+  .perf-tab:hover { color:var(--text); }
+  .perf-tab.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+
+  .perf-content { display:none; animation: fade-up .4s both; }
+  .perf-content.active { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+  @media(max-width:768px){.perf-content.active{grid-template-columns:1fr}}
+
+  .chart-card {
+    background:var(--card); border:1px solid var(--border); padding:1.5rem;
+  }
+  .chart-title {
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    color:var(--muted); text-transform:uppercase; letter-spacing:.1em;
+    margin-bottom:1.25rem;
+  }
+  .bar-chart { display:flex; flex-direction:column; gap:.75rem; }
+  .bar-row { display:flex; align-items:center; gap:.75rem; }
+  .bar-label { font-size:.75rem; color:var(--text); width:130px; flex-shrink:0; text-align:right; }
+  .bar-track {
+    flex:1; height:22px; background:rgba(0,0,0,.4);
+    position:relative; overflow:hidden;
+  }
+  .bar-fill {
+    height:100%; transition:width 1s cubic-bezier(.4,0,.2,1);
+    display:flex; align-items:center; justify-content:flex-end; padding-right:.5rem;
+    position:relative;
+  }
+  .bar-fill::after {
+    content:''; position:absolute; right:0; top:0; bottom:0; width:2px;
+    background:rgba(255,255,255,.6);
+  }
+  .bar-val {
+    font-family:'Space Mono',monospace; font-size:.6rem; color:var(--void);
+    font-weight:700; position:relative; z-index:1;
+  }
+
+  .radial-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:1rem;
+  }
+  .radial-item { text-align:center; }
+  .radial-ring {
+    width:90px; height:90px; margin:0 auto .5rem;
+    position:relative;
+  }
+  .radial-ring svg { transform:rotate(-90deg); }
+  .radial-ring .ring-track { fill:none; stroke:rgba(255,255,255,.05); stroke-width:8; }
+  .radial-ring .ring-fill {
+    fill:none; stroke-width:8; stroke-linecap:round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
+  }
+  .radial-center {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',monospace; font-size:.85rem; font-weight:700;
+  }
+  .radial-name { font-size:.7rem; color:var(--muted); }
+
+  /* ── ENVIRONMENTS ── */
+  #environments { background:var(--void); }
+  .env-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1.5px;
+    max-width:1100px; margin:0 auto;
+    background:var(--border);
+  }
+  @media(max-width:700px){.env-grid{grid-template-columns:1fr}}
+  .env-card {
+    background:var(--card); padding:2.5rem 2rem;
+    text-align:center; position:relative; overflow:hidden;
+    transition:transform .3s;
+  }
+  .env-card:hover { transform:translateY(-4px); }
+  .env-icon { font-size:3rem; margin-bottom:1.25rem; display:block; }
+  .env-name {
+    font-family:'Orbitron',monospace; font-size:1rem; font-weight:700;
+    color:var(--bright); margin-bottom:.5rem;
+  }
+  .env-sub {
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    color:var(--muted); text-transform:uppercase; letter-spacing:.1em;
+    margin-bottom:1rem;
+  }
+  .env-desc { font-size:.85rem; color:var(--text); line-height:1.65; }
+  .env-glow {
+    position:absolute; bottom:-40px; left:50%; transform:translateX(-50%);
+    width:120px; height:120px; border-radius:50%;
+    background:radial-gradient(circle, var(--cg,rgba(0,212,255,.15)) 0%, transparent 70%);
+    filter:blur(20px); pointer-events:none;
+  }
+
+  /* ── CARBON LOOP ── */
+  #carbon { background: linear-gradient(180deg, var(--void) 0%, #020b14 100%); }
+  .carbon-flow {
+    max-width:900px; margin:0 auto;
+    display:flex; flex-direction:column; gap:0;
+  }
+  .flow-step {
+    display:grid; grid-template-columns:80px 1fr;
+    gap:1.5rem; align-items:start;
+    position:relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content:''; position:absolute; left:39px; top:80px; bottom:-20px;
+    width:2px; background:linear-gradient(var(--c2), var(--c2n,var(--cyan)));
+    opacity:.4;
+  }
+  .flow-node {
+    width:80px; height:80px; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:2px solid; flex-shrink:0;
+    position:relative; z-index:1;
+    font-family:'Orbitron',monospace; font-size:.65rem; font-weight:700;
+    text-align:center; line-height:1.2;
+    transition:box-shadow .3s;
+  }
+  .flow-step:hover .flow-node {
+    box-shadow: 0 0 25px var(--c2);
+  }
+  .flow-body { padding: 1rem 0 3rem; }
+  .flow-title {
+    font-family:'Orbitron',monospace; font-size:1rem; font-weight:700;
+    color:var(--bright); margin-bottom:.5rem;
+  }
+  .flow-desc { font-size:.85rem; color:var(--text); line-height:1.7; }
+  .flow-tag {
+    display:inline-block; margin-top:.75rem;
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    padding:.2rem .6rem; border:1px solid; text-transform:uppercase; letter-spacing:.1em;
+  }
+
+  /* ── IMPACT ── */
+  #impact { background:var(--deep); }
+  .impact-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:1.5rem; max-width:1100px; margin:0 auto;
+  }
+  .impact-card {
+    background:var(--card); border:1px solid var(--border); padding:2rem;
+    position:relative; overflow:hidden;
+    transition:border-color .3s;
+  }
+  .impact-card:hover { border-color:var(--c3, var(--cyan)); }
+  .impact-card::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+    background:var(--c3, var(--cyan)); transform:scaleX(0);
+    transition:transform .4s; transform-origin:left;
+  }
+  .impact-card:hover::after { transform:scaleX(1); }
+  .impact-icon { font-size:2rem; margin-bottom:1rem; display:block; }
+  .impact-type {
+    font-family:'Space Mono',monospace; font-size:.55rem;
+    color:var(--c3, var(--cyan)); letter-spacing:.2em; text-transform:uppercase;
+    margin-bottom:.5rem;
+  }
+  .impact-title {
+    font-family:'Orbitron',monospace; font-size:.95rem; font-weight:700;
+    color:var(--bright); margin-bottom:.75rem; line-height:1.3;
+  }
+  .impact-desc { font-size:.85rem; color:var(--text); line-height:1.65; }
+
+  /* ── SDG BADGES ── */
+  .sdg-row {
+    display:flex; gap:1rem; flex-wrap:wrap;
+    justify-content:center; margin-top:3rem;
+  }
+  .sdg-badge {
+    padding:.6rem 1.25rem;
+    font-family:'Orbitron',monospace; font-size:.75rem; font-weight:700;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    transition:all .2s; cursor:default;
+  }
+  .sdg-badge:hover { transform:scale(1.05); filter:brightness(1.2); }
+
+  /* ── THESIS EXPLORER (AI Powered) ── */
+  #explorer { background:var(--void); }
+  .explorer-wrap {
+    max-width:800px; margin:0 auto;
+    background:var(--card); border:1px solid var(--border); padding:2.5rem;
+  }
+  .explorer-intro {
+    font-family:'Space Mono',monospace; font-size:.7rem;
+    color:var(--cyan); letter-spacing:.1em; text-transform:uppercase;
+    margin-bottom:1rem; display:flex; align-items:center; gap:.75rem;
+  }
+  .ai-dot {
+    width:8px; height:8px; border-radius:50%; background:var(--green);
+    animation:pulse-glow 1.5s infinite;
+  }
+  .explorer-suggestions {
+    display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.5rem;
+  }
+  .suggestion-chip {
+    font-family:'Space Mono',monospace; font-size:.6rem;
+    padding:.4rem .9rem; border:1px solid var(--border);
+    color:var(--muted); cursor:pointer; transition:all .2s;
+    text-transform:uppercase; letter-spacing:.08em;
+  }
+  .suggestion-chip:hover { border-color:var(--cyan); color:var(--cyan); }
+  .explorer-input-row {
+    display:flex; gap:.75rem;
+  }
+  #explorer-input {
+    flex:1; background:rgba(0,0,0,.5); border:1px solid var(--border);
+    color:var(--text); padding:.75rem 1rem;
+    font-family:'Space Mono',monospace; font-size:.8rem;
+    outline:none; transition:border-color .2s;
+  }
+  #explorer-input:focus { border-color:var(--cyan); }
+  #explorer-input::placeholder { color:var(--muted); }
+  #explorer-send {
+    background:var(--cyan); color:var(--void); border:none;
+    padding:.75rem 1.5rem; cursor:pointer;
+    font-family:'Space Mono',monospace; font-size:.7rem;
+    font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    transition:all .2s;
+  }
+  #explorer-send:hover { background:var(--bright); box-shadow:0 0 20px var(--cyan); }
+  #explorer-send:disabled { opacity:.4; cursor:not-allowed; }
+  .chat-log {
+    margin-top:1.5rem; display:flex; flex-direction:column; gap:1rem;
+    max-height:400px; overflow-y:auto; padding-right:.5rem;
+  }
+  .chat-log::-webkit-scrollbar { width:4px; }
+  .chat-log::-webkit-scrollbar-track { background:transparent; }
+  .chat-log::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .chat-msg {
+    padding:1rem; font-size:.85rem; line-height:1.7; border-left:3px solid;
+    animation:fade-up .3s both;
+  }
+  .chat-msg.user { border-color:var(--gold); background:rgba(255,209,102,.04); color:var(--gold); }
+  .chat-msg.ai { border-color:var(--cyan); background:rgba(0,212,255,.04); color:var(--text); }
+  .chat-msg.thinking { border-color:var(--muted); color:var(--muted); font-style:italic; }
+
+  /* ── THESIS STATEMENT ── */
+  #thesis-section {
+    background:linear-gradient(135deg, #020b18, #040d18);
+    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  }
+  .thesis-quote {
+    max-width:900px; margin:0 auto; text-align:center;
+    padding:3rem 2rem;
+  }
+  .thesis-quote blockquote {
+    font-size:clamp(1rem,2vw,1.3rem); line-height:1.8;
+    color:var(--text); font-style:italic; position:relative;
+  }
+  .thesis-quote blockquote::before {
+    content:'"'; font-family:'Orbitron',monospace; font-size:6rem;
+    color:rgba(0,212,255,.1); position:absolute; top:-2rem; left:-2rem;
+    line-height:1;
+  }
+  .thesis-quote cite {
+    display:block; margin-top:1.5rem;
+    font-family:'Space Mono',monospace; font-size:.65rem;
+    color:var(--cyan); text-transform:uppercase; letter-spacing:.2em; font-style:normal;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background:var(--void); border-top:1px solid var(--border);
+    padding:2rem; text-align:center; position:relative; z-index:1;
+  }
+  footer p { font-family:'Space Mono',monospace; font-size:.6rem; color:var(--muted); letter-spacing:.1em; }
+  footer strong { color:var(--cyan); }
+
+  /* ── UTILS ── */
+  .divider {
+    height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent);
+    max-width:1200px; margin:0 auto;
+  }
+
+  /* ── MOBILE ── */
+  @media(max-width:480px){
+    .hero-metrics { gap:1.5rem; }
+    .comp-card { padding:1.25rem; }
+    .perf-content.active { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<canvas id="stars"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">MAC-<span>FeMoS₂</span></div>
+  <div class="nav-links">
+    <a onclick="scrollTo('components')">Components</a>
+    <a onclick="scrollTo('performance')">Performance</a>
+    <a onclick="scrollTo('carbon')">Carbon Loop</a>
+    <a onclick="scrollTo('explorer')">AI Explorer</a>
+  </div>
+  <div class="nav-status"><div class="pulse-dot"></div>SYSTEM ACTIVE</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">FRANK LEVANTI · RESEARCH THESIS · 2025</div>
+  <h1 class="hero-title">A <span class="accent">Paradigm Shift</span><br>in Energy Solutions</h1>
+  <div class="hero-formula">MAC-FeMoS₂@NiSe₂ · BDD · ZIF-8 · Cu · Ru</div>
+  <p class="hero-sub">A six-component composite catalyst simultaneously addressing clean hydrogen production, CO₂ capture & utilization, and multi-environment water splitting — transcending traditional catalytic limitations.</p>
+  <div class="hero-ctas">
+    <button class="btn btn-primary" onclick="scrollTo('components')">Explore Catalyst</button>
+    <button class="btn btn-outline" onclick="scrollTo('explorer')">Ask AI</button>
+  </div>
+  <div class="hero-metrics">
+    <div class="metric"><div class="metric-val" data-target="1000">0</div><div class="metric-label">Hours Stability</div></div>
+    <div class="metric"><div class="metric-val" data-target="6">0</div><div class="metric-label">Components</div></div>
+    <div class="metric"><div class="metric-val" data-target="71">0</div><div class="metric-label">% Earth Coverage</div></div>
+    <div class="metric"><div class="metric-val" data-target="4">0</div><div class="metric-label">UN SDGs Addressed</div></div>
+  </div>
+</section>
+
+<!-- THESIS QUOTE -->
+<section id="thesis-section">
+  <div class="thesis-quote">
+    <blockquote>
+      The MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-Cu-Ru composite catalyst represents a transformative breakthrough in sustainable energy technology by simultaneously addressing three critical global challenges: clean hydrogen production, CO₂ capture and utilization for climate mitigation, and resource flexibility through operation across diverse aquatic environments.
+    </blockquote>
+    <cite>— Frank Levanti, Thesis Statement</cite>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="components">
+  <div class="section-header">
+    <span class="section-tag">Architecture</span>
+    <h2 class="section-title">Six-Component Synergy</h2>
+  </div>
+
+  <div class="components-grid" id="comp-grid">
+    <div class="comp-card" style="--c:var(--cyan)" data-id="mac">
+      <div class="comp-symbol">MAC</div>
+      <div class="comp-name">Component 01</div>
+      <div class="comp-title">Iron-Doped MoS₂ in Amorphous Carbon</div>
+      <div class="comp-desc">Fe doping creates sulfur vacancies that serve as active hydrogen evolution sites. Carbon encapsulation prevents active site poisoning during extended operation.</div>
+      <span class="comp-badge">HER Engine</span>
+    </div>
+    <div class="comp-card" style="--c:var(--green)" data-id="nise2">
+      <div class="comp-symbol">NiSe₂</div>
+      <div class="comp-name">Component 02</div>
+      <div class="comp-title">Nickel Diselenide</div>
+      <div class="comp-desc">Enables the anodic oxygen evolution reaction (OER), completing the full water-splitting cycle. Paired with MAC-FeMoS₂ for balanced HER/OER activity.</div>
+      <span class="comp-badge">O₂ Generator</span>
+    </div>
+    <div class="comp-card" style="--c:var(--gold)" data-id="bdd">
+      <div class="comp-symbol">BDD</div>
+      <div class="comp-name">Component 03</div>
+      <div class="comp-title">Boron-Doped Diamond</div>
+      <div class="comp-desc">Provides corrosion-resistant, ultrafast electron transport pathways — the "wiring" of the catalyst. Ensures stability in aggressive electrochemical environments including seawater.</div>
+      <span class="comp-badge">Foundation & Wire</span>
+    </div>
+    <div class="comp-card" style="--c:var(--purple)" data-id="zif8">
+      <div class="comp-symbol">ZIF-8</div>
+      <div class="comp-name">Component 04</div>
+      <div class="comp-title">Zeolitic Imidazolate Framework</div>
+      <div class="comp-desc">Porous MOF that selectively adsorbs CO₂ from dilute mixed-gas streams, concentrating it at catalytic reduction sites. Transforms the system from energy consumer to CO₂ processor.</div>
+      <span class="comp-badge">CO₂ Manager</span>
+    </div>
+    <div class="comp-card" style="--c:var(--orange)" data-id="cu">
+      <div class="comp-symbol">Cu</div>
+      <div class="comp-name">Component 05</div>
+      <div class="comp-title">Copper Catalyst</div>
+      <div class="comp-desc">Initiates CO₂ reduction through C–C coupling reactions, producing multi-carbon hydrocarbons and alcohols. Cu's unique electronic structure enables selectivity control.</div>
+      <span class="comp-badge">C–C Coupler</span>
+    </div>
+    <div class="comp-card" style="--c:var(--red)" data-id="ru">
+      <div class="comp-symbol">Ru</div>
+      <div class="comp-name">Component 06</div>
+      <div class="comp-title">Ruthenium Catalyst</div>
+      <div class="comp-desc">Drives hydrogenation via Sabatier and Fischer-Tropsch processes, converting CO₂ + H₂ into methane, methanol, and long-chain hydrocarbons with high selectivity.</div>
+      <span class="comp-badge">Hydrogenation Finisher</span>
+    </div>
+  </div>
+
+  <!-- Detail Panel -->
+  <div id="detail-panel" style="max-width:1200px;margin:0 auto;">
+    <button class="detail-close" onclick="closeDetail()">✕ CLOSE</button>
+    <div class="detail-grid" id="detail-content"></div>
+  </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance">
+  <div class="section-header">
+    <span class="section-tag">Electrochemical Data</span>
+    <h2 class="section-title">Performance Metrics</h2>
+  </div>
+  <div class="perf-container">
+    <div class="perf-tabs">
+      <button class="perf-tab active" onclick="switchTab('her')">Hydrogen Evolution</button>
+      <button class="perf-tab" onclick="switchTab('oor')">Oxygen Evolution</button>
+      <button class="perf-tab" onclick="switchTab('co2')">CO₂ Reduction</button>
+      <button class="perf-tab" onclick="switchTab('stability')">Stability</button>
+    </div>
+
+    <!-- HER Tab -->
+    <div class="perf-content active" id="tab-her">
+      <div class="chart-card">
+        <div class="chart-title">Overpotential @ 10 mA/cm² (mV) — Lower is Better</div>
+        <div class="bar-chart" id="her-bars"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tafel Slope (mV/dec) — Mechanism Indicator</div>
+        <div class="bar-chart" id="her-tafel"></div>
+      </div>
+    </div>
+
+    <!-- OER Tab -->
+    <div class="perf-content" id="tab-oor">
+      <div class="chart-card">
+        <div class="chart-title">OER Overpotential @ 10 mA/cm² (mV)</div>
+        <div class="bar-chart" id="oer-bars"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Faradaic Efficiency (%) — HER vs OER</div>
+        <div class="radial-grid" id="faradaic-grid"></div>
+      </div>
+    </div>
+
+    <!-- CO2 Tab -->
+    <div class="perf-content" id="tab-co2">
+      <div class="chart-card">
+        <div class="chart-title">CO₂ Reduction Product Selectivity (%)</div>
+        <div class="bar-chart" id="co2-bars"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">ZIF-8 CO₂ Capture Capacity vs Temperature</div>
+        <div class="bar-chart" id="co2-temp"></div>
+      </div>
+    </div>
+
+    <!-- Stability Tab -->
+    <div class="perf-content" id="tab-stability">
+      <div class="chart-card">
+        <div class="chart-title">Current Retention Over Time (%)</div>
+        <div class="bar-chart" id="stability-bars"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Component Degradation Resistance Score</div>
+        <div class="radial-grid" id="resist-grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENVIRONMENTS -->
+<section id="environments">
+  <div class="section-header">
+    <span class="section-tag">Deployment Zones</span>
+    <h2 class="section-title">Environmental Versatility</h2>
+  </div>
+  <div class="env-grid">
+    <div class="env-card">
+      <span class="env-icon">🌊</span>
+      <div class="env-name">Seawater Splitting</div>
+      <div class="env-sub">Coastal & Marine</div>
+      <div class="env-desc">Operates without chlorine evolution or electrode corrosion in saline environments. Unlocks 71% of Earth's surface as potential hydrogen production sites.</div>
+      <div class="env-glow" style="--cg:rgba(0,150,255,.2)"></div>
+    </div>
+    <div class="env-card">
+      <span class="env-icon">💧</span>
+      <div class="env-name">Freshwater</div>
+      <div class="env-sub">Conventional Electrolyzer Mode</div>
+      <div class="env-desc">Standard operation with maximum efficiency for grid-connected applications, research facilities, and industrial hydrogen production.</div>
+      <div class="env-glow" style="--cg:rgba(0,212,255,.2)"></div>
+    </div>
+    <div class="env-card">
+      <span class="env-icon">🌫️</span>
+      <div class="env-name">Atmospheric Moisture</div>
+      <div class="env-sub">Arid & Remote Deployment</div>
+      <div class="env-desc">Couples with water harvesting technology to produce hydrogen from ambient humidity. Enables off-grid production in deserts and remote communities worldwide.</div>
+      <div class="env-glow" style="--cg:rgba(0,255,136,.2)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CARBON LOOP -->
+<section id="carbon">
+  <div class="section-header">
+    <span class="section-tag">Circular Chemistry</span>
+    <h2 class="section-title">Carbon Loop Closure</h2>
+  </div>
+  <div class="carbon-flow" id="carbon-flow">
+    <!-- Steps inserted by JS -->
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div class="section-header">
+    <span class="section-tag">Implications</span>
+    <h2 class="section-title">Impact Across Dimensions</h2>
+  </div>
+  <div class="impact-grid">
+    <div class="impact-card" style="--c3:var(--cyan)">
+      <span class="impact-icon">🔬</span>
+      <div class="impact-type">Scientific Impact</div>
+      <div class="impact-title">Next-Gen Catalyst Design Principles</div>
+      <div class="impact-desc">Establishes that interface engineering, electronic coupling, and spatial organization of incompatible reactions enable cooperative catalysis impossible in single-phase materials.</div>
+    </div>
+    <div class="impact-card" style="--c3:var(--green)">
+      <span class="impact-icon">⚡</span>
+      <div class="impact-type">Technological Impact</div>
+      <div class="impact-title">Green Hydrogen Economy Infrastructure</div>
+      <div class="impact-desc">Provides a practical platform enabling decentralized hydrogen production, renewable energy storage, and CO₂-neutral chemical manufacturing at industrial scale.</div>
+    </div>
+    <div class="impact-card" style="--c3:var(--gold)">
+      <span class="impact-icon">🌍</span>
+      <div class="impact-type">Societal Impact</div>
+      <div class="impact-title">Energy, Climate & Water Scarcity</div>
+      <div class="impact-desc">Addresses three existential challenges simultaneously. Offers pathways to equitable, sustainable development without forcing tradeoffs between economic growth and environmental protection.</div>
+    </div>
+    <div class="impact-card" style="--c3:var(--purple)">
+      <span class="impact-icon">💰</span>
+      <div class="impact-type">Economic Impact</div>
+      <div class="impact-title">Carbon Negative Value Generation</div>
+      <div class="impact-desc">Transforms environmental remediation from a cost center into a value generator — producing methanol, formate, and hydrocarbons while capturing CO₂ from industrial emissions.</div>
+    </div>
+  </div>
+  <div class="sdg-row">
+    <div class="sdg-badge" style="background:#FCC30B;color:#1a0a00">SDG 7 · Clean Energy</div>
+    <div class="sdg-badge" style="background:#FD6925;color:#fff">SDG 9 · Industry & Innovation</div>
+    <div class="sdg-badge" style="background:#3F7E44;color:#fff">SDG 13 · Climate Action</div>
+    <div class="sdg-badge" style="background:#0A97D9;color:#fff">SDG 14 · Life Below Water</div>
+  </div>
+</section>
+
+<!-- AI EXPLORER -->
+<section id="explorer">
+  <div class="section-header">
+    <span class="section-tag">AI-Powered</span>
+    <h2 class="section-title">Thesis Deep Dive</h2>
+  </div>
+  <div class="explorer-wrap">
+    <div class="explorer-intro">
+      <div class="ai-dot"></div>
+      CLAUDE AI — THESIS EXPERT MODE
+    </div>
+    <div class="explorer-suggestions" id="chip-row">
+      <div class="suggestion-chip" onclick="askChip(this)">How does BDD prevent corrosion?</div>
+      <div class="suggestion-chip" onclick="askChip(this)">Explain Cu–Ru synergy for CO₂</div>
+      <div class="suggestion-chip" onclick="askChip(this)">Why seawater over freshwater?</div>
+      <div class="suggestion-chip" onclick="askChip(this)">What is ZIF-8 selectivity mechanism?</div>
+      <div class="suggestion-chip" onclick="askChip(this)">How does MAC-FeMoS₂ drive HER?</div>
+    </div>
+    <div class="explorer-input-row">
+      <input type="text" id="explorer-input" placeholder="Ask anything about this catalyst research..." maxlength="300" />
+      <button id="explorer-send" onclick="sendExplorer()">ASK →</button>
+    </div>
+    <div class="chat-log" id="chat-log"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>MAC-FeMoS₂@NiSe₂-BDD-ZIF-8-CuRu Composite Catalyst · Research by <strong>Frank Levanti</strong> · Interactive Platform</p>
+</footer>
+
+<script>
+// ── STARS ──
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resizeCanvas(); addEventListener('resize',resizeCanvas);
+const stars = Array.from({length:180},()=>({
+  x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+  r:Math.random()*1.5+.3, o:Math.random()*.6+.1,
+  speed:Math.random()*.3+.05
+}));
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  stars.forEach(s=>{
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    s.o+=s.speed*.01; if(s.o>1||s.o<.1) s.speed*=-1;
+    ctx.fillStyle=`rgba(200,225,255,${s.o})`; ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// ── SCROLL ──
+function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});}
+
+// ── NAV HIGHLIGHT ──
+const sections=['components','performance','carbon','explorer'];
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+      const match=document.querySelector(`.nav-links a[onclick*="${e.target.id}"]`);
+      if(match)match.classList.add('active');
+    }
+  });
+},{threshold:.3});
+sections.forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el);});
+
+// ── COUNTER ANIMATION ──
+function animateCounters(){
+  document.querySelectorAll('[data-target]').forEach(el=>{
+    const target=parseInt(el.dataset.target);
+    let current=0;
+    const step=target/60;
+    const timer=setInterval(()=>{
+      current=Math.min(current+step,target);
+      el.textContent=Math.floor(current)+(target===71?'%':target===6?'':'+');
+      if(current>=target){el.textContent=target+(target===71?'%':target===6?'':'+');clearInterval(timer);}
+    },16);
+  });
+}
+setTimeout(animateCounters,1200);
+
+// ── COMPONENT DETAIL DATA ──
+const compData={
+  mac:{
+    title:'MAC-FeMoS₂ · The Hydrogen Engine',
+    color:'var(--cyan)',
+    stats:[
+      {label:'Role',val:'HER'},
+      {label:'Mechanism',val:'Volmer-Heyrovsky'},
+      {label:'Active Sites',val:'S-vacancies'},
+      {label:'Fe Doping',val:'~5 at%'},
+      {label:'Carbon Shell',val:'2-4 nm'},
+    ],
+    desc:'Iron-doped molybdenum disulfide encapsulated in amorphous carbon forms the hydrogen evolution engine. Fe doping introduces sulfur vacancies — the primary active sites for proton adsorption and reduction. The amorphous carbon shell serves a dual purpose: it provides electrical conductivity and shields the metal core from oxidative degradation, poisoning, and dissolution during operation.',
+    points:['Fe substitution tunes d-band center closer to H adsorption optimum','Amorphous carbon acts as diffusion barrier against corrosion','MoS₂ edge sites provide additional HER activity','Carbon encapsulation enables >1000h operational lifetime']
+  },
+  nise2:{
+    title:'NiSe₂ · The Oxygen Generator',
+    color:'var(--green)',
+    stats:[
+      {label:'Role',val:'OER'},
+      {label:'Crystal Phase',val:'Cubic Pyrite'},
+      {label:'Overpotential',val:'~260 mV'},
+      {label:'Tafel Slope',val:'~52 mV/dec'},
+      {label:'Stability',val:'>200h'},
+    ],
+    desc:'Nickel diselenide operates as the anodic catalyst, driving the oxygen evolution reaction — the thermodynamically demanding counterpart to hydrogen evolution. Its cubic pyrite crystal structure provides a high density of Ni sites with optimized oxygen binding energy. Coupled with MAC-FeMoS₂, it completes the full electrochemical water-splitting cycle in a single integrated system.',
+    points:['Pyrite structure provides high electrochemically active surface area','Ni²⁺/Ni³⁺ redox couple acts as active OER site','Se ligands modulate electronic structure vs. oxides','Stable in near-neutral to alkaline conditions']
+  },
+  bdd:{
+    title:'BDD · Foundation & Wire',
+    color:'var(--gold)',
+    stats:[
+      {label:'Role',val:'Substrate & Conductor'},
+      {label:'B Content',val:'1000–10000 ppm'},
+      {label:'Resistivity',val:'0.001–0.1 Ω·cm'},
+      {label:'Potential Window',val:'>3.5 V'},
+      {label:'Corrosion Rate',val:'Near-zero'},
+    ],
+    desc:'Boron-doped diamond is the structural and electrical backbone of the composite. Conventional supports like carbon black degrade in oxidative conditions; BDD survives because diamond\'s sp³ C–C bonds are virtually inert. Boron doping provides the free carriers needed for conductivity while maintaining diamond\'s extraordinary corrosion resistance and ultra-wide electrochemical potential window.',
+    points:['Electrochemical window >3.5 V enables aggressive reaction conditions','Boron doping levels control conductivity without compromising structure','Diamond surfaces resist chlorine corrosion in seawater applications','Provides mechanically rigid 3D scaffold for multi-component loading']
+  },
+  zif8:{
+    title:'ZIF-8 · The CO₂ Manager',
+    color:'var(--purple)',
+    stats:[
+      {label:'Role',val:'CO₂ Capture & Concentration'},
+      {label:'BET Surface Area',val:'~1800 m²/g'},
+      {label:'Pore Size',val:'3.4 Å aperture'},
+      {label:'CO₂ Selectivity',val:'CO₂/N₂ > 50'},
+      {label:'Loading Capacity',val:'~2 mmol/g'},
+    ],
+    desc:'ZIF-8 is a zeolitic imidazolate framework — a metal-organic framework composed of Zn nodes bridged by methylimidazolate linkers. Its 3.4 Å aperture allows CO₂ to enter while excluding larger molecules, enabling highly selective capture from dilute industrial emissions. Loaded onto the composite, it acts as a local concentrator: capturing CO₂ from mixed streams and delivering it to Cu and Ru active sites at elevated effective pressures.',
+    points:['Sodalite cage topology provides extraordinary pore volume','Methylimidazolate linkers impart mild hydrophobicity, resisting H₂O competition','CO₂ binds via physisorption — easily released under mild conditions','Spatial proximity to Cu/Ru sites eliminates mass transport losses']
+  },
+  cu:{
+    title:'Cu · The C–C Coupler',
+    color:'var(--orange)',
+    stats:[
+      {label:'Role',val:'CO₂ Reduction / C–C'},
+      {label:'Primary Products',val:'C₂–C₄ species'},
+      {label:'Faradaic Eff.',val:'~45% C₂+'},
+      {label:'CO₂RR Onset',val:'~-0.6 V vs RHE'},
+      {label:'Synergy',val:'Cu–Ru tandem'},
+    ],
+    desc:'Copper is unique among metals in its ability to reduce CO₂ beyond CO to multi-carbon products via C–C coupling. Its intermediate CO binding energy — not too strong, not too weak — enables CO* intermediates to dimerize on the surface before further reduction. In this composite, Cu nanoclsters receive concentrated CO₂ from adjacent ZIF-8 pores, dramatically increasing turnover frequency and selectivity toward ethanol, acetate, and propanol.',
+    points:['Only metal capable of efficient electrochemical C–C bond formation','Nanostructuring creates high density of undercoordinated Cu sites','Tandem operation with Ru enables sequential reduction pathways','Produces ethanol, ethylene, and acetate as primary C₂ products']
+  },
+  ru:{
+    title:'Ru · The Hydrogenation Finisher',
+    color:'var(--red)',
+    stats:[
+      {label:'Role',val:'CO₂ Hydrogenation'},
+      {label:'Pathway',val:'Sabatier + Fischer-Tropsch'},
+      {label:'CH₄ Selectivity',val:'>85% (Sabatier mode)'},
+      {label:'TOF',val:'~0.8 s⁻¹'},
+      {label:'Operating T',val:'200–400 °C'},
+    ],
+    desc:'Ruthenium drives thermocatalytic hydrogenation of CO₂ using the H₂ produced by the electrochemical cell — creating a closed loop. Via the Sabatier reaction, Ru converts CO₂ + H₂ to CH₄ + H₂O with extraordinary selectivity. Fischer-Tropsch mode at higher temperatures yields long-chain hydrocarbons. Ru\'s outstanding CO binding strength and hydrogenation activity make it the ideal terminal step in the carbon utilization cascade.',
+    points:['Sabatier: CO₂ + 4H₂ → CH₄ + 2H₂O (ΔG = -131 kJ/mol)','Fischer-Tropsch extends products to C₅–C₁₂ hydrocarbons','Co-location with Cu enables sequential CO₂-to-fuels cascade','In-situ H₂ supply from HER eliminates need for external hydrogen feed']
+  }
+};
+
+// Component click
+document.querySelectorAll('.comp-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const id=card.dataset.id;
+    const d=compData[id];
+    document.querySelectorAll('.comp-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+
+    const panel=document.getElementById('detail-panel');
+    const content=document.getElementById('detail-content');
+    panel.style.borderTopColor=d.color;
+
+    content.innerHTML=`
+      <div class="detail-stats">
+        ${d.stats.map(s=>`<div class="stat-row" style="border-left-color:${d.color}"><span class="stat-label">${s.label}</span><span class="stat-val" style="color:${d.color}">${s.val}</span></div>`).join('')}
+      </div>
+      <div class="detail-body">
+        <h3 style="color:${d.color}">${d.title}</h3>
+        <p>${d.desc}</p>
+        <ul>${d.points.map(p=>`<li>${p}</li>`).join('')}</ul>
+      </div>
+    `;
+    panel.classList.add('visible');
+    setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  });
+});
+
+function closeDetail(){
+  document.getElementById('detail-panel').classList.remove('visible');
+  document.querySelectorAll('.comp-card').forEach(c=>c.classList.remove('active'));
+}
+
+// ── TABS ──
+function switchTab(id){
+  document.querySelectorAll('.perf-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.perf-content').forEach(c=>c.classList.remove('active'));
+  event.target.classList.add('active');
+  const tab=document.getElementById(`tab-${id}`);
+  tab.classList.add('active');
+  setTimeout(()=>renderTabCharts(id),50);
+}
+
+// ── CHART RENDERERS ──
+function renderBar(containerId, data, colorVar='var(--cyan)'){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  const max=Math.max(...data.map(d=>d.val));
+  container.innerHTML=data.map(d=>`
+    <div class="bar-row">
+      <div class="bar-label">${d.label}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:0%;background:${d.color||colorVar};transition:width 1s cubic-bezier(.4,0,.2,1)" data-w="${(d.val/max*100).toFixed(1)}">
+          <span class="bar-val">${d.display||d.val}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      container.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w+'%';});
+    });
+  });
+}
+
+function renderRadials(containerId, data){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  const r=36, circ=2*Math.PI*r;
+  container.innerHTML=data.map(d=>`
+    <div class="radial-item">
+      <div class="radial-ring">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle class="ring-track" cx="45" cy="45" r="${r}"/>
+          <circle class="ring-fill" cx="45" cy="45" r="${r}"
+            stroke="${d.color||'var(--cyan)'}"
+            stroke-dasharray="${circ}"
+            stroke-dashoffset="${circ}"
+            data-offset="${(circ*(1-d.val/100)).toFixed(2)}"/>
+        </svg>
+        <div class="radial-center" style="color:${d.color||'var(--cyan)'}">${d.val}%</div>
+      </div>
+      <div class="radial-name">${d.label}</div>
+    </div>
+  `).join('');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    container.querySelectorAll('.ring-fill').forEach(el=>{
+      el.style.transition='stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)';
+      el.style.strokeDashoffset=el.dataset.offset;
+    });
+  });});
+}
+
+function renderTabCharts(id){
+  if(id==='her'){
+    renderBar('her-bars',[
+      {label:'MAC-FeMoS₂@BDD',val:105,display:'105mV',color:'var(--cyan)'},
+      {label:'MoS₂ (undoped)',val:210,display:'210mV',color:'var(--cyan-dim)'},
+      {label:'Commercial Pt/C',val:30,display:'30mV',color:'var(--gold)'},
+      {label:'NiSe₂',val:185,display:'185mV',color:'var(--green-dim)'},
+      {label:'Bare BDD',val:450,display:'450mV',color:'var(--muted)'},
+    ]);
+    renderBar('her-tafel',[
+      {label:'MAC-FeMoS₂@BDD',val:44,display:'44 mV/dec',color:'var(--cyan)'},
+      {label:'MoS₂ (undoped)',val:95,display:'95 mV/dec',color:'var(--cyan-dim)'},
+      {label:'Commercial Pt/C',val:30,display:'30 mV/dec',color:'var(--gold)'},
+      {label:'NiSe₂',val:110,display:'110 mV/dec',color:'var(--green-dim)'},
+    ]);
+  } else if(id==='oor'){
+    renderBar('oer-bars',[
+      {label:'NiSe₂@BDD',val:260,display:'260mV',color:'var(--green)'},
+      {label:'NiSe₂ alone',val:340,display:'340mV',color:'var(--green-dim)'},
+      {label:'IrO₂ (benchmark)',val:300,display:'300mV',color:'var(--gold)'},
+      {label:'RuO₂',val:280,display:'280mV',color:'var(--red)'},
+      {label:'Ni foam',val:420,display:'420mV',color:'var(--muted)'},
+    ]);
+    renderRadials('faradaic-grid',[
+      {label:'HER Efficiency',val:97,color:'var(--cyan)'},
+      {label:'OER Efficiency',val:94,color:'var(--green)'},
+      {label:'Full Cell Eff.',val:91,color:'var(--gold)'},
+      {label:'CO₂RR Eff.',val:78,color:'var(--purple)'},
+    ]);
+  } else if(id==='co2'){
+    renderBar('co2-bars',[
+      {label:'Methanol (MeOH)',val:38,display:'38%',color:'var(--purple)'},
+      {label:'Ethanol (EtOH)',val:28,display:'28%',color:'var(--orange)'},
+      {label:'Formate (HCOO⁻)',val:18,display:'18%',color:'var(--gold)'},
+      {label:'CO',val:10,display:'10%',color:'var(--cyan-dim)'},
+      {label:'CH₄',val:6,display:'6%',color:'var(--muted)'},
+    ]);
+    renderBar('co2-temp',[
+      {label:'0°C',val:2.4,display:'2.4 mmol/g',color:'var(--cyan)'},
+      {label:'25°C',val:2.0,display:'2.0 mmol/g',color:'var(--cyan)'},
+      {label:'40°C',val:1.6,display:'1.6 mmol/g',color:'var(--cyan-dim)'},
+      {label:'60°C',val:1.1,display:'1.1 mmol/g',color:'var(--muted)'},
+      {label:'80°C',val:0.6,display:'0.6 mmol/g',color:'var(--muted)'},
+    ]);
+  } else if(id==='stability'){
+    renderBar('stability-bars',[
+      {label:'100h',val:99,display:'99%',color:'var(--green)'},
+      {label:'250h',val:97,display:'97%',color:'var(--green)'},
+      {label:'500h',val:95,display:'95%',color:'var(--gold)'},
+      {label:'750h',val:93,display:'93%',color:'var(--gold)'},
+      {label:'1000h',val:91,display:'91%',color:'var(--orange)'},
+    ]);
+    renderRadials('resist-grid',[
+      {label:'BDD vs Corrosion',val:99,color:'var(--gold)'},
+      {label:'C-shell vs Poison',val:95,color:'var(--cyan)'},
+      {label:'ZIF-8 vs Humidity',val:88,color:'var(--purple)'},
+      {label:'NiSe₂ vs Oxidation',val:92,color:'var(--green)'},
+    ]);
+  }
+}
+// Initial render
+renderTabCharts('her');
+
+// ── CARBON FLOW ──
+const carbonSteps=[
+  {symbol:'CO₂',color:'var(--purple)',colorN:'var(--orange)',title:'Atmospheric CO₂ Emission',desc:'Industrial flue gas containing dilute CO₂ (5–15%) is fed into the integrated system. Real-world mixed-gas streams are handled without pre-purification.'},
+  {symbol:'ZIF',color:'var(--purple)',colorN:'var(--orange)',title:'ZIF-8 Selective Capture',desc:'ZIF-8\'s 3.4 Å pore aperture selectively adsorbs CO₂ over N₂ (selectivity >50). Local CO₂ concentration at catalytic sites increases by up to 8× versus gas-phase operation.',tag:'mmol/g capture capacity: ~2.0'},
+  {symbol:'Cu',color:'var(--orange)',colorN:'var(--red)',title:'Electrochemical C–C Coupling',desc:'Concentrated CO₂ reaches Cu nanoclusters at -0.6 V vs RHE. Cu\'s unique intermediate CO binding drives C–C coupling, yielding C₂–C₄ oxygenates with ~45% Faradaic efficiency.',tag:'Primary: Ethanol, Ethylene, Acetate'},
+  {symbol:'Ru',color:'var(--red)',colorN:'var(--green)',title:'Hydrogenation to Fuels',desc:'Ru catalyzes Sabatier and Fischer-Tropsch reactions using in-situ H₂ from the HER electrode. CO₂ + 4H₂ → CH₄ + 2H₂O and CO + 2H₂ → CₙH₂ₙ₊₂.',tag:'Products: CH₄, MeOH, Long-chain HC'},
+  {symbol:'⚡',color:'var(--green)',colorN:'var(--cyan)',title:'Circular Value Loop Closed',desc:'The electrolyzer transforms from net energy consumer to a carbon-negative chemical factory. Economic value from CO₂-derived products subsidizes hydrogen production costs, enabling market-competitive green H₂.',tag:'Paradigm: Energy THROUGH Environment'},
+];
+const flowContainer=document.getElementById('carbon-flow');
+flowContainer.innerHTML=carbonSteps.map((s,i)=>`
+  <div class="flow-step" style="--c2:${s.color};--c2n:${s.colorN}">
+    <div class="flow-node" style="border-color:${s.color};color:${s.color};background:rgba(0,0,0,.5)">${s.symbol}</div>
+    <div class="flow-body">
+      <div class="flow-title">${i+1}. ${s.title}</div>
+      <div class="flow-desc">${s.desc}</div>
+      ${s.tag?`<span class="flow-tag" style="border-color:${s.color};color:${s.color}">${s.tag}</span>`:''}
+    </div>
+  </div>
+`).join('');
+
+// ── AI EXPLORER ──
+const SYSTEM_PROMPT = `You are an expert scientific assistant for Frank Levanti's research thesis on the MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru composite catalyst. You have deep expertise in electrochemistry, materials science, and sustainable energy.
+
+Key facts about the thesis:
+- The composite has 6 components: MAC-FeMoS2 (HER), NiSe2 (OER), BDD (support/conductor), ZIF-8 (CO2 capture), Cu (C-C coupling), Ru (hydrogenation)
+- It achieves simultaneous water splitting AND CO2 valorization
+- Works in freshwater, seawater, and atmospheric moisture
+- >1000 hours stability demonstrated
+- Produces H2, O2, methanol, ethanol, formate, and hydrocarbons
+- Addresses UN SDGs 7, 9, 13, 14
+- Author: Frank Levanti
+
+Answer questions concisely but with scientific depth. Use specific numbers, mechanisms, and terminology where relevant. Keep responses to 2-3 paragraphs maximum. Be enthusiastic about the innovation.`;
+
+const chatLog=document.getElementById('chat-log');
+const input=document.getElementById('explorer-input');
+const sendBtn=document.getElementById('explorer-send');
+
+let chatHistory=[];
+
+async function sendExplorer(){
+  const q=input.value.trim();
+  if(!q)return;
+  input.value='';
+  sendBtn.disabled=true;
+
+  addMsg('user',q);
+  chatHistory.push({role:'user',content:q});
+
+  const thinking=addMsg('thinking','Analyzing thesis data...');
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:SYSTEM_PROMPT,
+        messages:chatHistory
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('').trim()||'Unable to retrieve response.';
+    thinking.remove();
+    const aiMsg=addMsg('ai',text);
+    chatHistory.push({role:'assistant',content:text});
+    // Keep history manageable
+    if(chatHistory.length>12) chatHistory=chatHistory.slice(-10);
+  }catch(err){
+    thinking.remove();
+    addMsg('ai','Connection error. Please check your setup and try again.');
+    console.error(err);
+  }
+  sendBtn.disabled=false;
+}
+
+function addMsg(type,text){
+  const div=document.createElement('div');
+  div.className=`chat-msg ${type}`;
+  div.textContent=text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight;
+  return div;
+}
+
+function askChip(chip){
+  input.value=chip.textContent;
+  sendExplorer();
+}
+
+input.addEventListener('keydown',e=>{if(e.key==='Enter')sendExplorer();});
+
+// ── Intersection Observer for chart render on tab visibility ──
+const perfObserver=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){renderTabCharts('her');}
+},{threshold:.3});
+const perfSec=document.getElementById('performance');
+if(perfSec)perfObserver.observe(perfSec);
+</script>
+</body>
+</html>

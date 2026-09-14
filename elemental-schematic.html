@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>MAC-FeMoS2 // Elemental Map &amp; H2-Grid Schematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080c;
+  --panel:#0a141f;
+  --panel-2:#0d1a28;
+  --line:#16283a;
+  --cyan:#00e5ff;
+  --cyan-dim:#0a5f6e;
+  --amber:#ffb300;
+  --amber-dim:#7a5200;
+  --violet:#b98cff;
+  --green:#39ff9d;
+  --ghost:#1c2c3c;
+  --text:#d7e6ef;
+  --text-dim:#7590a3;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; overflow-x:hidden;}
+body{
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(0,229,255,0.06), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(255,179,0,0.05), transparent 45%);
+}
+.particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+.particles span{
+  position:absolute; width:2px; height:2px; background:var(--cyan); border-radius:50%;
+  animation:float 14s linear infinite; opacity:.4;
+}
+@keyframes float{
+  0%{transform:translateY(110vh) translateX(0); opacity:0;}
+  10%{opacity:.6;}
+  100%{transform:translateY(-10vh) translateX(30px); opacity:0;}
+}
+.wrap{position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:28px 20px 90px;}
+
+header{text-align:center; margin-bottom:36px;}
+.eyebrow{
+  font-family:'Orbitron',sans-serif; font-size:11px; letter-spacing:.35em; color:var(--cyan);
+  text-transform:uppercase; margin-bottom:10px; opacity:.85;
+}
+h1{
+  font-family:'Orbitron',sans-serif; font-weight:900; font-size:clamp(22px,4.4vw,40px);
+  letter-spacing:.02em; line-height:1.15;
+  background:linear-gradient(90deg,#fff 0%, var(--cyan) 55%, var(--amber) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.sub{color:var(--text-dim); font-size:12.5px; margin-top:10px; letter-spacing:.02em;}
+.sub b{color:var(--text);}
+
+nav.tabs{
+  display:flex; justify-content:center; gap:8px; margin:30px 0 22px; flex-wrap:wrap;
+}
+nav.tabs button{
+  font-family:'Orbitron',sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  background:var(--panel); color:var(--text-dim); border:1px solid var(--line);
+  padding:11px 18px; cursor:pointer; transition:.2s;
+}
+nav.tabs button.active{ color:#02121a; background:linear-gradient(90deg,var(--cyan),#7fe9ff); border-color:var(--cyan); box-shadow:0 0 18px rgba(0,229,255,.35);}
+nav.tabs button:hover:not(.active){ border-color:var(--cyan); color:var(--cyan);}
+
+.view{display:none;}
+.view.active{display:block; animation:reveal .5s ease;}
+@keyframes reveal{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============ PERIODIC TABLE VIEW ============ */
+.pt-panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:22px 16px; position:relative; overflow:hidden;
+}
+.pt-panel::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 0%, rgba(0,229,255,.06), transparent 60%);
+  pointer-events:none;
+}
+.pt-legend{
+  display:flex; flex-wrap:wrap; gap:10px 18px; justify-content:center;
+  margin-bottom:22px; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+}
+.pt-legend .item{display:flex; align-items:center; gap:7px; color:var(--text-dim);}
+.pt-legend .sw{width:11px; height:11px; border-radius:3px; display:inline-block;}
+.role-her{background:var(--cyan); box-shadow:0 0 8px var(--cyan);}
+.role-oer{background:var(--amber); box-shadow:0 0 8px var(--amber);}
+.role-sub{background:#eaf6ff; box-shadow:0 0 8px #eaf6ff;}
+.role-cap{background:var(--green); box-shadow:0 0 8px var(--green);}
+.role-conv{background:var(--violet); box-shadow:0 0 8px var(--violet);}
+
+.grid-scroll{overflow-x:auto; padding-bottom:8px;}
+.ptable{
+  display:grid;
+  grid-template-columns:repeat(18, minmax(40px,1fr));
+  grid-auto-rows:minmax(40px,1fr);
+  gap:3px;
+  min-width:900px;
+}
+.cell{
+  position:relative;
+  background:rgba(255,255,255,.015);
+  border:1px solid var(--ghost);
+  border-radius:3px;
+  color:#3a4d5c;
+  font-size:9px;
+  padding:3px 4px;
+  cursor:default;
+  transition:.15s;
+}
+.cell .sym{font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700; color:#4c6274;}
+.cell .num{position:absolute; top:2px; right:3px; font-size:7px; color:#33454f;}
+.cell.spacer{background:transparent; border:none;}
+.cell.active{ color:#eaf6ff; border-color:currentColor; }
+.cell.active .sym{ color:inherit; text-shadow:0 0 8px currentColor;}
+.cell.active{ animation:pulseCell 2.6s ease-in-out infinite; }
+@keyframes pulseCell{
+  0%,100%{box-shadow:0 0 6px 0 currentColor inset, 0 0 10px -2px currentColor;}
+  50%{box-shadow:0 0 12px 1px currentColor inset, 0 0 20px 2px currentColor;}
+}
+.cell.her{color:var(--cyan);}
+.cell.oer{color:var(--amber);}
+.cell.sub{color:#eaf6ff;}
+.cell.cap{color:var(--green);}
+.cell.conv{color:var(--violet);}
+.cell.active:hover{ transform:translateY(-2px) scale(1.05); z-index:5;}
+
+.tooltip{
+  position:fixed; z-index:50; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:#08131d; border:1px solid var(--cyan); border-radius:5px; padding:10px 12px;
+  font-size:11px; max-width:230px; box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.tooltip.show{opacity:1;}
+.tooltip .t-sym{font-family:'Orbitron',sans-serif; font-weight:900; font-size:14px; color:var(--cyan);}
+.tooltip .t-role{color:var(--amber); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; margin:4px 0 6px;}
+.tooltip .t-desc{color:var(--text-dim); font-size:10.5px; line-height:1.5;}
+
+.fblock-note{ text-align:center; font-size:9.5px; color:var(--text-dim); margin-top:10px; letter-spacing:.05em;}
+
+.composite-strip{
+  margin-top:26px; padding:16px; border:1px dashed var(--line); border-radius:6px;
+  display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:center;
+  font-family:'Orbitron',sans-serif; font-size:12px; letter-spacing:.03em;
+}
+.composite-strip .frag{padding:6px 12px; border-radius:4px; border:1px solid currentColor; font-size:11px;}
+
+/* ============ SCHEMATIC VIEW ============ */
+.sc-controls{
+  display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:18px;
+}
+.src-btn{
+  font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+  padding:9px 16px; cursor:pointer; border-radius:4px; transition:.2s;
+}
+.src-btn.active{ color:#02121a; background:linear-gradient(90deg,var(--amber),#ffd77a); border-color:var(--amber);}
+.play-btn{
+  font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  background:transparent; border:1px solid var(--cyan); color:var(--cyan);
+  padding:9px 16px; cursor:pointer; border-radius:4px;
+}
+.play-btn.paused{color:var(--amber); border-color:var(--amber);}
+
+.sc-panel{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px; }
+.sc-panel svg{ width:100%; height:auto; display:block; }
+
+.flow{ stroke-dasharray:6 7; animation:flowmove 1s linear infinite; }
+.flow.rev{ animation-direction:reverse; }
+.flow.slow{ animation-duration:2.2s; }
+svg.paused .flow{ animation-play-state:paused; }
+@keyframes flowmove{ to{ stroke-dashoffset:-130; } }
+
+.gaslabel{ font-family:'Space Mono',monospace; font-size:11px; }
+.svglabel{ font-family:'Orbitron',sans-serif; font-size:11.5px; letter-spacing:.04em; }
+.svgsub{ font-family:'Space Mono',monospace; font-size:9.5px; }
+
+.readouts{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:18px;
+}
+.ro{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px;
+}
+.ro .label{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px;}
+.ro .val{ font-family:'Orbitron',sans-serif; font-size:19px; font-weight:700; }
+.ro .val span{ font-size:11px; color:var(--text-dim); font-weight:400; margin-left:3px;}
+.c-cyan{color:var(--cyan);} .c-amber{color:var(--amber);} .c-green{color:var(--green);} .c-violet{color:var(--violet);}
+
+.notes{
+  margin-top:22px; font-size:11px; color:var(--text-dim); line-height:1.7;
+  border-left:2px solid var(--cyan-dim); padding-left:14px;
+}
+.notes b{ color:var(--text); }
+
+footer{ text-align:center; margin-top:50px; font-size:10px; color:#4a5c68; letter-spacing:.08em;}
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">H2-GRID // MATERIALS &amp; PROCESS REFERENCE</div>
+    <h1>MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru</h1>
+    <div class="sub">Elemental origin map and full HER/OER electrolysis-to-grid schematic &middot; <b>Frank Levanti</b></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-view="pt">Elemental Map</button>
+    <button data-view="sc">Water-Splitting Schematic</button>
+  </nav>
+
+  <!-- =================== PERIODIC TABLE VIEW =================== -->
+  <section class="view active" id="view-pt">
+    <div class="pt-panel">
+      <div class="pt-legend">
+        <span class="item"><span class="sw role-her"></span>HER Cathode (Fe&middot;Mo&middot;S&middot;C)</span>
+        <span class="item"><span class="sw role-oer"></span>OER Anode (Ni&middot;Se)</span>
+        <span class="item"><span class="sw role-sub"></span>BDD Substrate (B&middot;C)</span>
+        <span class="item"><span class="sw role-cap"></span>ZIF-8 CO&#8322; Capture (Zn&middot;N&middot;C&middot;H)</span>
+        <span class="item"><span class="sw role-conv"></span>CO&#8322; Conversion (Cu&middot;Ru)</span>
+      </div>
+      <div class="grid-scroll">
+        <div class="ptable" id="ptable"></div>
+      </div>
+      <div class="fblock-note">Rows 8&ndash;9: Lanthanide (57&ndash;71) &amp; Actinide (89&ndash;103) series &mdash; not present in the composite, shown ghosted for reference.</div>
+
+      <div class="composite-strip" id="compStrip"></div>
+    </div>
+  </section>
+
+  <!-- =================== SCHEMATIC VIEW =================== -->
+  <section class="view" id="view-sc">
+    <div class="sc-controls">
+      <button class="src-btn active" data-src="fresh">Freshwater Feed</button>
+      <button class="src-btn" data-src="sea">Seawater Feed</button>
+      <button class="src-btn" data-src="atm">Atmospheric Harvest</button>
+      <button class="play-btn" id="playBtn">&#10073;&#10073; Pause Flow</button>
+    </div>
+
+    <div class="sc-panel">
+      <svg id="schemSvg" viewBox="0 0 1400 760" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cellGrad" x1="0" x2="1">
+            <stop offset="0" stop-color="#00e5ff" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#ffb300" stop-opacity=".18"/>
+          </linearGradient>
+          <marker id="arrowCyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#00e5ff"/>
+          </marker>
+          <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#ffb300"/>
+          </marker>
+          <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#39ff9d"/>
+          </marker>
+        </defs>
+
+        <!-- ===== Power source: solar + wind ===== -->
+        <g>
+          <text x="120" y="40" text-anchor="middle" class="svglabel" fill="#eaf6ff">RENEWABLE INPUT</text>
+          <!-- solar panel -->
+          <rect x="55" y="55" width="70" height="44" fill="#0d1a28" stroke="#2a4256"/>
+          <g stroke="#2a4256">
+            <line x1="72" y1="55" x2="72" y2="99"/><line x1="90" y1="55" x2="90" y2="99"/><line x1="108" y1="55" x2="108" y2="99"/>
+            <line x1="55" y1="70" x2="125" y2="70"/><line x1="55" y1="85" x2="125" y2="85"/>
+          </g>
+          <!-- wind turbine -->
+          <line x1="150" y1="150" x2="150" y2="70" stroke="#2a4256" stroke-width="3"/>
+          <circle cx="150" cy="68" r="3" fill="#00e5ff"/>
+          <g stroke="#00e5ff" stroke-width="2">
+            <line x1="150" y1="68" x2="150" y2="40"/>
+            <line x1="150" y1="68" x2="128" y2="82"/>
+            <line x1="150" y1="68" x2="172" y2="82"/>
+          </g>
+          <text x="120" y="168" text-anchor="middle" class="svgsub" fill="#7590a3">SOLAR + WIND DC</text>
+        </g>
+
+        <!-- Power electronics -->
+        <rect x="60" y="185" width="120" height="34" rx="4" fill="#0d1a28" stroke="#00e5ff"/>
+        <text x="120" y="206" text-anchor="middle" class="svgsub" fill="#00e5ff">DC/DC RECTIFIER</text>
+        <path class="flow" d="M120,99 L120,185" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+
+        <!-- ===== Water source (dynamic) ===== -->
+        <g id="srcGroup">
+          <rect x="40" y="270" width="160" height="70" rx="6" fill="#0d1a28" stroke="#2a4256"/>
+          <text x="120" y="295" text-anchor="middle" class="svglabel" fill="#eaf6ff" id="srcTitle">FRESHWATER</text>
+          <text x="120" y="315" text-anchor="middle" class="svgsub" fill="#7590a3" id="srcSub">low-ion source</text>
+          <text x="120" y="330" text-anchor="middle" class="svgsub" fill="#39ff9d" id="srcEff">baseline efficiency</text>
+        </g>
+        <path class="flow" d="M120,185 L120,270" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+        <path class="flow" d="M200,305 L250,305" stroke="#7fd7ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+
+        <!-- ===== Electrolyzer cell ===== -->
+        <g>
+          <rect x="250" y="220" width="340" height="230" rx="6" fill="url(#cellGrad)" stroke="#3a5468" stroke-width="1.5"/>
+          <text x="420" y="205" text-anchor="middle" class="svglabel" fill="#eaf6ff">ELECTROLYZER CELL</text>
+
+          <!-- cathode HER -->
+          <rect x="265" y="240" width="120" height="190" fill="#04212a" stroke="#00e5ff"/>
+          <text x="325" y="262" text-anchor="middle" class="svgsub" fill="#00e5ff">CATHODE &middot; HER</text>
+          <text x="325" y="278" text-anchor="middle" class="svgsub" fill="#7fd7ff">MAC-FeMoS&#8322;@C</text>
+          <text x="325" y="410" text-anchor="middle" class="gaslabel" fill="#00e5ff">2H&#8322;O+2e&#8315;&#8594;H&#8322;+2OH&#8315;</text>
+
+          <!-- BDD substrates (outer walls) -->
+          <rect x="252" y="240" width="10" height="190" fill="#eaf6ff" opacity=".85"/>
+          <rect x="588" y="240" width="10" height="190" fill="#eaf6ff" opacity=".85"/>
+          <text x="257" y="235" text-anchor="middle" class="svgsub" fill="#eaf6ff" transform="rotate(0)">BDD</text>
+
+          <!-- membrane -->
+          <rect x="405" y="240" width="30" height="190" fill="#12222f" stroke="#3a5468" stroke-dasharray="3 3"/>
+          <text x="420" y="335" text-anchor="middle" class="svgsub" fill="#7590a3" transform="rotate(-90 420,335)">ION MEMBRANE</text>
+
+          <!-- anode OER -->
+          <rect x="435" y="240" width="150" height="190" fill="#2a1c04" stroke="#ffb300"/>
+          <text x="510" y="262" text-anchor="middle" class="svgsub" fill="#ffb300">ANODE &middot; OER</text>
+          <text x="510" y="278" text-anchor="middle" class="svgsub" fill="#ffd77a">NiSe&#8322;</text>
+          <text x="510" y="410" text-anchor="middle" class="gaslabel" fill="#ffb300">4OH&#8315;&#8594;O&#8322;+2H&#8322;O+4e&#8315;</text>
+
+          <!-- electron flow external circuit -->
+          <path class="flow" d="M180,202 L180,140 L640,140 L640,240" stroke="#00e5ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+          <text x="410" y="130" text-anchor="middle" class="svgsub" fill="#00e5ff">e&#8315; external circuit (anode &#8594; cathode)</text>
+
+          <!-- ion flow through membrane -->
+          <path class="flow rev" d="M480,335 L360,335" stroke="#ffd77a" stroke-width="2" fill="none" marker-end="url(#arrowAmber)"/>
+          <text x="420" y="352" text-anchor="middle" class="svgsub" fill="#c99a3a">OH&#8315; transport</text>
+        </g>
+
+        <!-- H2 rising -->
+        <path class="flow" d="M325,240 L325,150 L720,150 L720,235" stroke="#00e5ff" stroke-width="3" fill="none" marker-end="url(#arrowCyan)"/>
+        <text x="620" y="145" text-anchor="middle" class="gaslabel" fill="#00e5ff">H&#8322; gas</text>
+
+        <!-- O2 rising / vented -->
+        <path class="flow rev" d="M510,240 L510,175 L760,175 L760,235" stroke="#ffb300" stroke-width="3" fill="none" marker-end="url(#arrowAmber)"/>
+        <text x="670" y="192" text-anchor="middle" class="gaslabel" fill="#ffb300">O&#8322; gas</text>
+
+        <!-- H2 storage tank -->
+        <g>
+          <rect x="690" y="235" width="60" height="120" rx="18" fill="#0d1a28" stroke="#00e5ff" stroke-width="1.5"/>
+          <text x="720" y="300" text-anchor="middle" class="svgsub" fill="#00e5ff">H&#8322;</text>
+          <text x="720" y="315" text-anchor="middle" class="svgsub" fill="#00e5ff">STORE</text>
+        </g>
+        <!-- O2 vent / capture -->
+        <g>
+          <rect x="735" y="235" width="55" height="120" rx="18" fill="#241a04" stroke="#ffb300" stroke-width="1.5"/>
+          <text x="762" y="300" text-anchor="middle" class="svgsub" fill="#ffb300">O&#8322;</text>
+          <text x="762" y="315" text-anchor="middle" class="svgsub" fill="#ffb300">VENT</text>
+        </g>
+
+        <!-- to fuel cell -->
+        <path class="flow" d="M720,355 L720,470 L900,470" stroke="#00e5ff" stroke-width="2.5" fill="none" marker-end="url(#arrowCyan)"/>
+        <path class="flow rev" d="M762,355 L762,500 L900,500" stroke="#ffb300" stroke-width="2.5" fill="none" marker-end="url(#arrowAmber)"/>
+
+        <!-- Fuel cell -->
+        <g>
+          <rect x="900" y="430" width="150" height="110" rx="6" fill="#0d1a28" stroke="#39ff9d" stroke-width="1.5"/>
+          <text x="975" y="455" text-anchor="middle" class="svglabel" fill="#39ff9d">PEM FUEL CELL</text>
+          <text x="975" y="472" text-anchor="middle" class="gaslabel" fill="#7590a3">H&#8322;+&#189;O&#8322;&#8594;H&#8322;O + e&#8315;</text>
+          <text x="975" y="500" text-anchor="middle" class="svgsub" fill="#39ff9d">DC power out</text>
+          <text x="975" y="518" text-anchor="middle" class="svgsub" fill="#39ff9d" id="fcPower">&mdash; kW</text>
+        </g>
+
+        <!-- water recycle -->
+        <path class="flow rev" d="M900,510 L860,510 L860,600 L120,600 L120,340" stroke="#7fd7ff" stroke-width="1.5" fill="none" stroke-dasharray="4 6" marker-end="url(#arrowCyan)"/>
+        <text x="500" y="616" text-anchor="middle" class="svgsub" fill="#5f7a8c">product water recycled to feed &middot; closed loop</text>
+
+        <!-- Inverter -->
+        <rect x="1080" y="450" width="110" height="70" rx="5" fill="#0d1a28" stroke="#2a4256"/>
+        <text x="1135" y="480" text-anchor="middle" class="svgsub" fill="#eaf6ff">GRID-TIE</text>
+        <text x="1135" y="495" text-anchor="middle" class="svgsub" fill="#eaf6ff">INVERTER</text>
+        <path class="flow" d="M1050,485 L1080,485" stroke="#39ff9d" stroke-width="2.5" fill="none" marker-end="url(#arrowGreen)"/>
+
+        <!-- Split to residential / commercial -->
+        <path class="flow" d="M1190,470 L1230,470 L1230,400" stroke="#39ff9d" stroke-width="2.5" fill="none" marker-end="url(#arrowGreen)"/>
+        <path class="flow" d="M1190,500 L1230,500 L1230,570" stroke="#39ff9d" stroke-width="2.5" fill="none" marker-end="url(#arrowGreen)"/>
+
+        <!-- Residential -->
+        <g>
+          <polygon points="1230,300 1290,335 1290,395 1170,395 1170,335" fill="#0d1a28" stroke="#39ff9d" stroke-width="1.5"/>
+          <rect x="1190" y="355" width="20" height="30" fill="#12222f" stroke="#2a4256"/>
+          <rect x="1245" y="350" width="16" height="16" fill="#12222f" stroke="#2a4256"/>
+          <text x="1230" y="290" text-anchor="middle" class="svglabel" fill="#39ff9d">RESIDENTIAL</text>
+          <text x="1230" y="415" text-anchor="middle" class="svgsub" fill="#7590a3" id="resLoad">&mdash; homes</text>
+        </g>
+
+        <!-- Commercial -->
+        <g>
+          <rect x="1175" y="570" width="115" height="80" fill="#0d1a28" stroke="#39ff9d" stroke-width="1.5"/>
+          <g stroke="#2a4256">
+            <line x1="1195" y1="580" x2="1195" y2="640"/><line x1="1215" y1="580" x2="1215" y2="640"/>
+            <line x1="1235" y1="580" x2="1235" y2="640"/><line x1="1255" y1="580" x2="1255" y2="640"/><line x1="1275" y1="580" x2="1275" y2="640"/>
+          </g>
+          <text x="1232" y="560" text-anchor="middle" class="svglabel" fill="#39ff9d">COMMERCIAL</text>
+          <text x="1232" y="665" text-anchor="middle" class="svgsub" fill="#7590a3" id="comLoad">&mdash; kW facility</text>
+        </g>
+
+        <!-- CO2 loop annotation (secondary, dimmed) -->
+        <g opacity=".55">
+          <rect x="250" y="470" width="340" height="150" rx="6" fill="#0d1a28" stroke="#b98cff" stroke-dasharray="4 4"/>
+          <text x="420" y="495" text-anchor="middle" class="svglabel" fill="#b98cff">PARALLEL CO&#8322; VALORIZATION LOOP</text>
+          <text x="420" y="518" text-anchor="middle" class="svgsub" fill="#c9b3ff">ZIF-8 capture &#8594; Cu reduction &#8594; Ru hydrogenation</text>
+          <text x="420" y="538" text-anchor="middle" class="svgsub" fill="#c9b3ff">CO&#8322; + Cu (e&#8315;) &#8594; CO/HCOO&#8315; &#8594; Ru + H&#8322; &#8594; CH&#8323;OH / hydrocarbons</text>
+          <text x="420" y="565" text-anchor="middle" class="svgsub" fill="#7590a3">shares HER-sourced H&#8322; and rectified DC current; not connected to the electricity export path shown above</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <div class="readouts">
+      <div class="ro"><div class="label">Cell Voltage</div><div class="val c-cyan" id="roVolt">1.63<span>V</span></div></div>
+      <div class="ro"><div class="label">Current Density</div><div class="val c-amber" id="roCurrent">412<span>mA/cm&sup2;</span></div></div>
+      <div class="ro"><div class="label">H&#8322; Production</div><div class="val c-cyan" id="roH2">18.4<span>Nm&sup3;/h</span></div></div>
+      <div class="ro"><div class="label">System Efficiency</div><div class="val c-green" id="roEff">71.2<span>%</span></div></div>
+      <div class="ro"><div class="label">Fuel Cell Output</div><div class="val c-green" id="roPower">46.8<span>kW</span></div></div>
+      <div class="ro"><div class="label">Grid Export</div><div class="val c-violet" id="roGrid">44.1<span>kW</span></div></div>
+    </div>
+
+    <div class="notes">
+      <b>How to read this:</b> the electrolyzer stack (center) is the same MAC-FeMoS&#8322;@NiSe&#8322;-BDD cell from the thesis diagram, redrawn as a power-generation path. Renewable DC drives HER at the iron-doped MoS&#8322; cathode and OER at the NiSe&#8322; anode; boron-doped diamond forms the low-resistance current collectors on both faces. Rather than piping H&#8322; off-site, this configuration stores it briefly and feeds a co-located PEM fuel cell, converting it back to grid-ready electricity for a residential/commercial mix &mdash; useful for peaker-style dispatch, backup power, or sites without a hydrogen offtake buyer. Toggle the feed source above to see how freshwater, seawater, and atmospheric-harvested water shift the assumed system efficiency shown in the readouts.
+    </div>
+  </section>
+
+  <footer>MAC-FeMoS2@NiSe2-BDD-ZIF-8-Cu-Ru &middot; reference schematic, not a certified engineering drawing</footer>
+</div>
+
+<script>
+/* ---------- particle field ---------- */
+const pf = document.getElementById('particles');
+for(let i=0;i<40;i++){
+  const s=document.createElement('span');
+  s.style.left = Math.random()*100+'%';
+  s.style.animationDelay = (Math.random()*14)+'s';
+  s.style.animationDuration = (10+Math.random()*10)+'s';
+  pf.appendChild(s);
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------- periodic table data ---------- */
+// [num, sym, name, period, col]
+const ELS = [
+[1,'H','Hydrogen',1,1],[2,'He','Helium',1,18],
+[3,'Li','Lithium',2,1],[4,'Be','Beryllium',2,2],[5,'B','Boron',2,13],[6,'C','Carbon',2,14],[7,'N','Nitrogen',2,15],[8,'O','Oxygen',2,16],[9,'F','Fluorine',2,17],[10,'Ne','Neon',2,18],
+[11,'Na','Sodium',3,1],[12,'Mg','Magnesium',3,2],[13,'Al','Aluminium',3,13],[14,'Si','Silicon',3,14],[15,'P','Phosphorus',3,15],[16,'S','Sulfur',3,16],[17,'Cl','Chlorine',3,17],[18,'Ar','Argon',3,18],
+[19,'K','Potassium',4,1],[20,'Ca','Calcium',4,2],[21,'Sc','Scandium',4,3],[22,'Ti','Titanium',4,4],[23,'V','Vanadium',4,5],[24,'Cr','Chromium',4,6],[25,'Mn','Manganese',4,7],[26,'Fe','Iron',4,8],[27,'Co','Cobalt',4,9],[28,'Ni','Nickel',4,10],[29,'Cu','Copper',4,11],[30,'Zn','Zinc',4,12],[31,'Ga','Gallium',4,13],[32,'Ge','Germanium',4,14],[33,'As','Arsenic',4,15],[34,'Se','Selenium',4,16],[35,'Br','Bromine',4,17],[36,'Kr','Krypton',4,18],
+[37,'Rb','Rubidium',5,1],[38,'Sr','Strontium',5,2],[39,'Y','Yttrium',5,3],[40,'Zr','Zirconium',5,4],[41,'Nb','Niobium',5,5],[42,'Mo','Molybdenum',5,6],[43,'Tc','Technetium',5,7],[44,'Ru','Ruthenium',5,8],[45,'Rh','Rhodium',5,9],[46,'Pd','Palladium',5,10],[47,'Ag','Silver',5,11],[48,'Cd','Cadmium',5,12],[49,'In','Indium',5,13],[50,'Sn','Tin',5,14],[51,'Sb','Antimony',5,15],[52,'Te','Tellurium',5,16],[53,'I','Iodine',5,17],[54,'Xe','Xenon',5,18],
+[55,'Cs','Caesium',6,1],[56,'Ba','Barium',6,2],[72,'Hf','Hafnium',6,4],[73,'Ta','Tantalum',6,5],[74,'W','Tungsten',6,6],[75,'Re','Rhenium',6,7],[76,'Os','Osmium',6,8],[77,'Ir','Iridium',6,9],[78,'Pt','Platinum',6,10],[79,'Au','Gold',6,11],[80,'Hg','Mercury',6,12],[81,'Tl','Thallium',6,13],[82,'Pb','Lead',6,14],[83,'Bi','Bismuth',6,15],[84,'Po','Polonium',6,16],[85,'At','Astatine',6,17],[86,'Rn','Radon',6,18],
+[87,'Fr','Francium',7,1],[88,'Ra','Radium',7,2],[104,'Rf','Rutherfordium',7,4],[105,'Db','Dubnium',7,5],[106,'Sg','Seaborgium',7,6],[107,'Bh','Bohrium',7,7],[108,'Hs','Hassium',7,8],[109,'Mt','Meitnerium',7,9],[110,'Ds','Darmstadtium',7,10],[111,'Rg','Roentgenium',7,11],[112,'Cn','Copernicium',7,12],[113,'Nh','Nihonium',7,13],[114,'Fl','Flerovium',7,14],[115,'Mc','Moscovium',7,15],[116,'Lv','Livermorium',7,16],[117,'Ts','Tennessine',7,17],[118,'Og','Oganesson',7,18],
+[57,'La','Lanthanum',9,4],[58,'Ce','Cerium',9,5],[59,'Pr','Praseodymium',9,6],[60,'Nd','Neodymium',9,7],[61,'Pm','Promethium',9,8],[62,'Sm','Samarium',9,9],[63,'Eu','Europium',9,10],[64,'Gd','Gadolinium',9,11],[65,'Tb','Terbium',9,12],[66,'Dy','Dysprosium',9,13],[67,'Ho','Holmium',9,14],[68,'Er','Erbium',9,15],[69,'Tm','Thulium',9,16],[70,'Yb','Ytterbium',9,17],[71,'Lu','Lutetium',9,18],
+[89,'Ac','Actinium',10,4],[90,'Th','Thorium',10,5],[91,'Pa','Protactinium',10,6],[92,'U','Uranium',10,7],[93,'Np','Neptunium',10,8],[94,'Pu','Plutonium',10,9],[95,'Am','Americium',10,10],[96,'Cm','Curium',10,11],[97,'Bk','Berkelium',10,12],[98,'Cf','Californium',10,13],[99,'Es','Einsteinium',10,14],[100,'Fm','Fermium',10,15],[101,'Md','Mendelevium',10,16],[102,'No','Nobelium',10,17],[103,'Lr','Lawrencium',10,18]
+];
+
+const ROLES = {
+  H:{cls:'cap',role:'CO\u2082 Capture Framework',desc:'Ligand hydrogen throughout the ZIF-8 imidazolate framework that adsorbs CO\u2082 from mixed streams.'},
+  B:{cls:'sub',role:'BDD Substrate',desc:'Boron dopant in boron-doped diamond \u2014 gives the diamond lattice conductive, corrosion-resistant \u201celectron highway\u201d character.'},
+  C:{cls:'sub',role:'BDD / Carbon Encapsulation',desc:'Diamond lattice backbone (BDD) and the carbon shell encapsulating Fe-MoS\u2082, preventing active-site poisoning.'},
+  N:{cls:'cap',role:'ZIF-8 Framework Node',desc:'Imidazolate nitrogen coordinating Zn centers in ZIF-8, defining its CO\u2082-selective pore structure.'},
+  S:{cls:'her',role:'HER Catalyst \u2014 MoS\u2082',desc:'Sulfur in the MoS\u2082 lattice; iron doping and carbon encapsulation optimize its hydrogen evolution activity.'},
+  Fe:{cls:'her',role:'HER Dopant',desc:'Iron dopant in MAC-FeMoS\u2082 that tunes the electronic structure of MoS\u2082 for enhanced hydrogen evolution.'},
+  Ni:{cls:'oer',role:'OER Catalyst \u2014 NiSe\u2082',desc:'Nickel selenide anode catalyst driving the oxygen evolution half-reaction.'},
+  Cu:{cls:'conv',role:'CO\u2082 Reduction',desc:'Initiates CO\u2082 reduction and C-C coupling toward hydrocarbon products.'},
+  Zn:{cls:'cap',role:'ZIF-8 Metal Node',desc:'Zinc coordination center of the ZIF-8 metal-organic framework, the CO\u2082-capture component.'},
+  Se:{cls:'oer',role:'OER Catalyst \u2014 NiSe\u2082',desc:'Selenide anion partnering nickel in the OER catalyst, the "oxygen generator" of the composite.'},
+  Mo:{cls:'her',role:'HER Catalyst \u2014 MoS\u2082',desc:'Molybdenum host lattice of the iron-doped hydrogen evolution catalyst.'},
+  Ru:{cls:'conv',role:'CO\u2082 Hydrogenation',desc:'Drives hydrogenation of reduced carbon intermediates toward methanol and long-chain hydrocarbons.'}
+};
+
+const ptable = document.getElementById('ptable');
+const tooltip = document.getElementById('tooltip');
+
+ELS.forEach(([num,sym,name,period,col])=>{
+  const cell = document.createElement('div');
+  cell.className='cell';
+  cell.style.gridColumn = col;
+  cell.style.gridRow = period<=7 ? period : period; // rows 9,10 used directly for f-block, row 8 left as gap
+  const role = ROLES[sym];
+  if(role){
+    cell.classList.add('active', role.cls);
+  }
+  cell.innerHTML = `<span class="num">${num}</span><span class="sym">${sym}</span>`;
+  if(role){
+    cell.addEventListener('mouseenter',(e)=>{
+      tooltip.innerHTML = `<div class="t-sym">${sym} &middot; ${name}</div><div class="t-role">${role.role}</div><div class="t-desc">${role.desc}</div>`;
+      tooltip.classList.add('show');
+    });
+    cell.addEventListener('mousemove',(e)=>{
+      tooltip.style.left = Math.min(e.clientX+14, window.innerWidth-250)+'px';
+      tooltip.style.top = (e.clientY+14)+'px';
+    });
+    cell.addEventListener('mouseleave',()=> tooltip.classList.remove('show'));
+  }
+  ptable.appendChild(cell);
+});
+// add a gap row 8 spacer so f-block visually separates from row 7
+for(let c=1;c<=18;c++){
+  const sp=document.createElement('div');
+  sp.className='cell spacer';
+  sp.style.gridColumn=c; sp.style.gridRow=8;
+  ptable.appendChild(sp);
+}
+
+/* composite fragment strip */
+const frags = [
+  {t:'MAC-FeMoS\u2082',cls:'her'},{t:'@NiSe\u2082',cls:'oer'},{t:'-BDD-',cls:'sub'},{t:'ZIF-8',cls:'cap'},{t:'-Cu-Ru',cls:'conv'}
+];
+const compStrip = document.getElementById('compStrip');
+frags.forEach(f=>{
+  const el=document.createElement('span');
+  el.className='frag '+f.cls;
+  el.style.color = getComputedStyle(document.documentElement).getPropertyValue(
+    f.cls==='her'?'--cyan':f.cls==='oer'?'--amber':f.cls==='sub'?'--text':f.cls==='cap'?'--green':'--violet'
+  );
+  el.textContent=f.t;
+  compStrip.appendChild(el);
+});
+
+/* ---------- schematic controls ---------- */
+const srcData = {
+  fresh:{title:'FRESHWATER',sub:'low-ion source',eff:'baseline efficiency',effMult:1.0},
+  sea:{title:'SEAWATER',sub:'BDD suppresses Cl\u2082 evolution',eff:'\u22124% efficiency vs freshwater',effMult:0.94},
+  atm:{title:'ATMOSPHERIC HARVEST',sub:'condensed vapor feed',eff:'\u22128% efficiency, off-grid ready',effMult:0.89}
+};
+document.querySelectorAll('.src-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.src-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = srcData[btn.dataset.src];
+    document.getElementById('srcTitle').textContent = d.title;
+    document.getElementById('srcSub').textContent = d.sub;
+    document.getElementById('srcEff').textContent = d.eff;
+    currentEffMult = d.effMult;
+  });
+});
+
+let currentEffMult = 1.0;
+let paused = false;
+const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click',()=>{
+  paused = !paused;
+  document.getElementById('schemSvg').classList.toggle('paused',paused);
+  playBtn.classList.toggle('paused',paused);
+  playBtn.innerHTML = paused ? '&#9654; Resume Flow' : '&#10073;&#10073; Pause Flow';
+});
+
+/* ---------- live telemetry ---------- */
+function jitter(base, amt){ return (base + (Math.random()-0.5)*amt); }
+function tick(){
+  const v = jitter(1.63,0.06);
+  const cur = jitter(412,25);
+  const h2 = jitter(18.4,1.4)*currentEffMult;
+  const eff = jitter(71.2,2.2)*currentEffMult;
+  const fcPower = jitter(46.8,3.0)*currentEffMult;
+  const grid = fcPower*0.943;
+  document.getElementById('roVolt').innerHTML = v.toFixed(2)+'<span>V</span>';
+  document.getElementById('roCurrent').innerHTML = cur.toFixed(0)+'<span>mA/cm\u00b2</span>';
+  document.getElementById('roH2').innerHTML = h2.toFixed(1)+'<span>Nm\u00b3/h</span>';
+  document.getElementById('roEff').innerHTML = eff.toFixed(1)+'<span>%</span>';
+  document.getElementById('roPower').innerHTML = fcPower.toFixed(1)+'<span>kW</span>';
+  document.getElementById('roGrid').innerHTML = grid.toFixed(1)+'<span>kW</span>';
+  document.getElementById('fcPower').textContent = fcPower.toFixed(1)+' kW';
+  document.getElementById('resLoad').textContent = Math.max(1,Math.round(grid*0.55/1.2))+' homes @ ~1.2kW avg';
+  document.getElementById('comLoad').textContent = (grid*0.45).toFixed(1)+' kW facility';
+}
+tick();
+setInterval(()=>{ if(!paused) tick(); }, 2200);
+</script>
+</body>
+</html>

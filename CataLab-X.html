@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>CataLab-X</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{background:#030d06;color:#c0ffcc;font-family:'Space Mono',monospace;overscroll-behavior:none;overflow-x:hidden;}
+  button{font-family:'Space Mono',monospace;touch-action:manipulation;}
+  input[type=range]{accent-color:#00ff88;width:100%;}
+  ::-webkit-scrollbar{width:0;}
+
+  #app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+
+  /* HEADER */
+  #header{background:#040e07;border-bottom:1px solid #0a3a1a;padding:10px 14px 8px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:200;}
+  .logo{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#00ff88;letter-spacing:2px;}
+  .sub{font-size:7px;color:#2a5a3a;letter-spacing:1px;}
+  .rev-val{color:#00ff88;font-size:14px;font-weight:bold;}
+  .rev-lbl{font-size:7px;color:#2a5a3a;text-align:right;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#1a4a2a;flex-shrink:0;}
+  .status-dot.on{background:#00ff88;box-shadow:0 0 6px #00ff88;}
+
+  /* CONTENT */
+  #content{flex:1;overflow-y:auto;padding:12px 12px 80px;-webkit-overflow-scrolling:touch;}
+
+  /* BOTTOM NAV */
+  #nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#040e07;border-top:1px solid #0a3a1a;display:flex;z-index:200;}
+  .nav-btn{flex:1;padding:10px 0 8px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-top:2px solid transparent;}
+  .nav-btn.active{border-top:2px solid #00ff88;}
+  .nav-btn span.icon{font-size:16px;}
+  .nav-btn span.lbl{font-size:8px;color:#2a5a3a;letter-spacing:0.5px;}
+  .nav-btn.active span.lbl{color:#00ff88;}
+
+  /* CARDS */
+  .card{background:#060f0a;border:1px solid #1a4a2a;border-radius:10px;padding:12px;margin-bottom:10px;}
+  .card-title{font-size:9px;letter-spacing:2px;margin-bottom:8px;}
+
+  /* ELEMENT GRIDS */
+  .el-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+  .el-btn{padding:7px 2px;border:1px solid #1a3a2a;background:#0a1a12;border-radius:5px;cursor:pointer;text-align:center;}
+  .el-btn.sel{background:transparent;}
+  .el-name{font-size:10px;font-weight:bold;color:#4a7a5a;}
+  .el-role{font-size:7px;color:#2a4a3a;margin-top:1px;}
+
+  /* SUPPORT/PROMOTER */
+  .col2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .list-btn{padding:6px 8px;border:1px solid #1a3a2a;background:#0a1a12;border-radius:5px;cursor:pointer;text-align:left;margin-bottom:4px;width:100%;}
+  .list-btn.sel{border-color:#44aaff;background:#44aaff11;}
+  .list-btn.selp{border-color:#ffcc00;background:#ffcc0011;}
+  .list-name{font-size:9px;font-weight:bold;color:#4a7a5a;}
+  .list-sub{font-size:7px;color:#2a4a3a;}
+
+  /* STATS GRID */
+  .stats6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;}
+  .stat-box{background:#0a1a12;border-radius:6px;padding:8px 6px;text-align:center;}
+  .stat-val{font-size:12px;font-weight:bold;}
+  .stat-lbl{font-size:7px;color:#3a5a4a;margin-top:1px;}
+
+  /* BARS */
+  .bar-wrap{height:4px;background:#0a2a12;border-radius:2px;overflow:hidden;flex:1;}
+  .bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+
+  /* BUTTONS */
+  .gen-btn{width:100%;padding:14px;border:1px solid #00ff88;border-radius:8px;background:linear-gradient(135deg,#00ff8822,#00aa5522);color:#00ff88;font-size:12px;cursor:pointer;letter-spacing:2px;font-weight:bold;font-family:'Space Mono',monospace;}
+  .gen-btn:disabled{background:#00ff8811;color:#3a7a5a;cursor:not-allowed;box-shadow:none;}
+  .sell-btn{width:100%;padding:10px;border:1px solid #00ff88;border-radius:6px;background:#00ff8811;color:#00ff88;font-size:11px;cursor:pointer;letter-spacing:1px;font-weight:bold;}
+
+  /* TANK */
+  .tank-outer{width:44px;height:80px;border:1.5px solid;border-radius:0 0 6px 6px;background:#060f0a;position:relative;overflow:hidden;}
+  .tank-fill{position:absolute;bottom:0;left:0;right:0;transition:height 1s;}
+  .tank-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;z-index:1;}
+  .small-sell{width:44px;padding:4px 0;border-radius:4px;font-size:8px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:0.5px;}
+
+  /* REACTOR */
+  #reactor-canvas{border-radius:8px;border:1px solid #1a3a2a;display:block;width:100%;}
+  .react-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0a2012;font-size:10px;}
+  .react-key{color:#3a6a4a;}
+  .react-val{font-weight:bold;}
+
+  /* PORTFOLIO ITEM */
+  .cat-item{background:#060f0a;border:1px solid #1a3a2a;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;}
+  .cat-item.sel{background:#0a2a1a;}
+
+  /* DETAIL ROW */
+  .drow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0a2012;font-size:9px;}
+  .dk{color:#3a6a4a;}
+  .dv{color:#9acca8;}
+
+  /* CURVE SVG */
+  .curve-box{background:#060f0a;border-radius:6px;}
+
+  .grade-badge{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;}
+  .empty-state{text-align:center;padding:60px 20px;color:#1a4a2a;font-size:11px;}
+
+  .preview-name{color:#00ff88;font-size:12px;font-weight:bold;}
+  .preview-sub{font-size:8px;color:#2a5a3a;margin-top:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div>
+      <div class="logo">⬡ CATALAB-X</div>
+      <div class="sub">CATALYST LABORATORY</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div>
+        <div class="rev-lbl">REVENUE</div>
+        <div class="rev-val" id="hdr-rev">$0.00</div>
+      </div>
+      <div class="status-dot" id="status-dot"></div>
+    </div>
+  </div>
+
+  <div id="content"></div>
+
+  <div id="nav">
+    <button class="nav-btn active" data-tab="gen" onclick="switchTab('gen')">
+      <span class="icon">⚗</span><span class="lbl">Gen</span>
+    </button>
+    <button class="nav-btn" data-tab="detail" onclick="switchTab('detail')">
+      <span class="icon">🔬</span><span class="lbl">Info</span>
+    </button>
+    <button class="nav-btn" data-tab="reactor" onclick="switchTab('reactor')">
+      <span class="icon">⚡</span><span class="lbl">React</span>
+    </button>
+    <button class="nav-btn" data-tab="storage" onclick="switchTab('storage')">
+      <span class="icon">🧪</span><span class="lbl">Store</span>
+    </button>
+    <button class="nav-btn" data-tab="port" onclick="switchTab('port')">
+      <span class="icon">📊</span><span class="lbl">List</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const ELEMENTS = {
+  Pt:{name:"Platinum",accent:"#C0C0C0",role:"noble",activity:0.95,cost:32000},
+  Ir:{name:"Iridium",accent:"#2ECC71",role:"noble",activity:0.92,cost:52000},
+  Ru:{name:"Ruthenium",accent:"#16A085",role:"noble",activity:0.88,cost:14000},
+  Ni:{name:"Nickel",accent:"#95A5A6",role:"transition",activity:0.65,cost:14},
+  Co:{name:"Cobalt",accent:"#3498DB",role:"transition",activity:0.70,cost:33},
+  Fe:{name:"Iron",accent:"#E74C3C",role:"transition",activity:0.60,cost:0.09},
+  Mo:{name:"Molybdenum",accent:"#9B59B6",role:"transition",activity:0.75,cost:40},
+  W:{name:"Tungsten",accent:"#E67E22",role:"transition",activity:0.72,cost:35},
+  MoS2:{name:"MoS₂",accent:"#2ECC71",role:"chalcog.",activity:0.78,cost:120},
+  NiP:{name:"Ni₂P",accent:"#8E44AD",role:"phosphide",activity:0.80,cost:85},
+  CoP:{name:"CoP",accent:"#2471A3",role:"phosphide",activity:0.82,cost:95},
+  g_C3N4:{name:"g-C₃N₄",accent:"#F39C12",role:"nitride",activity:0.68,cost:25},
+  FeN:{name:"Fe-N-C",accent:"#E74C3C",role:"nitride",activity:0.76,cost:180},
+  RuO2:{name:"RuO₂",accent:"#1ABC9C",role:"oxide",activity:0.91,cost:9200},
+  IrO2:{name:"IrO₂",accent:"#27AE60",role:"oxide",activity:0.93,cost:21000},
+  NiFeOx:{name:"NiFeOₓ",accent:"#A04000",role:"oxide",activity:0.83,cost:45}
+};
+const SUPPORTS = {
+  carbon:{name:"Carbon Black",conductivity:0.95,stability:0.80,cost:5},
+  graphene:{name:"Graphene",conductivity:0.99,stability:0.90,cost:300},
+  CNT:{name:"CNT",conductivity:0.97,stability:0.88,cost:150},
+  TiO2:{name:"TiO₂",conductivity:0.30,stability:0.98,cost:8},
+  ZrO2:{name:"ZrO₂",conductivity:0.25,stability:0.99,cost:65},
+  SiC:{name:"SiC",conductivity:0.60,stability:0.97,cost:40}
+};
+const PROMOTERS = {
+  none:{name:"None",modifier:1.0},
+  S:{name:"S",modifier:1.12},
+  P:{name:"P",modifier:1.18},
+  N:{name:"N",modifier:1.15},
+  B:{name:"B",modifier:1.10},
+  F:{name:"F",modifier:1.08}
+};
+const GC = {"A+":"#00ff88","A":"#44ff88","B+":"#aaff44","B":"#ffcc00","C":"#ff8844"};
+
+// ── STATE ─────────────────────────────────────────────
+let state = {
+  tab:"gen",
+  primary:"Pt", secondary:"none", support:"carbon", promoter:"none", loading:20,
+  cats:[], sel:null,
+  running:false, rtime:0,
+  storage:{H2:0,O2:0,H2O2:0},
+  revenue:0, busy:false
+};
+let reactorTimer=null, reactorAnim=null, reactorParticles=[];
+
+// ── GENERATE ──────────────────────────────────────────
+function generate(){
+  const {primary,secondary,support,promoter,loading}=state;
+  const p=ELEMENTS[primary], s=secondary!=="none"?ELEMENTS[secondary]:null;
+  const sup=SUPPORTS[support], pro=PROMOTERS[promoter];
+  const base=p.activity*(s?(0.7+0.3*s.activity):1.0);
+  const her=Math.min(0.99,base*(sup.conductivity*0.15+0.85)*pro.modifier*(0.7+loading/100*0.6)*(1+Math.random()*0.05));
+  const oer=Math.min(0.99,her*0.93*(1+Math.random()*0.03));
+  const stab=(sup.stability*0.4+p.activity*0.6)*(0.85+Math.random()*0.15);
+  const etaHER=Math.round((1-her)*450+20);
+  const etaOER=Math.round((1-oer)*600+200);
+  const ECSA=Math.round(50+her*250+Math.random()*50);
+  const TOF=parseFloat((her*8.5+Math.random()*1.5).toFixed(2));
+  const H2=parseFloat((her*15+Math.random()*3).toFixed(2));
+  const O2=parseFloat((H2/2*0.95).toFixed(2));
+  const H2O2=parseFloat(((1-her*0.95)*2.5).toFixed(3));
+  const H2Rev=H2*3.5, O2Rev=O2*0.15, H2O2Rev=H2O2*1400;
+  const grade=her>0.88?"A+":her>0.80?"A":her>0.72?"B+":her>0.65?"B":"C";
+  const sname=SUPPORTS[support].name.split(" ")[0];
+  const pstr=promoter!=="none"?`-${promoter}`:"";
+  const name=s?`${primary}-${secondary}/${sname}${pstr}`:`${primary}/${sname}${pstr}`;
+  return {
+    id:Date.now(), name, primary, secondary, support, promoter, loading,
+    her:parseFloat((her*100).toFixed(1)), oer:parseFloat((oer*100).toFixed(1)),
+    stab:parseFloat((stab*100).toFixed(1)), etaHER, etaOER,
+    tafelHER:Math.round(30+(1-her)*90), tafelOER:Math.round(40+(1-oer)*80),
+    ECSA, TOF, H2, O2, H2O2,
+    H2Rev:parseFloat(H2Rev.toFixed(2)), O2Rev:parseFloat(O2Rev.toFixed(2)), H2O2Rev:parseFloat(H2O2Rev.toFixed(2)),
+    totalRev:parseFloat((H2Rev+O2Rev+H2O2Rev).toFixed(2)),
+    grade, accent:p.accent,
+    time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})
+  };
+}
+
+// ── REACTOR CANVAS ────────────────────────────────────
+function startReactorCanvas(){
+  const canvas=document.getElementById("rcanvas");
+  if(!canvas)return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+  reactorParticles=[];
+  for(let i=0;i<28;i++){
+    reactorParticles.push({
+      x:40+Math.random()*(W-80),y:H-15+Math.random()*10,
+      vy:-(Math.random()*1.5+0.5),r:Math.random()*2.5+0.5,
+      c:Math.random()>0.5?"#00ff88":"#4488ff",life:Math.random()
+    });
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#060f0a"; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#0d2a18"; ctx.fillRect(20,10,16,H-20); ctx.fillRect(W-36,10,16,H-20);
+    ctx.fillStyle="rgba(0,80,200,0.07)"; ctx.fillRect(36,10,W-72,H-20);
+    reactorParticles.forEach(p=>{
+      p.y+=p.vy; p.life+=0.008;
+      if(p.y<5||p.life>1){p.y=H-10;p.x=36+Math.random()*(W-72);p.life=0;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      const alpha=Math.floor((1-p.life)*200).toString(16).padStart(2,"0");
+      ctx.fillStyle=p.c+alpha; ctx.fill();
+    });
+    ctx.fillStyle="#00ff88"; ctx.font="8px monospace"; ctx.fillText("(-)",22,H-4);
+    ctx.fillStyle="#ff6b35"; ctx.fillText("(+)",W-34,H-4);
+    reactorAnim=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopReactorCanvas(){
+  if(reactorAnim)cancelAnimationFrame(reactorAnim);
+  reactorAnim=null; reactorParticles=[];
+  const canvas=document.getElementById("rcanvas");
+  if(canvas){const ctx=canvas.getContext("2d");ctx.fillStyle="#060f0a";ctx.fillRect(0,0,canvas.width,canvas.height);}
+}
+
+// ── POLAR CURVE SVG ───────────────────────────────────
+function polarCurveSVG(cat, type){
+  const isHER=type==="HER";
+  const act=isHER?cat.her/100:cat.oer/100;
+  const eta=isHER?cat.etaHER:cat.etaOER;
+  const color=isHER?"#00ff88":"#ff6b35";
+  const w=148,h=78;
+  const pts=Array.from({length:20},(_,i)=>{
+    const e=(i/19)*(eta+250);
+    const j=Math.min(act*10*Math.exp(0.5*96485*e*0.001/(8.314*298)),120);
+    return `${18+(e/(eta+250))*(w-22)},${h-7-(j/120)*(h-16)}`;
+  }).join(" ");
+  return `<svg width="${w}" height="${h}" style="display:block">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/>
+    <line x1="18" y1="4" x2="18" y2="${h-7}" stroke="#1a3a2a" stroke-width="1"/>
+    <line x1="18" y1="${h-7}" x2="${w-3}" y2="${h-7}" stroke="#1a3a2a" stroke-width="1"/>
+    <text x="${w-3}" y="11" font-size="8" fill="${color}" text-anchor="end">${type}</text>
+  </svg>`;
+}
+
+// ── MINI BAR HTML ─────────────────────────────────────
+function miniBar(value,max,color){
+  const pct=Math.min((value/max)*100,100);
+  return `<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>`;
+}
+
+// ── RENDER TABS ───────────────────────────────────────
+function renderGen(){
+  const {primary,secondary,support,promoter,loading,busy}=state;
+  const supName=SUPPORTS[support].name.split(" ")[0];
+  const proStr=promoter!=="none"?`-${promoter}`:"";
+  const prevName=secondary!=="none"?`${primary}-${secondary}/${supName}${proStr}`:`${primary}/${supName}${proStr}`;
+  const secEl=ELEMENTS[secondary]||null;
+
+  let primaryBtns=Object.entries(ELEMENTS).map(([k,el])=>`
+    <button class="el-btn${primary===k?" sel":""}" style="${primary===k?`border-color:${el.accent};background:${el.accent}22`:""}" onclick="setPrimary('${k}')">
+      <div class="el-name" style="color:${primary===k?el.accent:"#4a7a5a"}">${k}</div>
+      <div class="el-role">${el.role}</div>
+    </button>`).join("");
+
+  let secBtns=`<button class="el-btn${secondary==="none"?" sel":""}" style="${secondary==="none"?"border-color:#00ff88;background:#00ff8822":""}" onclick="setSecondary('none')">
+    <div class="el-name" style="color:${secondary==="none"?"#00ff88":"#4a7a5a"}">None</div></button>`;
+  secBtns+=Object.entries(ELEMENTS).filter(([k])=>k!==primary).map(([k,el])=>`
+    <button class="el-btn${secondary===k?" sel":""}" style="${secondary===k?`border-color:${el.accent};background:${el.accent}22`:""}" onclick="setSecondary('${k}')">
+      <div class="el-name" style="color:${secondary===k?el.accent:"#4a7a5a"}">${k}</div>
+      <div class="el-role">${el.role}</div>
+    </button>`).join("");
+
+  let supBtns=Object.entries(SUPPORTS).map(([k,s])=>`
+    <button class="list-btn${support===k?" sel":""}" onclick="setSupport('${k}')">
+      <div class="list-name" style="color:${support===k?"#44aaff":"#4a7a5a"}">${k}</div>
+      <div class="list-sub">σ ${(s.conductivity*100).toFixed(0)}%</div>
+    </button>`).join("");
+
+  let proBtns=Object.entries(PROMOTERS).map(([k,pr])=>`
+    <button class="list-btn${promoter===k?" selp":""}" onclick="setPromoter('${k}')">
+      <div class="list-name" style="color:${promoter===k?"#ffcc00":"#4a7a5a"}">${pr.name}</div>
+      <div class="list-sub">×${pr.modifier}</div>
+    </button>`).join("");
+
+  return `
+    <div class="card">
+      <div class="card-title" style="color:#00ff88">PRIMARY CATALYST</div>
+      <div class="el-grid">${primaryBtns}</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#00ff88">SECONDARY COMPONENT</div>
+      <div class="el-grid">${secBtns}</div>
+    </div>
+    <div class="col2">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title" style="color:#44aaff">SUPPORT</div>
+        ${supBtns}
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title" style="color:#ffcc00">PROMOTER</div>
+        ${proBtns}
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span class="card-title" style="color:#00ff88;margin-bottom:0">METAL LOADING</span>
+        <span style="color:#00ff88;font-size:11px;font-weight:bold">${loading} wt%</span>
+      </div>
+      <input type="range" min="5" max="60" value="${loading}" oninput="setLoading(this.value)"/>
+    </div>
+    <div class="card">
+      <div style="font-size:8px;color:#3a6a4a;margin-bottom:4px">PREVIEW</div>
+      <div class="preview-name">${prevName}</div>
+      <div class="preview-sub">${ELEMENTS[primary].name}${secondary!=="none"?` + ${ELEMENTS[secondary].name}`:""} on ${SUPPORTS[support].name}</div>
+    </div>
+    <button class="gen-btn" onclick="doGenerate()" ${busy?"disabled":""}>
+      ${busy?"⟳  SYNTHESIZING...":"⬡  GENERATE CATALYST"}
+    </button>`;
+}
+
+function renderDetail(){
+  const c=state.sel;
+  if(!c) return `<div class="empty-state"><div style="font-size:36px">⬡</div><br>Generate a catalyst first</div>`;
+  const gc2=GC[c.grade];
+  return `
+    <div class="card" style="border-color:${c.accent}44">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1;margin-right:10px">
+          <div style="font-family:'Orbitron',sans-serif;font-size:13px;color:${c.accent};font-weight:700;word-break:break-all">${c.name}</div>
+          <div style="font-size:8px;color:#3a6a4a;margin-top:4px">${c.loading}wt% · ${c.time}</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div class="grade-badge" style="color:${gc2}">${c.grade}</div>
+          <div style="font-size:7px;color:#3a5a4a">GRADE</div>
+        </div>
+      </div>
+      <div class="stats6">
+        ${[["HER",c.her+"%","#00ff88"],["OER",c.oer+"%","#ff6b35"],["Stability",c.stab+"%","#44aaff"],
+           ["ECSA",c.ECSA,"#ffcc00"],["TOF",c.TOF+"s⁻¹","#ff44aa"],["Rev/h","$"+c.totalRev,"#44ffaa"]]
+          .map(([k,v,col])=>`<div class="stat-box" style="border:1px solid ${col}18"><div class="stat-val" style="color:${col}">${v}</div><div class="stat-lbl">${k}</div></div>`).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">PERFORMANCE BARS</div>
+      ${[["HER Activity",c.her,100,"#00ff88"],["OER Activity",c.oer,100,"#ff6b35"],
+         ["Stability",c.stab,100,"#44aaff"],["ECSA (m²/g)",c.ECSA,350,"#ffcc00"]]
+        .map(([lbl,val,max,col])=>`
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:9px;color:#4a7a5a">${lbl}</span>
+              <span style="font-size:9px;color:${col}">${val}</span>
+            </div>
+            ${miniBar(val,max,col)}
+          </div>`).join("")}
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">POLARIZATION CURVES</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          ${polarCurveSVG(c,"HER")}
+          <div style="font-size:8px;color:#3a5a4a;margin-top:4px">η@10mA: <span style="color:#00ff88">-${c.etaHER}mV</span></div>
+          <div style="font-size:8px;color:#3a5a4a">Tafel: <span style="color:#00ff88">${c.tafelHER} mV/dec</span></div>
+        </div>
+        <div>
+          ${polarCurveSVG(c,"OER")}
+          <div style="font-size:8px;color:#3a5a4a;margin-top:4px">η@10mA: <span style="color:#ff6b35">+${c.etaOER}mV</span></div>
+          <div style="font-size:8px;color:#3a5a4a">Tafel: <span style="color:#ff6b35">${c.tafelOER} mV/dec</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">MATERIAL PROPERTIES</div>
+      ${[["Particle Size",(2+(100-c.her)*0.3).toFixed(1)+" nm"],
+         ["BET Surface",Math.round(c.ECSA*1.8)+" m²/g"],
+         ["Metal Dispersion",Math.round(c.her*0.9)+"%"],
+         ["Thermal Stability",(SUPPORTS[c.support].stability>0.9?">800":">500")+" °C"],
+         ["Crystal Structure",ELEMENTS[c.primary].role==="noble"?"FCC":"Mixed phase"],
+         ["Support σ",(SUPPORTS[c.support].conductivity*100).toFixed(0)+" S/m"]]
+        .map(([k,v])=>`<div class="drow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("")}
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#ffcc00">PRODUCTION ECONOMICS</div>
+      ${[["H₂ Rate",c.H2+" mmol/h/mg","#00ff88"],["O₂ Rate",c.O2+" mmol/h/mg","#ff6b35"],
+         ["H₂O₂",c.H2O2+" mmol/h/mg","#ffcc00"],["H₂ Rev/h","$"+c.H2Rev,"#00ff88"],
+         ["O₂ Rev/h","$"+c.O2Rev,"#ff6b35"],["H₂O₂ Rev/h","$"+c.H2O2Rev,"#ffcc00"],
+         ["TOTAL Rev/h","$"+c.totalRev,"#44ffaa"]]
+        .map(([k,v,col])=>`<div class="drow"><span class="dk">${k}</span><span style="color:${col};font-weight:${k.includes("TOTAL")?"bold":"normal"}">${v}</span></div>`).join("")}
+    </div>`;
+}
+
+function renderReactor(){
+  const {sel,running,rtime}=state;
+  const metrics=sel?[
+    ["H₂ Gen", running?(sel.H2*0.6).toFixed(2)+" mmol/s":"—","#00ff88"],
+    ["O₂ Gen", running?(sel.O2*0.6).toFixed(2)+" mmol/s":"—","#ff6b35"],
+    ["H₂O₂", running?(sel.H2O2*0.6).toFixed(4)+" mmol/s":"—","#ffcc00"],
+    ["Faradaic Eff.", running?(sel.her*0.96).toFixed(1)+"%":"—","#44aaff"],
+    ["Cell Voltage", running?(1.23+(sel.etaHER+sel.etaOER)*0.001).toFixed(2)+" V":"—","#aaaaff"],
+    ["Runtime",`${Math.floor(rtime/120)}h ${Math.floor((rtime%120)/2)}m`,"#888888"]
+  ]:[];
+
+  return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="card-title" style="color:#00ff88;margin-bottom:0">⚗ ELECTROLYZER</span>
+        <button onclick="toggleReactor()" style="padding:6px 14px;border:1px solid ${running?"#ff4444":"#00ff88"};background:${running?"#ff444422":"#00ff8822"};color:${running?"#ff4444":"#00ff88"};border-radius:5px;font-family:'Space Mono',monospace;font-size:10px;cursor:pointer">
+          ${running?"■ STOP":"▶ START"}
+        </button>
+      </div>
+      <canvas id="rcanvas" width="320" height="130" style="border-radius:8px;border:1px solid #1a3a2a;display:block;width:100%;"></canvas>
+    </div>
+
+    ${sel?`<div class="card">
+      <div class="card-title" style="color:#4a7a5a">REAL-TIME METRICS</div>
+      ${metrics.map(([k,v,col])=>`
+        <div class="react-row">
+          <span class="react-key">${k}</span>
+          <span class="react-val" style="color:${running?col:"#2a4a3a"}">${v}</span>
+        </div>`).join("")}
+    </div>`:`<div class="card"><div style="color:#2a4a3a;font-size:10px;text-align:center;padding:16px">Generate a catalyst first</div></div>`}
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">ACTIVE CATALYST</div>
+      ${sel?`<div style="color:${sel.accent};font-size:12px;font-weight:bold">${sel.name}</div>
+        <div style="font-size:8px;color:#3a5a4a;margin-top:4px">Grade: <span style="color:${GC[sel.grade]}">${sel.grade}</span> · HER: ${sel.her}% · OER: ${sel.oer}%</div>`
+      :`<div style="color:#2a4a3a;font-size:10px">No catalyst loaded</div>`}
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">REACTOR CONFIG</div>
+      ${[["Electrolyte","1M KOH"],["Membrane","Nafion 117"],["Electrode Area","25 cm²"],["Pressure","1 atm"]]
+        .map(([k,v])=>`<div class="drow"><span class="dk">${k}</span><span style="color:#7aaa8a">${v}</span></div>`).join("")}
+    </div>`;
+}
+
+function renderStorage(){
+  const {storage,revenue,running,sel}=state;
+  const tanks=[
+    {id:"H2",label:"H₂ GAS",amt:storage.H2,cap:100,color:"#00ff88",price:3.5},
+    {id:"O2",label:"O₂ GAS",amt:storage.O2,cap:100,color:"#ff6b35",price:0.15},
+    {id:"H2O2",label:"H₂O₂",amt:storage.H2O2,cap:10,color:"#ffcc00",price:1400}
+  ];
+  const tankHTML=tanks.map(t=>{
+    const pct=Math.min((t.amt/t.cap)*100,100);
+    const hex2=(t.amt>=0.01)?"99":"33";
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+      <div style="font-size:9px;color:${t.color};letter-spacing:1px">${t.label}</div>
+      <div class="tank-outer" style="border-color:${t.color}">
+        <div class="tank-fill" style="height:${pct}%;background:linear-gradient(to top,${t.color}99,${t.color}33)"></div>
+        <div class="tank-num">${t.amt.toFixed(1)}</div>
+      </div>
+      <button class="small-sell" onclick="sell('${t.id}')" ${t.amt<0.01?"disabled":""}
+        style="border:1px solid ${t.amt>=0.01?t.color:"#1a3a2a"};background:${t.amt>=0.01?t.color+"22":"transparent"};color:${t.amt>=0.01?t.color:"#2a4a3a"}">
+        SELL
+      </button>
+    </div>`;
+  }).join("");
+
+  return `
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">PRODUCT STORAGE TANKS</div>
+      <div style="display:flex;justify-content:space-around;padding:4px 0">${tankHTML}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">MARKET PRICES</div>
+      ${tanks.map(t=>`
+        <div style="padding:8px 0;border-bottom:1px solid #0a2012">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:${t.color};font-size:10px;font-weight:bold">${t.label}</span>
+            <span style="color:#3a6a4a;font-size:9px">$${t.price} / mmol</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#3a5a4a;font-size:9px">Stored: ${t.amt.toFixed(1)} mmol</span>
+            <span style="color:${t.color};font-size:9px">Est. $${(t.amt*t.price).toFixed(2)}</span>
+          </div>
+        </div>`).join("")}
+    </div>
+
+    <div class="card" style="border-color:#00ff8844">
+      <div class="card-title" style="color:#4a7a5a">REVENUE SUMMARY</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[["💰 Total Revenue","$"+revenue.toFixed(2),"#00ff88"],
+           ["⬡ Best Catalyst",sel?sel.grade:"—",sel?GC[sel.grade]:"#2a4a3a"],
+           ["⚡ Reactor",running?"RUNNING":"IDLE",running?"#00ff88":"#2a4a3a"],
+           ["🧪 H₂ Stored",storage.H2.toFixed(1)+" mmol","#00ff88"]]
+          .map(([k,v,col])=>`<div style="background:#0a1a12;border-radius:6px;padding:10px 8px;text-align:center">
+            <div style="color:${col};font-size:13px;font-weight:bold">${v}</div>
+            <div style="color:#2a4a3a;font-size:8px;margin-top:2px">${k}</div>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <button class="sell-btn" onclick="sellAll()">💰 SELL ALL PRODUCTS</button>`;
+}
+
+function renderPort(){
+  const {cats,sel}=state;
+  if(!cats.length) return `<div class="empty-state"><div style="font-size:36px">⬡</div><br>No catalysts yet</div>`;
+  const stats=`
+    <div class="card">
+      <div class="card-title" style="color:#4a7a5a">PORTFOLIO STATS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        ${[["Total",cats.length,"#00ff88"],
+           ["Best HER",Math.max(...cats.map(c=>c.her)).toFixed(1)+"%","#00ff88"],
+           ["Best OER",Math.max(...cats.map(c=>c.oer)).toFixed(1)+"%","#ff6b35"],
+           ["Top Rev/h","$"+Math.max(...cats.map(c=>c.totalRev)).toFixed(2),"#44ffaa"]]
+          .map(([k,v,col])=>`<div style="background:#0a1a12;border-radius:6px;padding:8px;text-align:center">
+            <div style="color:${col};font-size:12px;font-weight:bold">${v}</div>
+            <div style="color:#2a4a3a;font-size:8px">${k}</div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+  const items=cats.map(c=>`
+    <div class="cat-item${sel&&sel.id===c.id?" sel":""}" style="${sel&&sel.id===c.id?`border-color:${c.accent}66`:""}" onclick="selectCat(${c.id})">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="flex:1">
+          <div style="color:${c.accent};font-size:11px;font-weight:bold;word-break:break-all">${c.name}</div>
+          <div style="font-size:8px;color:#3a5a4a;margin-top:2px">${c.time}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          <div style="color:${GC[c.grade]};font-size:14px;font-weight:bold;font-family:'Orbitron',sans-serif">${c.grade}</div>
+          <div style="color:#44ff88;font-size:10px">$${c.totalRev}/h</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <div style="flex:1">
+          <div style="font-size:7px;color:#2a5a3a;margin-bottom:2px">HER ${c.her}%</div>
+          ${miniBar(c.her,100,"#00ff88")}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:7px;color:#2a5a3a;margin-bottom:2px">OER ${c.oer}%</div>
+          ${miniBar(c.oer,100,"#ff6b35")}
+        </div>
+      </div>
+    </div>`).join("");
+  return stats+items;
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render(){
+  const content=document.getElementById("content");
+  const {tab}=state;
+  switch(tab){
+    case"gen": content.innerHTML=renderGen(); break;
+    case"detail": content.innerHTML=renderDetail(); break;
+    case"reactor":
+      content.innerHTML=renderReactor();
+      if(state.running) setTimeout(startReactorCanvas,50);
+      else setTimeout(()=>{const c=document.getElementById("rcanvas");if(c){const ctx=c.getContext("2d");ctx.fillStyle="#060f0a";ctx.fillRect(0,0,c.width,c.height);}},50);
+      break;
+    case"storage": content.innerHTML=renderStorage(); break;
+    case"port": content.innerHTML=renderPort(); break;
+  }
+  document.querySelectorAll(".nav-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===tab);
+  });
+  document.getElementById("hdr-rev").textContent="$"+state.revenue.toFixed(2);
+  document.getElementById("status-dot").className="status-dot"+(state.running?" on":"");
+}
+
+// ── ACTIONS ───────────────────────────────────────────
+function switchTab(t){
+  if(state.tab==="reactor"&&t!=="reactor"){
+    cancelAnimationFrame(reactorAnim); reactorAnim=null;
+  }
+  state.tab=t;
+  render();
+  document.getElementById("content").scrollTop=0;
+}
+function setPrimary(k){ state.primary=k; if(state.secondary===k)state.secondary="none"; render(); }
+function setSecondary(k){ state.secondary=k; render(); }
+function setSupport(k){ state.support=k; render(); }
+function setPromoter(k){ state.promoter=k; render(); }
+function setLoading(v){ state.loading=parseInt(v); render(); }
+
+function doGenerate(){
+  if(state.busy)return;
+  state.busy=true; render();
+  setTimeout(()=>{
+    const cat=generate();
+    state.cats.unshift(cat);
+    state.sel=cat;
+    state.busy=false;
+    state.tab="detail";
+    render();
+  },1000);
+}
+
+function toggleReactor(){
+  if(!state.sel)return;
+  state.running=!state.running;
+  if(state.running){
+    reactorTimer=setInterval(()=>{
+      state.rtime++;
+      state.storage.H2=Math.min(state.storage.H2+state.sel.H2*0.008,100);
+      state.storage.O2=Math.min(state.storage.O2+state.sel.O2*0.008,100);
+      state.storage.H2O2=Math.min(state.storage.H2O2+state.sel.H2O2*0.008,10);
+      // update metrics only if on reactor tab
+      if(state.tab==="reactor") updateReactorMetrics();
+      if(state.tab==="storage") render();
+      document.getElementById("hdr-rev").textContent="$"+state.revenue.toFixed(2);
+      document.getElementById("status-dot").className="status-dot on";
+    },600);
+    render();
+    setTimeout(startReactorCanvas,80);
+  } else {
+    clearInterval(reactorTimer);
+    stopReactorCanvas();
+    render();
+  }
+}
+
+function updateReactorMetrics(){
+  const c=state.sel; if(!c||!state.running)return;
+  const rows=document.querySelectorAll(".react-val");
+  const vals=[
+    (c.H2*0.6).toFixed(2)+" mmol/s",
+    (c.O2*0.6).toFixed(2)+" mmol/s",
+    (c.H2O2*0.6).toFixed(4)+" mmol/s",
+    (c.her*0.96).toFixed(1)+"%",
+    (1.23+(c.etaHER+c.etaOER)*0.001).toFixed(2)+" V",
+    `${Math.floor(state.rtime/120)}h ${Math.floor((state.rtime%120)/2)}m`
+  ];
+  rows.forEach((r,i)=>{ if(vals[i])r.textContent=vals[i]; });
+}
+
+function sell(product){
+  const prices={H2:3.5,O2:0.15,H2O2:1400};
+  state.revenue+=state.storage[product]*prices[product];
+  state.storage[product]=0;
+  render();
+}
+function sellAll(){ sell("H2"); sell("O2"); sell("H2O2"); }
+
+function selectCat(id){
+  state.sel=state.cats.find(c=>c.id===id);
+  state.tab="detail";
+  render();
+}
+
+// ── INIT ──────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
